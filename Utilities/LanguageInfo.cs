@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Utilities
 {
     /// <summary>
     ///     The source of data about the programming language - Name, Copyright, Version, etc.
     /// </summary>
-    public class LanguageInfo
+    public static class LanguageInfo
     {
         public static readonly string Name;
         public static readonly string Description;
         public static readonly string Copyright;
-        public static readonly string Version;
+        public static readonly string ShortVersion;
+        public static readonly string FullVersion;
 
         static LanguageInfo()
         {
@@ -21,7 +21,8 @@ namespace Utilities
             Name = GetAssemblyAttribute<AssemblyTitleAttribute>(assembly)?.Title;
             Description = GetAssemblyAttribute<AssemblyDescriptionAttribute>(assembly)?.Description;
             Copyright = GetAssemblyAttribute<AssemblyCopyrightAttribute>(assembly)?.Copyright;
-            Version = GetAssemblyAttribute<AssemblyVersionAttribute>(assembly)?.Version;
+            FullVersion = GetAssemblyAttribute<AssemblyFileVersionAttribute>(assembly)?.Version;
+            ShortVersion = FullVersion?.Substring(0, FullVersion.LastIndexOf('.'));
         }
 
         private static T GetAssemblyAttribute<T>(ICustomAttributeProvider assembly)

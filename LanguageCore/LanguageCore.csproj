@@ -4,11 +4,11 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{6D2B4648-D1BA-4EBA-A617-7C3DF64201A3}</ProjectGuid>
+        <ProjectGuid>{EACFB61C-2C66-4337-BC19-4FB0E80B71ED}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Repl</RootNamespace>
-        <AssemblyName>Repl</AssemblyName>
+        <RootNamespace>LanguageCore</RootNamespace>
+        <AssemblyName>LanguageCore</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -38,18 +38,31 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="ReadEvalPrintLoop.cs" />
+        <Compile Include="CodeAnalysis\Binding\Binder.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundBinaryExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundBinaryOperator.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundBinaryOperatorKind.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundLiteralExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundNode.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundNodeKind.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundUnaryExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundUnaryOperator.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundUnaryOperatorKind.cs" />
+        <Compile Include="CodeAnalysis\Evaluator.cs" />
+        <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\Lexer.cs" />
+        <Compile Include="CodeAnalysis\Syntax\LiteralExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ParenthesizedExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\Parser.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxFacts.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxKind.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxNode.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxToken.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
+        <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\LanguageCore\LanguageCore.csproj">
-        <Project>{eacfb61c-2c66-4337-bc19-4fb0e80b71ed}</Project>
-        <Name>LanguageCore</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\Utilities\Utilities.csproj">
-        <Project>{60d645f5-a566-4c23-8a36-949db6a1d43e}</Project>
-        <Name>Utilities</Name>
-      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
