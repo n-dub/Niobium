@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using LanguageCore.CodeAnalysis.Binding;
 
 namespace LanguageCore.CodeAnalysis
@@ -6,10 +7,12 @@ namespace LanguageCore.CodeAnalysis
     public sealed class Evaluator
     {
         private readonly BoundExpression root;
+        private readonly Dictionary<string, object> variables;
 
-        public Evaluator(BoundExpression root)
+        public Evaluator(BoundExpression root, Dictionary<string, object> variables)
         {
             this.root = root;
+            this.variables = variables;
         }
 
         public object Evaluate()
@@ -40,6 +43,16 @@ namespace LanguageCore.CodeAnalysis
                         default:
                             throw new Exception($"Unexpected unary operator {unary.Op}");
                     }
+                }
+                case BoundVariableExpression variable:
+                {
+                    return variables[variable.Name];
+                }
+                case BoundAssignmentExpression assignment:
+                {
+                    var value = EvaluateExpression(assignment.Expression);
+                    variables[assignment.Name] = value;
+                    return value;
                 }
                 case BoundBinaryExpression binary:
                 {

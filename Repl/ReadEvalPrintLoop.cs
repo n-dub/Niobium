@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
 using LanguageCore.CodeAnalysis.Syntax;
@@ -9,6 +10,7 @@ namespace Repl
     public class ReadEvalPrintLoop
     {
         private bool showParseTrees;
+        private Dictionary<string, object> variables = new Dictionary<string, object>();
 
         public void Start()
         {
@@ -39,7 +41,7 @@ namespace Repl
             {
                 var syntaxTree = SyntaxTree.Parse(sourceLine);
                 var compilation = new Compilation(syntaxTree);
-                var result = compilation.Evaluate();
+                var result = compilation.Evaluate(variables);
 
                 if (showParseTrees)
                 {
@@ -50,7 +52,7 @@ namespace Repl
 
                 if (!result.Diagnostics.Any())
                 {
-                    Console.WriteLine($"$tmp: {result.Value.GetType().Name} = {result.Value}");
+                    Console.WriteLine(result);
                 }
                 else
                 {

@@ -7,11 +7,15 @@ namespace LanguageCore.CodeAnalysis
     {
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
         public object Value { get; }
+        public string Name { get; }
 
-        public EvaluationResult(IEnumerable<Diagnostic> diagnostics, object value)
+        public EvaluationResult(IEnumerable<Diagnostic> diagnostics, object value, string name)
         {
             Diagnostics = diagnostics.ToArray();
             Value = value;
+            Name = name;
         }
+
+        public override string ToString() => $"{Name}: {Value.GetType().Name} = {Value}";
     }
 }
