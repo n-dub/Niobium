@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Util
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageCore", "LanguageCore\LanguageCore.csproj", "{EACFB61C-2C66-4337-BC19-4FB0E80B71ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageCore.Tests", "LanguageCore.Tests\LanguageCore.Tests.csproj", "{BF83CBDA-980B-4123-A436-9E753CF1896E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{EACFB61C-2C66-4337-BC19-4FB0E80B71ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EACFB61C-2C66-4337-BC19-4FB0E80B71ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EACFB61C-2C66-4337-BC19-4FB0E80B71ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF83CBDA-980B-4123-A436-9E753CF1896E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF83CBDA-980B-4123-A436-9E753CF1896E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF83CBDA-980B-4123-A436-9E753CF1896E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF83CBDA-980B-4123-A436-9E753CF1896E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

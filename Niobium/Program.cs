@@ -3,7 +3,7 @@ using System.Linq;
 using Repl;
 using Utilities;
 
-namespace Niobium
+namespace LanguageCore
 {
     internal static class Program
     {

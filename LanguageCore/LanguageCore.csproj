@@ -66,6 +66,7 @@
         <Compile Include="CodeAnalysis\Syntax\Parser.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxFacts.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxKind.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxKindExtensions.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxNode.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxToken.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />

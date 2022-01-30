@@ -9,7 +9,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         public SyntaxKind SyntaxKind { get; }
         public BoundBinaryOperatorKind Kind { get; }
         public Type LeftType { get; }
-        public Type RightTye { get; }
+        public Type RightType { get; }
         public Type Type { get; }
 
         private static readonly BoundBinaryOperator[] operators =
@@ -41,13 +41,13 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
         }
 
-        private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type leftType, Type rightTye,
+        private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type leftType, Type rightType,
             Type resultType)
         {
             SyntaxKind = syntaxKind;
             Kind = kind;
             LeftType = leftType;
-            RightTye = rightTye;
+            RightType = rightType;
             Type = resultType;
         }
 
@@ -55,7 +55,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             return operators.FirstOrDefault(op => op.SyntaxKind == syntaxKind
                                                   && op.LeftType == leftType
-                                                  && op.RightTye == rightType);
+                                                  && op.RightType == rightType);
         }
     }
 }
