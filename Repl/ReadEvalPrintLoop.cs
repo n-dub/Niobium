@@ -23,18 +23,20 @@ namespace Repl
 
         private bool ProcessCommand(out string evalResult, int commandNumber)
         {
-            Console.Write($"{commandNumber,3}>> ");
+            Console.Write($"{commandNumber,3}> ");
             var sourceLine = Console.ReadLine();
             evalResult = null;
 
-            if (string.IsNullOrEmpty(sourceLine)) return string.Empty == sourceLine;
+            if (string.IsNullOrEmpty(sourceLine))
+            {
+                return string.Empty == sourceLine;
+            }
 
             if (sourceLine.First() != ':')
             {
                 var syntaxTree = SyntaxTree.Parse(sourceLine);
-                var binder = new Binder();
-                var boundExpression = binder.BindExpression(syntaxTree.Root);
-                var diagnostics = binder.Diagnostics.Concat(syntaxTree.Diagnostics).ToArray();
+                var compilation = new Compilation(syntaxTree);
+                var result = compilation.Evaluate();
 
                 if (showParseTrees)
                 {
@@ -43,17 +45,18 @@ namespace Repl
                     Console.ResetColor();
                 }
 
-                if (!diagnostics.Any())
+                if (!result.Diagnostics.Any())
                 {
-                    var e = new Evaluator(boundExpression);
-                    var result = e.Evaluate();
-                    Console.WriteLine(result);
+                    Console.WriteLine($"$tmp: {result.Value.GetType().Name} = {result.Value}");
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
 
-                    foreach (var diagnostic in diagnostics) Console.WriteLine(diagnostic);
+                    foreach (var diagnostic in result.Diagnostics)
+                    {
+                        Console.WriteLine(diagnostic);
+                    }
 
                     Console.ResetColor();
                 }
@@ -65,13 +68,18 @@ namespace Repl
             {
                 case ":help":
                 case ":?":
-                    Console.WriteLine("Useful help message about REPL commands...");
+                    Console.WriteLine(
+                        @"Commands available in Niobium REPL:
+   <niobium-expression>         Evaluate Niobium expression
+   :help, :?                    Show this message with the list of commands
+   :show-parse-tree             Toggle showing parse tree of last expression
+   :quit                        Exit the REPL");
                     break;
                 case ":show-parse-tree":
                     showParseTrees = !showParseTrees;
                     Console.WriteLine(showParseTrees ? "Showing parse trees." : "Not showing parse trees");
                     break;
-                case ":exit":
+                case ":quit":
                     return false;
                 default:
                     Console.WriteLine($"Invalid REPL command: {sourceLine}");
@@ -102,7 +110,9 @@ namespace Repl
             var lastChild = node.GetChildren().LastOrDefault();
 
             foreach (var child in node.GetChildren())
+            {
                 PrettyPrint(child, indent, child == lastChild);
+            }
         }
     }
 }

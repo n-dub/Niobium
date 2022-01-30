@@ -21,7 +21,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 token = lexer.Lex();
 
-                if (token.Kind != SyntaxKind.WhitespaceToken && token.Kind != SyntaxKind.BadToken) tokenList.Add(token);
+                if (token.Kind != SyntaxKind.WhitespaceToken && token.Kind != SyntaxKind.BadToken)
+                {
+                    tokenList.Add(token);
+                }
             } while (token.Kind != SyntaxKind.EndOfFileToken);
 
             tokens = tokenList.ToArray();
@@ -53,7 +56,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private SyntaxToken MatchToken(SyntaxKind kind)
         {
             if (Current.Kind == kind)
+            {
                 return NextToken();
+            }
 
             diagnostics.Add($"ERROR: Unexpected token <{Current.Kind}>, expected <{kind}>");
             return new SyntaxToken(kind, Current.Position, null, null);
@@ -78,7 +83,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 var precedence = Current.Kind.GetBinaryOperatorPrecedence();
                 if (precedence == 0 || precedence <= parentPrecedence)
+                {
                     break;
+                }
 
                 var operatorToken = NextToken();
                 var right = ParseExpression(precedence);
