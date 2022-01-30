@@ -133,7 +133,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     var value = keywordToken.Kind == SyntaxKind.TrueKeyword;
                     return new LiteralExpressionSyntax(keywordToken, value);
                 }
-                
+
                 case SyntaxKind.IdentifierToken:
                 {
                     var identifierToken = NextToken();

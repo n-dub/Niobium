@@ -50,6 +50,12 @@ namespace LanguageCore.CodeAnalysis
             Report(span, message);
         }
 
+        public void ReportUndefinedName(TextSpan span, string name)
+        {
+            var message = $"Variable '{name}' doesn't exist.";
+            Report(span, message);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -59,12 +65,6 @@ namespace LanguageCore.CodeAnalysis
         {
             var diagnostic = new Diagnostic(span, message);
             diagnostics.Add(diagnostic);
-        }
-
-        public void ReportUndefinedName(TextSpan span, string name)
-        {
-            var message = $"Variable '{name}' doesn't exist.";
-            Report(span, message);
         }
     }
 }
