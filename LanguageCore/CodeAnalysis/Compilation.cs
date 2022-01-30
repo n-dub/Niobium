@@ -15,7 +15,7 @@ namespace LanguageCore.CodeAnalysis
             SyntaxTree = syntaxTree;
         }
 
-        public EvaluationResult Evaluate(Dictionary<string, object> variables)
+        public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
             var binder = new Binder(variables);
             var boundExpression = binder.BindExpression(SyntaxTree.Root);
@@ -24,10 +24,10 @@ namespace LanguageCore.CodeAnalysis
             switch (boundExpression)
             {
                 case BoundVariableExpression variable:
-                    name = variable.Name;
+                    name = variable.Variable.Name;
                     break;
                 case BoundAssignmentExpression assignment:
-                    name = assignment.Name;
+                    name = assignment.Variable.Name;
                     break;
             }
 

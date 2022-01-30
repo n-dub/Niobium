@@ -7,9 +7,9 @@ namespace LanguageCore.CodeAnalysis
     public sealed class Evaluator
     {
         private readonly BoundExpression root;
-        private readonly Dictionary<string, object> variables;
+        private readonly Dictionary<VariableSymbol, object> variables;
 
-        public Evaluator(BoundExpression root, Dictionary<string, object> variables)
+        public Evaluator(BoundExpression root, Dictionary<VariableSymbol, object> variables)
         {
             this.root = root;
             this.variables = variables;
@@ -46,12 +46,12 @@ namespace LanguageCore.CodeAnalysis
                 }
                 case BoundVariableExpression variable:
                 {
-                    return variables[variable.Name];
+                    return variables[variable.Variable];
                 }
                 case BoundAssignmentExpression assignment:
                 {
                     var value = EvaluateExpression(assignment.Expression);
-                    variables[assignment.Name] = value;
+                    variables[assignment.Variable] = value;
                     return value;
                 }
                 case BoundBinaryExpression binary:

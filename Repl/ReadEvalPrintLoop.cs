@@ -10,7 +10,7 @@ namespace Repl
     public class ReadEvalPrintLoop
     {
         private bool showParseTrees;
-        private readonly Dictionary<string, object> variables = new Dictionary<string, object>();
+        private readonly Dictionary<VariableSymbol, object> variables = new Dictionary<VariableSymbol, object>();
 
         public void Start()
         {

@@ -71,6 +71,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\TextSpan.cs" />
+        <Compile Include="CodeAnalysis\VariableSymbol.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

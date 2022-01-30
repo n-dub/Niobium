@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.Binding
@@ -7,9 +8,9 @@ namespace LanguageCore.CodeAnalysis.Binding
     internal sealed class Binder
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
-        private readonly Dictionary<string, object> variables;
+        private readonly Dictionary<VariableSymbol, object> variables;
 
-        public Binder(Dictionary<string, object> variables)
+        public Binder(Dictionary<VariableSymbol, object> variables)
         {
             this.variables = variables;
         }
@@ -38,22 +39,29 @@ namespace LanguageCore.CodeAnalysis.Binding
         private BoundExpression BindNameExpression(NameExpressionSyntax syntax)
         {
             var name = syntax.IdentifierToken.Text;
-            if (!variables.TryGetValue(name, out var value))
+            var variable = variables.Keys.FirstOrDefault(v => v.Name == name);
+
+            if (variable == null)
             {
                 Diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
                 return new BoundLiteralExpression(0);
             }
 
-            var type = value.GetType();
-            return new BoundVariableExpression(name, type);
+            return new BoundVariableExpression(variable);
         }
 
         private BoundExpression BindAssignmentExpression(AssignmentExpressionSyntax syntax)
         {
             var name = syntax.IdentifierToken.Text;
             var boundExpression = BindExpression(syntax.Expression);
-            variables[name] = Activator.CreateInstance(boundExpression.Type);
-            return new BoundAssignmentExpression(name, boundExpression);
+            
+            var existingVariable = variables.Keys.FirstOrDefault(v => v.Name == name);
+            if (existingVariable != null)
+                variables.Remove(existingVariable);
+            
+            var variable = new VariableSymbol(name, boundExpression.Type);
+            variables[variable] = null;
+            return new BoundAssignmentExpression(variable, boundExpression);
         }
 
         private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax syntax)
