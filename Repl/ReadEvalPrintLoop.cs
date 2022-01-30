@@ -16,10 +16,12 @@ namespace Repl
             Console.WriteLine("You can evaluate Niobium expressions and more (type :help or :? to get help).");
 
             for (var i = 1; ProcessCommand(out var evalResult, i); ++i)
+            {
                 if (evalResult != null)
                 {
                     Console.WriteLine(evalResult);
                 }
+            }
         }
 
         private bool ProcessCommand(out string evalResult, int commandNumber)
@@ -126,7 +128,10 @@ namespace Repl
 
             var lastChild = node.GetChildren().LastOrDefault();
 
-            foreach (var child in node.GetChildren()) PrettyPrint(child, indent, child == lastChild);
+            foreach (var child in node.GetChildren())
+            {
+                PrettyPrint(child, indent, child == lastChild);
+            }
         }
     }
 }

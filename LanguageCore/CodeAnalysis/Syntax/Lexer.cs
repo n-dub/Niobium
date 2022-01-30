@@ -27,7 +27,10 @@
 
             if (char.IsDigit(Current))
             {
-                while (char.IsDigit(Current)) Next();
+                while (char.IsDigit(Current))
+                {
+                    Next();
+                }
 
                 var length = position - start;
                 var text = sourceText.Substring(start, length);
@@ -41,7 +44,10 @@
 
             if (char.IsWhiteSpace(Current))
             {
-                while (char.IsWhiteSpace(Current)) Next();
+                while (char.IsWhiteSpace(Current))
+                {
+                    Next();
+                }
 
                 var length = position - start;
                 var text = sourceText.Substring(start, length);
@@ -50,7 +56,10 @@
 
             if (char.IsLetter(Current))
             {
-                while (char.IsLetter(Current)) Next();
+                while (char.IsLetter(Current))
+                {
+                    Next();
+                }
 
                 var length = position - start;
                 var text = sourceText.Substring(start, length);
