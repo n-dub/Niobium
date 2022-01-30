@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
-    public sealed class Binder
+    internal sealed class Binder
     {
-        public IEnumerable<string> Diagnostics => diagnostics;
-        private readonly List<string> diagnostics = new List<string>();
+        public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
         public BoundExpression BindExpression(ExpressionSyntax syntax)
         {
@@ -39,8 +37,8 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (boundOperator == null)
             {
-                diagnostics.Add(
-                    $"Unary operator '{syntax.OperatorToken.Text}' is not defined for type {boundOperand.Type}.");
+                Diagnostics.ReportUndefinedUnaryOperator(syntax.OperatorToken.Span, syntax.OperatorToken.Text,
+                    boundOperand.Type);
                 return boundOperand;
             }
 
@@ -55,8 +53,8 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (boundOperator == null)
             {
-                diagnostics.Add(
-                    $"Binary operator '{syntax.OperatorToken.Text}' is not defined for types {boundLeft.Type} and {boundRight.Type}.");
+                Diagnostics.ReportUndefinedBinaryOperator(syntax.OperatorToken.Span, syntax.OperatorToken.Text,
+                    boundLeft.Type, boundRight.Type);
                 return boundLeft;
             }
 

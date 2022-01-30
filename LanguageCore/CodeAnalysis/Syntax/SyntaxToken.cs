@@ -9,6 +9,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public int Position { get; }
         public string Text { get; }
         public object Value { get; }
+        public TextSpan Span => new TextSpan(Position, Text.Length);
 
         public SyntaxToken(SyntaxKind kind, int position, string text, object value)
         {

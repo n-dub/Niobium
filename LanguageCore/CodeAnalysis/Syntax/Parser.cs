@@ -4,9 +4,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
 {
     internal sealed class Parser
     {
-        public IEnumerable<string> Diagnostics => diagnostics;
+        public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
+
         private readonly SyntaxToken[] tokens;
-        private readonly List<string> diagnostics = new List<string>();
         private int position;
 
         private SyntaxToken Current => Peek(0);
@@ -28,14 +28,14 @@ namespace LanguageCore.CodeAnalysis.Syntax
             } while (token.Kind != SyntaxKind.EndOfFileToken);
 
             tokens = tokenList.ToArray();
-            diagnostics.AddRange(lexer.Diagnostics);
+            Diagnostics.AddRange(lexer.Diagnostics);
         }
 
         public SyntaxTree Parse()
         {
             var expresion = ParseExpression();
             var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(diagnostics, expresion, endOfFileToken);
+            return new SyntaxTree(Diagnostics, expresion, endOfFileToken);
         }
 
         private SyntaxToken Peek(int offset)
@@ -60,7 +60,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 return NextToken();
             }
 
-            diagnostics.Add($"ERROR: Unexpected token <{Current.Kind}>, expected <{kind}>");
+            Diagnostics.ReportUnexpectedToken(Current.Span, Current.Kind, kind);
             return new SyntaxToken(kind, Current.Position, null, null);
         }
 

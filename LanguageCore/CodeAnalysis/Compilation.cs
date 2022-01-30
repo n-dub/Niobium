@@ -8,7 +8,7 @@ namespace LanguageCore.CodeAnalysis
     public sealed class Compilation
     {
         public SyntaxTree SyntaxTree { get; }
-        
+
         public Compilation(SyntaxTree syntaxTree)
         {
             SyntaxTree = syntaxTree;
@@ -27,7 +27,7 @@ namespace LanguageCore.CodeAnalysis
 
             var evaluator = new Evaluator(boundExpression);
             var value = evaluator.Evaluate();
-            return new EvaluationResult(Array.Empty<string>(), value);
+            return new EvaluationResult(Array.Empty<Diagnostic>(), value);
         }
     }
 }

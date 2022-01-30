@@ -50,6 +50,8 @@
         <Compile Include="CodeAnalysis\Binding\BoundUnaryOperator.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundUnaryOperatorKind.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />
+        <Compile Include="CodeAnalysis\Diagnostic.cs" />
+        <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
         <Compile Include="CodeAnalysis\EvaluationResult.cs" />
         <Compile Include="CodeAnalysis\Evaluator.cs" />
         <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
@@ -64,6 +66,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxToken.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\TextSpan.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

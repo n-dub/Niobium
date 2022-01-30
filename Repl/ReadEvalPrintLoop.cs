@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
-using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Syntax;
 using Utilities;
 
@@ -18,7 +17,9 @@ namespace Repl
 
             for (var i = 1; ProcessCommand(out var evalResult, i); ++i)
                 if (evalResult != null)
+                {
                     Console.WriteLine(evalResult);
+                }
         }
 
         private bool ProcessCommand(out string evalResult, int commandNumber)
@@ -55,10 +56,26 @@ namespace Repl
 
                     foreach (var diagnostic in result.Diagnostics)
                     {
-                        Console.WriteLine(diagnostic);
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.Write("ERROR");
+                        Console.ResetColor();
+                        Console.WriteLine(": " + diagnostic);
+                        Console.ForegroundColor = ConsoleColor.DarkCyan;
+
+                        var prefix = sourceLine.Substring(0, diagnostic.Span.Start);
+                        var error = sourceLine.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+
+                        Console.WriteLine(new string(' ', 4) + sourceLine);
+                        Console.Write(new string(' ', 4 + prefix.Length));
+
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.WriteLine(new string('~', error.Length));
+                        Console.ResetColor();
                     }
 
-                    Console.ResetColor();
+                    Console.WriteLine();
                 }
 
                 return true;
@@ -109,10 +126,7 @@ namespace Repl
 
             var lastChild = node.GetChildren().LastOrDefault();
 
-            foreach (var child in node.GetChildren())
-            {
-                PrettyPrint(child, indent, child == lastChild);
-            }
+            foreach (var child in node.GetChildren()) PrettyPrint(child, indent, child == lastChild);
         }
     }
 }

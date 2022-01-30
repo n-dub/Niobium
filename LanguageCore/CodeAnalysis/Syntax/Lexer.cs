@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace LanguageCore.CodeAnalysis.Syntax
+﻿namespace LanguageCore.CodeAnalysis.Syntax
 {
     internal sealed class Lexer
     {
-        public IEnumerable<string> Diagnostics => diagnostics;
+        public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
+
         private readonly string sourceText;
         private int position;
-        private readonly List<string> diagnostics = new List<string>();
 
         private char Current => Peek(0);
 
@@ -20,25 +18,29 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public SyntaxToken Lex()
         {
-            if (position >= sourceText.Length) return new SyntaxToken(SyntaxKind.EndOfFileToken, position, "\0", null);
+            if (position >= sourceText.Length)
+            {
+                return new SyntaxToken(SyntaxKind.EndOfFileToken, position, "\0", null);
+            }
+
+            var start = position;
 
             if (char.IsDigit(Current))
             {
-                var start = position;
-
                 while (char.IsDigit(Current)) Next();
 
                 var length = position - start;
                 var text = sourceText.Substring(start, length);
-                if (!int.TryParse(text, out var value)) diagnostics.Add($"The number {sourceText} isn't valid Int32.");
+                if (!int.TryParse(text, out var value))
+                {
+                    Diagnostics.ReportInvalidNumber(new TextSpan(start, length), sourceText, typeof(int));
+                }
 
                 return new SyntaxToken(SyntaxKind.NumberToken, start, text, value);
             }
 
             if (char.IsWhiteSpace(Current))
             {
-                var start = position;
-
                 while (char.IsWhiteSpace(Current)) Next();
 
                 var length = position - start;
@@ -48,8 +50,6 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
             if (char.IsLetter(Current))
             {
-                var start = position;
-
                 while (char.IsLetter(Current)) Next();
 
                 var length = position - start;
@@ -74,23 +74,42 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return new SyntaxToken(SyntaxKind.CloseParenthesisToken, position++, ")", null);
                 case '&':
                     if (Lookahead == '&')
-                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, position += 2, "&&", null);
+                    {
+                        position += 2;
+                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
+                    }
+
                     break;
                 case '|':
                     if (Lookahead == '|')
-                        return new SyntaxToken(SyntaxKind.PipePipeToken, position += 2, "||", null);
+                    {
+                        position += 2;
+                        return new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
+                    }
+
                     break;
                 case '=':
                     if (Lookahead == '=')
-                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, position += 2, "==", null);
+                    {
+                        position += 2;
+                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
+                    }
+
                     break;
                 case '!':
-                    return Lookahead == '='
-                        ? new SyntaxToken(SyntaxKind.BangEqualsToken, position += 2, "!=", null)
-                        : new SyntaxToken(SyntaxKind.BangToken, position++, "!", null);
+                    if (Lookahead == '=')
+                    {
+                        position += 2;
+                        return new SyntaxToken(SyntaxKind.BangEqualsToken, start, "!=", null);
+                    }
+                    else
+                    {
+                        position += 1;
+                        return new SyntaxToken(SyntaxKind.BangToken, start, "!", null);
+                    }
             }
 
-            diagnostics.Add($"ERROR: bad character input: '{Current}'");
+            Diagnostics.ReportBadCharacter(position, Current);
             return new SyntaxToken(SyntaxKind.BadToken, position++, sourceText.Substring(position - 1, 1), null);
         }
 
