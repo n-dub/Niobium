@@ -36,7 +36,7 @@
                 var text = sourceText.Substring(start, length);
                 if (!int.TryParse(text, out var value))
                 {
-                    Diagnostics.ReportInvalidNumber(new TextSpan(start, length), sourceText, typeof(int));
+                    Diagnostics.ReportInvalidNumber(new TextSpan(start, length), text, typeof(int));
                 }
 
                 return new SyntaxToken(SyntaxKind.NumberToken, start, text, value);
