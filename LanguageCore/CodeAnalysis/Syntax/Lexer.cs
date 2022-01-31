@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Utilities;
 
 namespace LanguageCore.CodeAnalysis.Syntax
 {
@@ -17,6 +18,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         private char Current => Peek(0);
 
+        public Lexer(string sourceText)
+        {
+            this.sourceText = sourceText;
+        }
+
         static Lexer()
         {
             var operatorKinds = Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>().ToArray();
@@ -26,11 +32,6 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 .Where(x => x.t != null)
                 .OrderByDescending(x => x.t.Length)
                 .ToArray();
-        }
-
-        public Lexer(string sourceText)
-        {
-            this.sourceText = sourceText;
         }
 
         public SyntaxToken Lex()
@@ -100,7 +101,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private void ReadWhiteSpace()
         {
             while (char.IsWhiteSpace(Current))
+            {
                 position++;
+            }
 
             kind = SyntaxKind.WhitespaceToken;
         }
@@ -108,12 +111,16 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private void ReadNumberToken()
         {
             while (char.IsDigit(Current))
+            {
                 position++;
+            }
 
             var length = position - start;
             var text = sourceText.Substring(start, length);
             if (!int.TryParse(text, out var result))
+            {
                 Diagnostics.ReportInvalidNumber(new TextSpan(start, length), sourceText, typeof(int));
+            }
 
             value = result;
             kind = SyntaxKind.NumberToken;
@@ -121,8 +128,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         private void ReadIdentifierOrKeyword()
         {
-            while (char.IsLetter(Current))
+            while (CharUtils.IsValidIdentifier(Current))
+            {
                 position++;
+            }
 
             var length = position - start;
             var text = sourceText.Substring(start, length);

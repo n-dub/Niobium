@@ -75,6 +75,12 @@
         <Compile Include="CodeAnalysis\VariableSymbol.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Utilities\Utilities.csproj">
+        <Project>{60d645f5-a566-4c23-8a36-949db6a1d43e}</Project>
+        <Name>Utilities</Name>
+      </ProjectReference>
+    </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
