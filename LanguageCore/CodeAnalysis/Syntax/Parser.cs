@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace LanguageCore.CodeAnalysis.Syntax
 {
@@ -35,7 +36,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var expresion = ParseExpression();
             var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(Diagnostics, expresion, endOfFileToken);
+            return new SyntaxTree(Diagnostics.ToArray(), expresion, endOfFileToken);
         }
 
         private SyntaxToken Peek(int offset)

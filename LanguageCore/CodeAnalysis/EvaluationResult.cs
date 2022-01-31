@@ -9,9 +9,9 @@ namespace LanguageCore.CodeAnalysis
         public object Value { get; }
         public string Name { get; }
 
-        public EvaluationResult(IEnumerable<Diagnostic> diagnostics, object value, string name)
+        public EvaluationResult(IReadOnlyList<Diagnostic> diagnostics, object value, string name)
         {
-            Diagnostics = diagnostics.ToArray();
+            Diagnostics = diagnostics;
             Value = value;
             Name = name;
         }

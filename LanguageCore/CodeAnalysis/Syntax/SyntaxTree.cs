@@ -9,9 +9,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public ExpressionSyntax Root { get; }
         public SyntaxToken EndOfFileToken { get; }
 
-        public SyntaxTree(IEnumerable<Diagnostic> diagnostics, ExpressionSyntax root, SyntaxToken endOfFileToken)
+        public SyntaxTree(IReadOnlyList<Diagnostic> diagnostics, ExpressionSyntax root, SyntaxToken endOfFileToken)
         {
-            Diagnostics = diagnostics.ToArray();
+            Diagnostics = diagnostics;
             Root = root;
             EndOfFileToken = endOfFileToken;
         }
