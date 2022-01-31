@@ -16,12 +16,6 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             enumerator = Flatten(node).GetEnumerator();
         }
 
-        private bool MarkFailed()
-        {
-            hasErrors = true;
-            return false;
-        }
-
         public void Dispose()
         {
             if (!hasErrors)
@@ -30,23 +24,6 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             }
 
             enumerator.Dispose();
-        }
-
-        private static IEnumerable<SyntaxNode> Flatten(SyntaxNode node)
-        {
-            var stack = new Stack<SyntaxNode>();
-            stack.Push(node);
-
-            while (stack.Count > 0)
-            {
-                var n = stack.Pop();
-                yield return n;
-
-                foreach (var child in n.GetChildren().Reverse())
-                {
-                    stack.Push(child);
-                }
-            }
         }
 
         public void AssertNode(SyntaxKind kind)
@@ -75,6 +52,29 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             catch when (MarkFailed())
             {
                 throw;
+            }
+        }
+
+        private bool MarkFailed()
+        {
+            hasErrors = true;
+            return false;
+        }
+
+        private static IEnumerable<SyntaxNode> Flatten(SyntaxNode node)
+        {
+            var stack = new Stack<SyntaxNode>();
+            stack.Push(node);
+
+            while (stack.Count > 0)
+            {
+                var n = stack.Pop();
+                yield return n;
+
+                foreach (var child in n.GetChildren().Reverse())
+                {
+                    stack.Push(child);
+                }
             }
         }
     }

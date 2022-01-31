@@ -25,15 +25,15 @@ namespace LanguageCore.CodeAnalysis
             switch (node.Kind)
             {
                 case BoundNodeKind.LiteralExpression:
-                    return EvaluateLiteralExpression((BoundLiteralExpression)node);
+                    return EvaluateLiteralExpression((BoundLiteralExpression) node);
                 case BoundNodeKind.VariableExpression:
-                    return EvaluateVariableExpression((BoundVariableExpression)node);
+                    return EvaluateVariableExpression((BoundVariableExpression) node);
                 case BoundNodeKind.AssignmentExpression:
-                    return EvaluateAssignmentExpression((BoundAssignmentExpression)node);
+                    return EvaluateAssignmentExpression((BoundAssignmentExpression) node);
                 case BoundNodeKind.UnaryExpression:
-                    return EvaluateUnaryExpression((BoundUnaryExpression)node);
+                    return EvaluateUnaryExpression((BoundUnaryExpression) node);
                 case BoundNodeKind.BinaryExpression:
-                    return EvaluateBinaryExpression((BoundBinaryExpression)node);
+                    return EvaluateBinaryExpression((BoundBinaryExpression) node);
                 default:
                     throw new Exception($"Unexpected node {node.Kind}");
             }

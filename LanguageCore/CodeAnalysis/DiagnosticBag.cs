@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using LanguageCore.CodeAnalysis.Syntax;
+using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis
 {

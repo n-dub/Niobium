@@ -13,7 +13,9 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
         {
             var text = SyntaxFacts.GetText(kind);
             if (text == null)
+            {
                 return;
+            }
 
             var tokens = SyntaxTree.ParseTokens(text);
             var token = tokens.First();

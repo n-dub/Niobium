@@ -1,4 +1,6 @@
-﻿namespace LanguageCore.CodeAnalysis
+﻿using LanguageCore.CodeAnalysis.Text;
+
+namespace LanguageCore.CodeAnalysis
 {
     public sealed class Diagnostic
     {

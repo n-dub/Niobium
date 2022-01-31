@@ -11,7 +11,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
     {
         [Test]
         public void Lexer_Tests_AllTokens()
-        {            
+        {
             var tokenKinds = Enum.GetValues(typeof(SyntaxKind))
                 .Cast<SyntaxKind>()
                 .Where(k => k.IsKeyword() || k.IsToken());
@@ -25,7 +25,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
 
             Assert.IsEmpty(untestedTokenKinds);
         }
-        
+
         [TestCaseSource(nameof(GetTokensData))]
         public void Lexer_Lexes_Token(SyntaxKind kind, string text)
         {

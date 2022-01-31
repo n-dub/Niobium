@@ -57,15 +57,19 @@ namespace Repl
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
+                    var text = syntaxTree.SourceText;
 
                     foreach (var diagnostic in result.Diagnostics)
                     {
+                        var lineIndex = text.GetLineIndex(diagnostic.Span.Start);
+                        var lineNumber = lineIndex + 1;
+                        var character = diagnostic.Span.Start - text.Lines[lineIndex].Start + 1;
+                        
                         Console.WriteLine();
 
                         Console.ForegroundColor = ConsoleColor.DarkRed;
-                        Console.Write("ERROR");
+                        Console.WriteLine($"<repl>:{lineNumber}:{character}: error: " + diagnostic);
                         Console.ResetColor();
-                        Console.WriteLine(": " + diagnostic);
                         Console.ForegroundColor = ConsoleColor.DarkCyan;
 
                         var prefix = sourceLine.Substring(0, diagnostic.Span.Start);

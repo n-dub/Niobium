@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis.Syntax
 {
@@ -7,12 +8,13 @@ namespace LanguageCore.CodeAnalysis.Syntax
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
+        private readonly SourceText sourceText;
         private readonly SyntaxToken[] tokens;
         private int position;
 
         private SyntaxToken Current => Peek(0);
 
-        public Parser(string text)
+        public Parser(SourceText text)
         {
             var tokenList = new List<SyntaxToken>();
 
@@ -28,6 +30,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 }
             } while (token.Kind != SyntaxKind.EndOfFileToken);
 
+            sourceText = text;
             tokens = tokenList.ToArray();
             Diagnostics.AddRange(lexer.Diagnostics);
         }
@@ -36,7 +39,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var expresion = ParseExpression();
             var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(Diagnostics.ToArray(), expresion, endOfFileToken);
+            return new SyntaxTree(sourceText, Diagnostics.ToArray(), expresion, endOfFileToken);
         }
 
         private SyntaxToken Peek(int offset)

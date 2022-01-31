@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis.Syntax
 {
     public abstract class SyntaxNode
     {
         public abstract SyntaxKind Kind { get; }
-        
+
         public virtual TextSpan Span
         {
             get
@@ -27,21 +28,32 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 if (typeof(SyntaxNode).IsAssignableFrom(property.PropertyType))
                 {
-                    var child = (SyntaxNode)property.GetValue(this);
+                    var child = (SyntaxNode) property.GetValue(this);
                     yield return child;
                 }
                 else if (typeof(IEnumerable<SyntaxNode>).IsAssignableFrom(property.PropertyType))
                 {
-                    var children = (IEnumerable<SyntaxNode>)property.GetValue(this);
-                    foreach (var child in children)                    
+                    var children = (IEnumerable<SyntaxNode>) property.GetValue(this);
+                    foreach (var child in children)
+                    {
                         yield return child;
+                    }
                 }
             }
         }
-        
+
         public void WriteTo(TextWriter writer)
         {
             PrettyPrint(writer, this);
+        }
+
+        public override string ToString()
+        {
+            using (var writer = new StringWriter())
+            {
+                WriteTo(writer);
+                return writer.ToString();
+            }
         }
 
         private static void PrettyPrint(TextWriter writer, SyntaxNode node, string indent = "", bool isLast = true)
@@ -65,15 +77,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var lastChild = node.GetChildren().LastOrDefault();
 
             foreach (var child in node.GetChildren())
-                PrettyPrint(writer, child, indent, child == lastChild);
-        }
-
-        public override string ToString()
-        {
-            using (var writer = new StringWriter())
             {
-                WriteTo(writer);
-                return writer.ToString();
+                PrettyPrint(writer, child, indent, child == lastChild);
             }
         }
     }

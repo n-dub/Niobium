@@ -54,11 +54,13 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var name = syntax.IdentifierToken.Text;
             var boundExpression = BindExpression(syntax.Expression);
-            
+
             var existingVariable = variables.Keys.FirstOrDefault(v => v.Name == name);
             if (existingVariable != null)
+            {
                 variables.Remove(existingVariable);
-            
+            }
+
             var variable = new VariableSymbol(name, boundExpression.Type);
             variables[variable] = null;
             return new BoundAssignmentExpression(variable, boundExpression);

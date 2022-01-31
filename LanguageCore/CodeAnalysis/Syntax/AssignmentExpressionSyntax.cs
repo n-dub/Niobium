@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace LanguageCore.CodeAnalysis.Syntax
+﻿namespace LanguageCore.CodeAnalysis.Syntax
 {
     public sealed class AssignmentExpressionSyntax : ExpressionSyntax
     {

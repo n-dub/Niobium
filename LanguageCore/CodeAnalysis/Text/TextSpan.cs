@@ -1,4 +1,4 @@
-﻿namespace LanguageCore.CodeAnalysis
+﻿namespace LanguageCore.CodeAnalysis.Text
 {
     public class TextSpan
     {
@@ -11,7 +11,7 @@
             Start = start;
             Length = length;
         }
-        
+
         public static TextSpan FromBounds(int start, int end)
         {
             var length = end - start;

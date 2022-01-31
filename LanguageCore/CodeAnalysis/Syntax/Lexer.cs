@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using LanguageCore.CodeAnalysis.Text;
 using Utilities;
 
 namespace LanguageCore.CodeAnalysis.Syntax
@@ -8,7 +9,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
-        private readonly string sourceText;
+        private readonly SourceText sourceText;
         private int position;
         private int start;
         private SyntaxKind kind;
@@ -18,7 +19,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         private char Current => Peek(0);
 
-        public Lexer(string sourceText)
+        public Lexer(SourceText sourceText)
         {
             this.sourceText = sourceText;
         }
@@ -73,7 +74,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             var length = position - start;
-            var text = SyntaxFacts.GetText(kind) ?? sourceText.Substring(start, length);
+            var text = SyntaxFacts.GetText(kind) ?? sourceText.ToString(start, length);
 
             return new SyntaxToken(kind, start, text, value);
         }
@@ -116,10 +117,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             var length = position - start;
-            var text = sourceText.Substring(start, length);
+            var text = sourceText.ToString(start, length);
             if (!int.TryParse(text, out var result))
             {
-                Diagnostics.ReportInvalidNumber(new TextSpan(start, length), sourceText, typeof(int));
+                Diagnostics.ReportInvalidNumber(new TextSpan(start, length), text, typeof(int));
             }
 
             value = result;
@@ -134,7 +135,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             var length = position - start;
-            var text = sourceText.Substring(start, length);
+            var text = sourceText.ToString(start, length);
             kind = SyntaxFacts.GetKeywordKind(text);
         }
     }

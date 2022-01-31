@@ -53,7 +53,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                     e.AssertToken(SyntaxKind.IdentifierToken, "a");
                     e.AssertToken(op1, op1Text);
                     e.AssertNode(SyntaxKind.BinaryExpression);
-                    e.AssertNode(SyntaxKind.NameExpression);                    
+                    e.AssertNode(SyntaxKind.NameExpression);
                     e.AssertToken(SyntaxKind.IdentifierToken, "b");
                     e.AssertToken(op2, op2Text);
                     e.AssertNode(SyntaxKind.NameExpression);
@@ -108,7 +108,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                     e.AssertNode(SyntaxKind.NameExpression);
                     e.AssertToken(SyntaxKind.IdentifierToken, "a");
                     e.AssertToken(binaryKind, binaryText);
-                    e.AssertNode(SyntaxKind.NameExpression);                    
+                    e.AssertNode(SyntaxKind.NameExpression);
                     e.AssertToken(SyntaxKind.IdentifierToken, "b");
                 }
             }
@@ -120,7 +120,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             {
                 foreach (var op2 in SyntaxFacts.GetBinaryOperatorKinds())
                 {
-                    yield return new object[] { op1, op2 };
+                    yield return new object[] {op1, op2};
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             {
                 foreach (var binary in SyntaxFacts.GetBinaryOperatorKinds())
                 {
-                    yield return new object[] { unary, binary };
+                    yield return new object[] {unary, binary};
                 }
             }
         }
