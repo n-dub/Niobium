@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -58,10 +59,22 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         private static void PrettyPrint(TextWriter writer, SyntaxNode node, string indent = "", bool isLast = true)
         {
+            var writerIsConsole = writer == Console.Out;
             var marker = isLast ? "└──" : "├──";
+
+            if (writerIsConsole)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+            }
 
             writer.Write(indent);
             writer.Write(marker);
+
+            if (writerIsConsole)
+            {
+                Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
+            }
+            
             writer.Write(node.Kind);
 
             if (node is SyntaxToken t && t.Value != null)
@@ -70,10 +83,13 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 writer.Write(t.Value);
             }
 
+            if (writerIsConsole)
+            {
+                Console.ResetColor();
+            }
+            
             writer.WriteLine();
-
             indent += isLast ? "   " : "│  ";
-
             var lastChild = node.GetChildren().LastOrDefault();
 
             foreach (var child in node.GetChildren())

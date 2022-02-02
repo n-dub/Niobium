@@ -45,6 +45,7 @@ namespace Repl
 
             if (textBuilder.Length == 0 && input.First() == ':')
             {
+                commandNumber = 1;
                 return ProcessReplCommand(input);
             }
 
@@ -62,16 +63,16 @@ namespace Repl
 
             if (showParseTrees)
             {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
                 syntaxTree.Root.WriteTo(Console.Out);
-                Console.ResetColor();
             }
 
             textBuilder.Clear();
             commandNumber = 1;
             if (!result.Diagnostics.Any())
             {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.WriteLine(result);
+                Console.ResetColor();
             }
             else
             {
