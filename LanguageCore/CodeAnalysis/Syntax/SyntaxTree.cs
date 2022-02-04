@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis.Syntax
@@ -7,15 +8,17 @@ namespace LanguageCore.CodeAnalysis.Syntax
     {
         public SourceText SourceText { get; }
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
-        public ExpressionSyntax Root { get; }
-        public SyntaxToken EndOfFileToken { get; }
+        public CompilationUnitSyntax Root { get; }
 
-        public SyntaxTree(SourceText sourceText, IReadOnlyList<Diagnostic> diagnostics, ExpressionSyntax root, SyntaxToken endOfFileToken)
+        private SyntaxTree(SourceText sourceText)
         {
+            var parser = new Parser(sourceText);
+            var root = parser.ParseCompilationUnit();
+            var diagnostics = parser.Diagnostics.ToArray();
+
             SourceText = sourceText;
             Diagnostics = diagnostics;
             Root = root;
-            EndOfFileToken = endOfFileToken;
         }
 
         public static SyntaxTree Parse(string text)
@@ -25,7 +28,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public static SyntaxTree Parse(SourceText text)
         {
-            return new Parser(text).Parse();
+            return new SyntaxTree(text);
         }
 
         public static IEnumerable<SyntaxToken> ParseTokens(string text)

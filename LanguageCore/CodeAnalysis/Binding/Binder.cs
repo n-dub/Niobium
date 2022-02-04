@@ -8,11 +8,51 @@ namespace LanguageCore.CodeAnalysis.Binding
     internal sealed class Binder
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
-        private readonly Dictionary<VariableSymbol, object> variables;
 
-        public Binder(Dictionary<VariableSymbol, object> variables)
+        private readonly BoundScope scope;
+
+        public Binder(BoundScope parent)
         {
-            this.variables = variables;
+            scope = new BoundScope(parent);
+        }
+
+        public static BoundGlobalScope BindGlobalScope(BoundGlobalScope previous, CompilationUnitSyntax syntax)
+        {
+            var parentScope = CreateParentScope(previous);
+            var binder = new Binder(parentScope);
+            var expression = binder.BindExpression(syntax.Expression);
+            var variables = binder.scope.GetDeclaredVariables();
+            var diagnostics = (previous?.Diagnostics ?? Enumerable.Empty<Diagnostic>())
+                .Concat(binder.Diagnostics)
+                .ToArray();
+
+            return new BoundGlobalScope(previous, diagnostics, variables, expression);
+        }
+
+        private static BoundScope CreateParentScope(BoundGlobalScope previous)
+        {
+            var stack = new Stack<BoundGlobalScope>();
+            while (previous != null)
+            {
+                stack.Push(previous);
+                previous = previous.Previous;
+            }
+
+            BoundScope parent = null;
+
+            while (stack.Count > 0)
+            {
+                previous = stack.Pop();
+                var scope = new BoundScope(parent);
+                foreach (var v in previous.Variables)
+                {
+                    scope.TryDeclare(v);
+                }
+
+                parent = scope;
+            }
+
+            return parent;
         }
 
         public BoundExpression BindExpression(ExpressionSyntax syntax)
@@ -39,15 +79,14 @@ namespace LanguageCore.CodeAnalysis.Binding
         private BoundExpression BindNameExpression(NameExpressionSyntax syntax)
         {
             var name = syntax.IdentifierToken.Text;
-            var variable = variables.Keys.FirstOrDefault(v => v.Name == name);
 
-            if (variable == null)
+            if (scope.TryLookup(name, out var variable))
             {
-                Diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
-                return new BoundLiteralExpression(0);
+                return new BoundVariableExpression(variable);
             }
 
-            return new BoundVariableExpression(variable);
+            Diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
+            return new BoundLiteralExpression(0);
         }
 
         private BoundExpression BindAssignmentExpression(AssignmentExpressionSyntax syntax)
@@ -55,14 +94,18 @@ namespace LanguageCore.CodeAnalysis.Binding
             var name = syntax.IdentifierToken.Text;
             var boundExpression = BindExpression(syntax.Expression);
 
-            var existingVariable = variables.Keys.FirstOrDefault(v => v.Name == name);
-            if (existingVariable != null)
+            if (!scope.TryLookup(name, out var variable))
             {
-                variables.Remove(existingVariable);
+                variable = new VariableSymbol(name, boundExpression.Type);
+                scope.TryDeclare(variable);
             }
 
-            var variable = new VariableSymbol(name, boundExpression.Type);
-            variables[variable] = null;
+            if (boundExpression.Type != variable.Type)
+            {
+                Diagnostics.ReportCannotConvert(syntax.Expression.Span, boundExpression.Type, variable.Type);
+                return boundExpression;
+            }
+
             return new BoundAssignmentExpression(variable, boundExpression);
         }
 

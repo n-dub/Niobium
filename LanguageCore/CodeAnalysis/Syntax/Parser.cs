@@ -35,11 +35,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
             Diagnostics.AddRange(lexer.Diagnostics);
         }
 
-        public SyntaxTree Parse()
+        public CompilationUnitSyntax ParseCompilationUnit()
         {
             var expresion = ParseExpression();
             var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(sourceText, Diagnostics.ToArray(), expresion, endOfFileToken);
+            return new CompilationUnitSyntax(expresion, endOfFileToken);
         }
 
         private SyntaxToken Peek(int offset)

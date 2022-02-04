@@ -14,6 +14,7 @@ namespace Repl
         private bool showParseTrees;
         private readonly Dictionary<VariableSymbol, object> variables = new Dictionary<VariableSymbol, object>();
         private readonly StringBuilder textBuilder = new StringBuilder();
+        private Compilation previous;
 
         public void Start()
         {
@@ -31,7 +32,9 @@ namespace Repl
 
         private bool ProcessCommand(out string evalResult, ref int commandNumber)
         {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write($"{commandNumber++,3}{(textBuilder.Length == 0 ? '>' : '.')} ");
+            Console.ResetColor();
             
             var input = Console.ReadLine();
             evalResult = null;
@@ -58,7 +61,7 @@ namespace Repl
                 return true;
             }
             
-            var compilation = new Compilation(syntaxTree);
+            var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
             var result = compilation.Evaluate(variables);
 
             if (showParseTrees)
@@ -68,6 +71,8 @@ namespace Repl
 
             textBuilder.Clear();
             commandNumber = 1;
+            previous = compilation;
+            
             if (!result.Diagnostics.Any())
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -101,7 +106,7 @@ namespace Repl
                     Console.Write(new string(' ', 7 + prefix.Length));
 
                     Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine("^" + new string('~', error.Length - 1));
+                    Console.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
                     Console.ResetColor();
                 }
 
@@ -120,9 +125,11 @@ namespace Repl
                     Console.WriteLine(
                         @"Commands available in Niobium REPL:
    <niobium-expression>         Evaluate Niobium expression
+
    :help, :?                    Show this message with the list of commands
    :show-parse-tree             Toggle showing parse tree of last expression
-   :quit                        Exit the REPL");
+   :quit                        Exit the REPL
+   :reset                       Clear all previously declared variables");
                     return true;
                 case ":show-parse-tree":
                     showParseTrees = !showParseTrees;
@@ -130,6 +137,10 @@ namespace Repl
                     return true;
                 case ":quit":
                     return false;
+                case ":reset":
+                    previous = null;
+                    variables.Clear();
+                    return true;
                 default:
                     Console.WriteLine($"Invalid REPL command: {sourceLine}");
                     return true;
