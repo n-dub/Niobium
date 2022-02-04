@@ -29,6 +29,27 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundGlobalScope(previous, diagnostics, variables, expression);
         }
 
+        public BoundExpression BindExpression(ExpressionSyntax syntax)
+        {
+            switch (syntax.Kind)
+            {
+                case SyntaxKind.LiteralExpression:
+                    return BindLiteralExpression((LiteralExpressionSyntax) syntax);
+                case SyntaxKind.NameExpression:
+                    return BindNameExpression((NameExpressionSyntax) syntax);
+                case SyntaxKind.AssignmentExpression:
+                    return BindAssignmentExpression((AssignmentExpressionSyntax) syntax);
+                case SyntaxKind.UnaryExpression:
+                    return BindUnaryExpression((UnaryExpressionSyntax) syntax);
+                case SyntaxKind.BinaryExpression:
+                    return BindBinaryExpression((BinaryExpressionSyntax) syntax);
+                case SyntaxKind.ParenthesizedExpression:
+                    return BindParenthesizedExpression((ParenthesizedExpressionSyntax) syntax);
+                default:
+                    throw new Exception($"Unexpected syntax {syntax.Kind}");
+            }
+        }
+
         private static BoundScope CreateParentScope(BoundGlobalScope previous)
         {
             var stack = new Stack<BoundGlobalScope>();
@@ -53,27 +74,6 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             return parent;
-        }
-
-        public BoundExpression BindExpression(ExpressionSyntax syntax)
-        {
-            switch (syntax.Kind)
-            {
-                case SyntaxKind.LiteralExpression:
-                    return BindLiteralExpression((LiteralExpressionSyntax) syntax);
-                case SyntaxKind.NameExpression:
-                    return BindNameExpression((NameExpressionSyntax) syntax);
-                case SyntaxKind.AssignmentExpression:
-                    return BindAssignmentExpression((AssignmentExpressionSyntax) syntax);
-                case SyntaxKind.UnaryExpression:
-                    return BindUnaryExpression((UnaryExpressionSyntax) syntax);
-                case SyntaxKind.BinaryExpression:
-                    return BindBinaryExpression((BinaryExpressionSyntax) syntax);
-                case SyntaxKind.ParenthesizedExpression:
-                    return BindParenthesizedExpression((ParenthesizedExpressionSyntax) syntax);
-                default:
-                    throw new Exception($"Unexpected syntax {syntax.Kind}");
-            }
         }
 
         private BoundExpression BindNameExpression(NameExpressionSyntax syntax)

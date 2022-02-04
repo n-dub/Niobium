@@ -135,7 +135,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                 }
             }
         }
-        
+
         private static ExpressionSyntax ParseExpression(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);

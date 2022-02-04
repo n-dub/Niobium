@@ -11,8 +11,6 @@ namespace LanguageCore.CodeAnalysis
     {
         public Compilation Previous { get; }
 
-        private BoundGlobalScope globalScope;
-
         public SyntaxTree SyntaxTree { get; }
 
         internal BoundGlobalScope GlobalScope
@@ -29,6 +27,8 @@ namespace LanguageCore.CodeAnalysis
             }
         }
 
+        private BoundGlobalScope globalScope;
+
         public Compilation(SyntaxTree syntaxTree)
             : this(null, syntaxTree)
         {
@@ -39,7 +39,7 @@ namespace LanguageCore.CodeAnalysis
             Previous = previous;
             SyntaxTree = syntaxTree;
         }
-        
+
         public Compilation ContinueWith(SyntaxTree syntaxTree)
         {
             return new Compilation(this, syntaxTree);

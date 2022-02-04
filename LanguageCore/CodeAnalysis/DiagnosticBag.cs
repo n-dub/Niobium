@@ -57,6 +57,12 @@ namespace LanguageCore.CodeAnalysis
             Report(span, message);
         }
 
+        public void ReportCannotConvert(TextSpan span, Type fromType, Type toType)
+        {
+            var message = $"Cannot convert type '{fromType}' to '{toType}'.";
+            Report(span, message);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -66,12 +72,6 @@ namespace LanguageCore.CodeAnalysis
         {
             var diagnostic = new Diagnostic(span, message);
             diagnostics.Add(diagnostic);
-        }
-
-        public void ReportCannotConvert(TextSpan span, Type fromType, Type toType)
-        {
-            var message = $"Cannot convert type '{fromType}' to '{toType}'.";
-            Report(span, message);
         }
     }
 }

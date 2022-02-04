@@ -24,7 +24,7 @@
         // Keywords
         FalseKeyword,
         TrueKeyword,
-        
+
         // Nodes
         CompilationUnit,
 

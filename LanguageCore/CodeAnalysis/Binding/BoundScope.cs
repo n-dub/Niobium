@@ -6,14 +6,14 @@ namespace LanguageCore.CodeAnalysis.Binding
     internal class BoundScope
     {
         public BoundScope Parent { get; }
-        
+
         private readonly Dictionary<string, VariableSymbol> variables = new Dictionary<string, VariableSymbol>();
 
         public BoundScope(BoundScope parent)
         {
             Parent = parent;
         }
-        
+
         public bool TryDeclare(VariableSymbol variable)
         {
             if (variables.ContainsKey(variable.Name))

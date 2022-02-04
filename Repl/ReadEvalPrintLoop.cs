@@ -35,7 +35,7 @@ namespace Repl
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write($"{commandNumber++,3}{(textBuilder.Length == 0 ? '>' : '.')} ");
             Console.ResetColor();
-            
+
             var input = Console.ReadLine();
             evalResult = null;
 
@@ -60,7 +60,7 @@ namespace Repl
             {
                 return true;
             }
-            
+
             var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
             var result = compilation.Evaluate(variables);
 
@@ -72,7 +72,7 @@ namespace Repl
             textBuilder.Clear();
             commandNumber = 1;
             previous = compilation;
-            
+
             if (!result.Diagnostics.Any())
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -82,7 +82,7 @@ namespace Repl
             else
             {
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                
+
                 foreach (var diagnostic in result.Diagnostics)
                 {
                     var lineIndex = syntaxTree.SourceText.GetLineIndex(diagnostic.Span.Start);

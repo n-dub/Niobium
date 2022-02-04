@@ -74,7 +74,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
             }
-            
+
             writer.Write(node.Kind);
 
             if (node is SyntaxToken t && t.Value != null)
@@ -87,7 +87,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 Console.ResetColor();
             }
-            
+
             writer.WriteLine();
             indent += isLast ? "   " : "│  ";
             var lastChild = node.GetChildren().LastOrDefault();
