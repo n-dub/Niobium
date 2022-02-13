@@ -7,15 +7,15 @@ namespace LanguageCore.CodeAnalysis.Binding
         public BoundGlobalScope Previous { get; }
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
         public IReadOnlyList<VariableSymbol> Variables { get; }
-        public BoundExpression Expression { get; }
+        public BoundStatement Statement { get; }
 
         public BoundGlobalScope(BoundGlobalScope previous, IReadOnlyList<Diagnostic> diagnostics,
-            IReadOnlyList<VariableSymbol> variables, BoundExpression expression)
+            IReadOnlyList<VariableSymbol> variables, BoundStatement statement)
         {
             Previous = previous;
             Diagnostics = diagnostics;
             Variables = variables;
-            Expression = expression;
+            Statement = statement;
         }
     }
 }

@@ -139,8 +139,9 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
         private static ExpressionSyntax ParseExpression(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);
-            var root = syntaxTree.Root;
-            return root.Expression;
+            var statement = syntaxTree.Root.Statement;
+            Assert.IsInstanceOf<ExpressionStatementSyntax>(statement);
+            return ((ExpressionStatementSyntax) statement).Expression;
         }
     }
 }

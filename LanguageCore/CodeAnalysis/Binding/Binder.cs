@@ -9,7 +9,7 @@ namespace LanguageCore.CodeAnalysis.Binding
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
-        private readonly BoundScope scope;
+        private BoundScope scope;
 
         public Binder(BoundScope parent)
         {
@@ -20,7 +20,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var parentScope = CreateParentScope(previous);
             var binder = new Binder(parentScope);
-            var expression = binder.BindExpression(syntax.Expression);
+            var expression = binder.BindStatement(syntax.Statement);
             var variables = binder.scope.GetDeclaredVariables();
             var diagnostics = (previous?.Diagnostics ?? Enumerable.Empty<Diagnostic>())
                 .Concat(binder.Diagnostics)
@@ -29,7 +29,35 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundGlobalScope(previous, diagnostics, variables, expression);
         }
 
-        public BoundExpression BindExpression(ExpressionSyntax syntax)
+        private BoundStatement BindStatement(StatementSyntax syntax)
+        {
+            switch (syntax.Kind)
+            {
+                case SyntaxKind.BlockStatement:
+                    return BindBlockStatement((BlockStatementSyntax) syntax);
+                case SyntaxKind.ExpressionStatement:
+                    return BindExpressionStatement((ExpressionStatementSyntax) syntax);
+                default:
+                    throw new Exception($"Unexpected syntax {syntax.Kind}");
+            }
+        }
+
+        private BoundStatement BindBlockStatement(BlockStatementSyntax syntax)
+        {
+            scope = new BoundScope(scope);
+            var statements = syntax.Statements.Select(BindStatement).ToArray();
+            scope = scope.Parent;
+
+            return new BoundBlockStatement(statements);
+        }
+
+        private BoundStatement BindExpressionStatement(ExpressionStatementSyntax syntax)
+        {
+            var expression = BindExpression(syntax.Expression);
+            return new BoundExpressionStatement(expression);
+        }
+
+        private BoundExpression BindExpression(ExpressionSyntax syntax)
         {
             switch (syntax.Kind)
             {

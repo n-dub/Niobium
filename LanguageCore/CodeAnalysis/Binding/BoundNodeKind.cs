@@ -2,6 +2,11 @@
 {
     public enum BoundNodeKind
     {
+        // Statement
+        BlockStatement,
+        ExpressionStatement,
+
+        // Expressions
         LiteralExpression,
         VariableExpression,
         AssignmentExpression,

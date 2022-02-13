@@ -48,13 +48,19 @@ namespace LanguageCore.CodeAnalysis
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
             var name = "$temp";
-            switch (GlobalScope.Expression)
+            switch (GlobalScope.Statement)
             {
-                case BoundVariableExpression variable:
-                    name = variable.Variable.Name;
-                    break;
-                case BoundAssignmentExpression assignment:
-                    name = assignment.Variable.Name;
+                case BoundExpressionStatement statement:
+                    switch (statement.Expression)
+                    {
+                        case BoundVariableExpression variable:
+                            name = variable.Variable.Name;
+                            break;
+                        case BoundAssignmentExpression assignment:
+                            name = assignment.Variable.Name;
+                            break;
+                    }
+
                     break;
             }
 
@@ -64,7 +70,7 @@ namespace LanguageCore.CodeAnalysis
                 return new EvaluationResult(diagnostics, null, null);
             }
 
-            var evaluator = new Evaluator(GlobalScope.Expression, variables);
+            var evaluator = new Evaluator(GlobalScope.Statement, variables);
             var value = evaluator.Evaluate();
             return new EvaluationResult(Array.Empty<Diagnostic>(), value, name);
         }
