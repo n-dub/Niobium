@@ -82,6 +82,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\VariableDeclarationSyntax.cs" />
+        <Compile Include="CodeAnalysis\Text\AnnotatedText.cs" />
         <Compile Include="CodeAnalysis\Text\SourceText.cs" />
         <Compile Include="CodeAnalysis\Text\TextLine.cs" />
         <Compile Include="CodeAnalysis\Text\TextSpan.cs" />

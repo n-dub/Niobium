@@ -32,6 +32,11 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("2 + 2 * 2", 6)]
         public void SyntaxFact_GetText_RoundTrips(string text, object expectedValue)
         {
+            AssertValue(text, expectedValue);
+        }
+
+        private static void AssertValue(string text, object expectedValue)
+        {
             var syntaxTree = SyntaxTree.Parse(text);
             var compilation = new Compilation(syntaxTree);
             var variables = new Dictionary<VariableSymbol, object>();
