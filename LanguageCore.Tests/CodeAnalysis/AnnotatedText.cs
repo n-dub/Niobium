@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LanguageCore.CodeAnalysis.Text;
 
-namespace LanguageCore.CodeAnalysis.Text
+namespace LanguageCore.Tests.CodeAnalysis
 {
     internal sealed class AnnotatedText
     {

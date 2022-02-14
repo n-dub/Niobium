@@ -42,6 +42,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="CodeAnalysis\AnnotatedText.cs" />
         <Compile Include="CodeAnalysis\EvaluationTests.cs" />
         <Compile Include="CodeAnalysis\Syntax\AssertingEnumerator.cs" />
         <Compile Include="CodeAnalysis\Syntax\LexerTests.cs" />
