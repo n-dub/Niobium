@@ -55,6 +55,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundUnaryExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundUnaryOperator.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundUnaryOperatorKind.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundVariableDeclarationStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableExpression.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />
         <Compile Include="CodeAnalysis\Diagnostic.cs" />
@@ -80,6 +81,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxToken.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\VariableDeclarationSyntax.cs" />
         <Compile Include="CodeAnalysis\Text\SourceText.cs" />
         <Compile Include="CodeAnalysis\Text\TextLine.cs" />
         <Compile Include="CodeAnalysis\Text\TextSpan.cs" />

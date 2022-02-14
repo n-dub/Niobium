@@ -71,13 +71,13 @@ namespace Repl
 
             textBuilder.Clear();
             commandNumber = 1;
-            previous = compilation;
 
             if (!result.Diagnostics.Any())
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.WriteLine(result);
                 Console.ResetColor();
+                previous = compilation;
             }
             else
             {

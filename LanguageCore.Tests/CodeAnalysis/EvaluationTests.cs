@@ -28,7 +28,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("false", false)]
         [TestCase("!true", false)]
         [TestCase("!false", true)]
-        [TestCase("(a = 10) * a", 100)]
+        [TestCase("{ var a = 0 (a = 10) * a }", 100)]
         [TestCase("2 + 2 * 2", 6)]
         public void SyntaxFact_GetText_RoundTrips(string text, object expectedValue)
         {

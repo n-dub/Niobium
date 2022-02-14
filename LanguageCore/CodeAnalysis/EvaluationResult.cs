@@ -17,7 +17,7 @@ namespace LanguageCore.CodeAnalysis
 
         public override string ToString()
         {
-            return $"{Name}: {Value.GetType().Name} = {Value}";
+            return $"{Name}: {Value?.GetType().Name ?? "Null"} = {Value ?? "null"}";
         }
     }
 }

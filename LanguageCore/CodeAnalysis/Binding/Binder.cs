@@ -35,6 +35,8 @@ namespace LanguageCore.CodeAnalysis.Binding
             {
                 case SyntaxKind.BlockStatement:
                     return BindBlockStatement((BlockStatementSyntax) syntax);
+                case SyntaxKind.VariableDeclarationStatement:
+                    return BindVariableDeclaration((VariableDeclarationSyntax)syntax);
                 case SyntaxKind.ExpressionStatement:
                     return BindExpressionStatement((ExpressionStatementSyntax) syntax);
                 default:
@@ -49,6 +51,21 @@ namespace LanguageCore.CodeAnalysis.Binding
             scope = scope.Parent;
 
             return new BoundBlockStatement(statements);
+        }
+        
+        private BoundStatement BindVariableDeclaration(VariableDeclarationSyntax syntax)
+        {
+            var name = syntax.Identifier.Text;
+            var immutable = syntax.Keyword.Kind == SyntaxKind.LetKeyword;
+            var initializer = BindExpression(syntax.Initializer);
+            var variable = new VariableSymbol(name, immutable, initializer.Type);
+
+            if (!scope.TryDeclare(variable))
+            {
+                Diagnostics.ReportVariableAlreadyDeclared(syntax.Identifier.Span, name);
+            }
+
+            return new BoundVariableDeclarationStatement(variable, initializer);
         }
 
         private BoundStatement BindExpressionStatement(ExpressionStatementSyntax syntax)
@@ -124,8 +141,13 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (!scope.TryLookup(name, out var variable))
             {
-                variable = new VariableSymbol(name, boundExpression.Type);
-                scope.TryDeclare(variable);
+                Diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
+                return boundExpression;
+            }
+
+            if (variable.IsImmutable)
+            {
+                Diagnostics.ReportCannotAssign(syntax.EqualsToken.Span, name);
             }
 
             if (boundExpression.Type != variable.Type)

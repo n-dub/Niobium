@@ -29,12 +29,22 @@ namespace LanguageCore.CodeAnalysis
                 case BoundNodeKind.BlockStatement:
                     EvaluateBlockStatement((BoundBlockStatement) node);
                     break;
+                case BoundNodeKind.VariableDeclarationStatement:
+                    EvaluateVariableDeclaration((BoundVariableDeclarationStatement) node);
+                    break;
                 case BoundNodeKind.ExpressionStatement:
                     EvaluateExpressionStatement((BoundExpressionStatement) node);
                     break;
                 default:
                     throw new Exception($"Unexpected node {node.Kind}");
             }
+        }
+        
+        private void EvaluateVariableDeclaration(BoundVariableDeclarationStatement node)
+        {
+            var value = EvaluateExpression(node.Initializer);
+            variables[node.Variable] = value;
+            lastValue = value;
         }
 
         private void EvaluateBlockStatement(BoundBlockStatement node)
