@@ -52,6 +52,22 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
+        public void Evaluator_BlockStatement_NoInfiniteLoop()
+        {
+            const string text = @"
+                {
+                [)][]
+            ";
+
+            const string diagnostics = @"
+                Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
+                Unexpected token <EndOfFileToken>, expected <CloseBraceToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
         public void Evaluator_ForStatement_Reports_CannotConvert_LowerBound()
         {
             const string text = @"
@@ -201,6 +217,18 @@ namespace LanguageCore.Tests.CodeAnalysis
 
             const string diagnostics = @"
                 Cannot convert type 'System.Boolean' to 'System.Int32'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_NameExpression_Reports_NoErrorForInsertedToken()
+        {
+            const string text = @"[]";
+
+            const string diagnostics = @"
+                Unexpected token <EndOfFileToken>, expected <IdentifierToken>.
             ";
 
             AssertDiagnostics(text, diagnostics);

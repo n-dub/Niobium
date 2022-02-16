@@ -180,6 +180,11 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var name = syntax.IdentifierToken.Text;
 
+            if (string.IsNullOrEmpty(name))
+            {
+                return new BoundLiteralExpression(0);
+            }
+
             if (scope.TryLookup(name, out var variable))
             {
                 return new BoundVariableExpression(variable);

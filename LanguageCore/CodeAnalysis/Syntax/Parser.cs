@@ -115,14 +115,20 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private BlockStatementSyntax ParseBlockStatement()
         {
             var statements = new List<StatementSyntax>();
-
             var openBraceToken = MatchToken(SyntaxKind.OpenBraceToken);
 
             while (Current.Kind != SyntaxKind.EndOfFileToken &&
                    Current.Kind != SyntaxKind.CloseBraceToken)
             {
+                var startToken = Current;
+
                 var statement = ParseStatement();
                 statements.Add(statement);
+
+                if (Current == startToken)
+                {
+                    NextToken();
+                }
             }
 
             var closeBraceToken = MatchToken(SyntaxKind.CloseBraceToken);

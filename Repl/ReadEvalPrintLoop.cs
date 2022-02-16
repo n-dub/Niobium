@@ -46,7 +46,7 @@ namespace Repl
                 return false;
             }
 
-            if (textBuilder.Length == 0 && input.First() == ':')
+            if (textBuilder.Length == 0 && input.FirstOrDefault() == ':')
             {
                 commandNumber = 1;
                 return ProcessReplCommand(input);
