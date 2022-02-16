@@ -62,7 +62,7 @@ namespace LanguageCore.CodeAnalysis
             var message = $"Cannot convert type '{fromType}' to '{toType}'.";
             Report(span, message);
         }
-        
+
         public void ReportVariableAlreadyDeclared(TextSpan span, string name)
         {
             var message = $"Variable '{name}' is already declared.";

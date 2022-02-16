@@ -46,7 +46,9 @@
         <Compile Include="CodeAnalysis\Binding\BoundBlockStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpressionStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundForStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundGlobalScope.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundIfStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundLiteralExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNode.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNodeKind.cs" />
@@ -57,6 +59,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundUnaryOperatorKind.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableDeclarationStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundWhileStatement.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />
         <Compile Include="CodeAnalysis\Diagnostic.cs" />
         <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
@@ -66,8 +69,11 @@
         <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BlockStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\CompilationUnitSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ElseClauseSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ExpressionStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ExpressionSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ForStatementSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\IfStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\Lexer.cs" />
         <Compile Include="CodeAnalysis\Syntax\LiteralExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\NameExpressionSyntax.cs" />
@@ -82,6 +88,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\VariableDeclarationSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\WhileStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Text\SourceText.cs" />
         <Compile Include="CodeAnalysis\Text\TextLine.cs" />
         <Compile Include="CodeAnalysis\Text\TextSpan.cs" />

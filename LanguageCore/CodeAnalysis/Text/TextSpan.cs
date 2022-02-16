@@ -18,11 +18,9 @@
             return new TextSpan(start, length);
         }
 
-        public override string ToString() => $"{Start}..{End}";
-
-        private bool Equals(TextSpan other)
+        public override string ToString()
         {
-            return Start == other.Start && Length == other.Length;
+            return $"{Start}..{End}";
         }
 
         public override bool Equals(object obj)
@@ -46,6 +44,11 @@
             {
                 return (Start * 397) ^ Length;
             }
+        }
+
+        private bool Equals(TextSpan other)
+        {
+            return Start == other.Start && Length == other.Length;
         }
     }
 }

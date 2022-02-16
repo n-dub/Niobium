@@ -36,7 +36,13 @@ namespace LanguageCore.CodeAnalysis.Binding
                 case SyntaxKind.BlockStatement:
                     return BindBlockStatement((BlockStatementSyntax) syntax);
                 case SyntaxKind.VariableDeclarationStatement:
-                    return BindVariableDeclaration((VariableDeclarationSyntax)syntax);
+                    return BindVariableDeclaration((VariableDeclarationSyntax) syntax);
+                case SyntaxKind.IfStatement:
+                    return BindIfStatement((IfStatementSyntax) syntax);
+                case SyntaxKind.WhileStatement:
+                    return BindWhileStatement((WhileStatementSyntax) syntax);
+                case SyntaxKind.ForStatement:
+                    return BindForStatement((ForStatementSyntax) syntax);
                 case SyntaxKind.ExpressionStatement:
                     return BindExpressionStatement((ExpressionStatementSyntax) syntax);
                 default:
@@ -44,15 +50,53 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
-        private BoundStatement BindBlockStatement(BlockStatementSyntax syntax)
+        private BoundStatement BindIfStatement(IfStatementSyntax syntax)
+        {
+            var condition = BindExpression(syntax.Condition, typeof(bool));
+            var thenStatement = BindBlockStatement(syntax.ThenStatement);
+            var elseStatement = syntax.ElseClause == null ? null : BindBlockStatement(syntax.ElseClause.ElseStatement);
+            return new BoundIfStatement(condition, thenStatement, elseStatement);
+        }
+
+        private BoundStatement BindWhileStatement(WhileStatementSyntax syntax)
+        {
+            var condition = BindExpression(syntax.Condition, typeof(bool));
+            var body = BindBlockStatement(syntax.Body);
+            return new BoundWhileStatement(condition, body);
+        }
+
+        private BoundStatement BindForStatement(ForStatementSyntax syntax)
+        {
+            var lowerBound = BindExpression(syntax.LowerBound, typeof(int));
+            var upperBound = BindExpression(syntax.UpperBound, typeof(int));
+
+            scope = new BoundScope(scope);
+
+            var name = syntax.Identifier.Text;
+            var variable = new VariableSymbol(name, true, typeof(int));
+            if (!scope.TryDeclare(variable))
+            {
+                Diagnostics.ReportVariableAlreadyDeclared(syntax.Identifier.Span, name);
+            }
+
+            var body = BindBlockStatement(syntax.Body);
+
+            scope = scope.Parent;
+
+            return new BoundForStatement(variable, lowerBound, upperBound, body);
+        }
+
+        private BoundBlockStatement BindBlockStatement(BlockStatementSyntax syntax)
         {
             scope = new BoundScope(scope);
-            var statements = syntax.Statements.Select(BindStatement).ToArray();
+            var statements = syntax.Statements
+                .Select(BindStatement)
+                .ToArray();
             scope = scope.Parent;
 
             return new BoundBlockStatement(statements);
         }
-        
+
         private BoundStatement BindVariableDeclaration(VariableDeclarationSyntax syntax)
         {
             var name = syntax.Identifier.Text;
@@ -72,6 +116,17 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var expression = BindExpression(syntax.Expression);
             return new BoundExpressionStatement(expression);
+        }
+
+        private BoundExpression BindExpression(ExpressionSyntax syntax, Type targetType)
+        {
+            var result = BindExpression(syntax);
+            if (result.Type != targetType)
+            {
+                Diagnostics.ReportCannotConvert(syntax.Span, result.Type, targetType);
+            }
+
+            return result;
         }
 
         private BoundExpression BindExpression(ExpressionSyntax syntax)

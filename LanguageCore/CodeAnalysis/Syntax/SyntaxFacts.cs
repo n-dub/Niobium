@@ -34,6 +34,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
                 case SyntaxKind.EqualsEqualsToken:
                 case SyntaxKind.BangEqualsToken:
+                case SyntaxKind.LessToken:
+                case SyntaxKind.LessOrEqualsToken:
+                case SyntaxKind.GreaterToken:
+                case SyntaxKind.GreaterOrEqualsToken:
                     return 3;
 
                 case SyntaxKind.AmpersandAmpersandToken:
@@ -49,19 +53,16 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public static SyntaxKind GetKeywordKind(string text)
         {
-            switch (text)
+            // TODO: this is probably too inefficient
+            foreach (var keywordKind in GetKeywordKinds())
             {
-                case "false":
-                    return SyntaxKind.FalseKeyword;
-                case "let":
-                    return SyntaxKind.LetKeyword;
-                case "true":
-                    return SyntaxKind.TrueKeyword;
-                case "var":
-                    return SyntaxKind.VarKeyword;
-                default:
-                    return SyntaxKind.IdentifierToken;
+                if (GetText(keywordKind) == text)
+                {
+                    return keywordKind;
+                }
             }
+
+            return SyntaxKind.IdentifierToken;
         }
 
         public static IEnumerable<SyntaxKind> GetUnaryOperatorKinds()
@@ -94,6 +95,14 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return "!";
                 case SyntaxKind.EqualsToken:
                     return "=";
+                case SyntaxKind.LessToken:
+                    return "<";
+                case SyntaxKind.LessOrEqualsToken:
+                    return "<=";
+                case SyntaxKind.GreaterToken:
+                    return ">";
+                case SyntaxKind.GreaterOrEqualsToken:
+                    return ">=";
                 case SyntaxKind.AmpersandAmpersandToken:
                     return "&&";
                 case SyntaxKind.PipePipeToken:
@@ -110,17 +119,34 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return "{";
                 case SyntaxKind.CloseBraceToken:
                     return "}";
+                case SyntaxKind.ElseKeyword:
+                    return "else";
                 case SyntaxKind.FalseKeyword:
                     return "false";
+                case SyntaxKind.ForKeyword:
+                    return "for";
+                case SyntaxKind.IfKeyword:
+                    return "if";
+                case SyntaxKind.InKeyword:
+                    return "in";
                 case SyntaxKind.LetKeyword:
                     return "let";
                 case SyntaxKind.TrueKeyword:
                     return "true";
                 case SyntaxKind.VarKeyword:
                     return "var";
+                case SyntaxKind.WhileKeyword:
+                    return "while";
                 default:
                     return null;
             }
+        }
+
+        private static IEnumerable<SyntaxKind> GetKeywordKinds()
+        {
+            return Enum.GetValues(typeof(SyntaxKind))
+                .Cast<SyntaxKind>()
+                .Where(SyntaxKindExtensions.IsKeyword);
         }
     }
 }

@@ -8,14 +8,14 @@ namespace LanguageCore.Tests.CodeAnalysis
 {
     internal sealed class AnnotatedText
     {
+        public string Text { get; }
+        public IReadOnlyList<TextSpan> Spans { get; }
+
         public AnnotatedText(string text, IReadOnlyList<TextSpan> spans)
         {
             Text = text;
             Spans = spans;
         }
-
-        public string Text { get; }
-        public IReadOnlyList<TextSpan> Spans { get; }
 
         public static AnnotatedText Parse(string text)
         {
@@ -56,12 +56,6 @@ namespace LanguageCore.Tests.CodeAnalysis
             }
 
             return new AnnotatedText(textBuilder.ToString(), spanBuilder.ToArray());
-        }
-
-        private static string UnIndent(string text)
-        {
-            var lines = UnIndentLines(text);
-            return string.Join(Environment.NewLine, lines);
         }
 
         public static string[] UnIndentLines(string text)
@@ -113,6 +107,12 @@ namespace LanguageCore.Tests.CodeAnalysis
             }
 
             return lines.ToArray();
+        }
+
+        private static string UnIndent(string text)
+        {
+            var lines = UnIndentLines(text);
+            return string.Join(Environment.NewLine, lines);
         }
     }
 }

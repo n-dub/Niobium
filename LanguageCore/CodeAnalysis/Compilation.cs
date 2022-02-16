@@ -47,7 +47,7 @@ namespace LanguageCore.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            var name = "$temp";
+            var name = "_";
             switch (GlobalScope.Statement)
             {
                 case BoundExpressionStatement statement:
@@ -61,6 +61,9 @@ namespace LanguageCore.CodeAnalysis
                             break;
                     }
 
+                    break;
+                case BoundVariableDeclarationStatement statement:
+                    name = statement.Variable.Name;
                     break;
             }
 
