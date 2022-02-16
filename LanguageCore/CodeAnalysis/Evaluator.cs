@@ -87,8 +87,8 @@ namespace LanguageCore.CodeAnalysis
 
         private void EvaluateForStatement(BoundForStatement node)
         {
-            var lowerBound = (int)EvaluateExpression(node.LowerBound);
-            var upperBound = (int)EvaluateExpression(node.UpperBound);
+            var lowerBound = (int) EvaluateExpression(node.LowerBound);
+            var upperBound = (int) EvaluateExpression(node.UpperBound);
 
             for (var i = lowerBound; i < upperBound; ++i)
             {
@@ -136,6 +136,18 @@ namespace LanguageCore.CodeAnalysis
                     return (int) left * (int) right;
                 case BoundBinaryOperatorKind.Division:
                     return (int) left / (int) right;
+                case BoundBinaryOperatorKind.BitwiseAnd when binary.Type == typeof(int):
+                    return (int) left & (int) right;
+                case BoundBinaryOperatorKind.BitwiseAnd:
+                    return (bool) left & (bool) right;
+                case BoundBinaryOperatorKind.BitwiseOr when binary.Type == typeof(int):
+                    return (int) left | (int) right;
+                case BoundBinaryOperatorKind.BitwiseOr:
+                    return (bool) left | (bool) right;
+                case BoundBinaryOperatorKind.BitwiseXor when binary.Type == typeof(int):
+                    return (int) left ^ (int) right;
+                case BoundBinaryOperatorKind.BitwiseXor:
+                    return (bool) left ^ (bool) right;
                 case BoundBinaryOperatorKind.LogicalAnd:
                     return (bool) left && (bool) right;
                 case BoundBinaryOperatorKind.LogicalOr:
@@ -181,6 +193,8 @@ namespace LanguageCore.CodeAnalysis
                     return -(int) operand;
                 case BoundUnaryOperatorKind.LogicalNegation:
                     return !(bool) operand;
+                case BoundUnaryOperatorKind.OnesComplement:
+                    return ~(int) operand;
                 default:
                     throw new Exception($"Unexpected unary operator {unary.Op}");
             }

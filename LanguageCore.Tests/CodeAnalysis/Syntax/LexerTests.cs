@@ -44,10 +44,10 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             var tokens = SyntaxTree.ParseTokens(text).ToArray();
 
             Assert.AreEqual(2, tokens.Length);
-            Assert.AreEqual(tokens[0].Kind, t1Kind);
-            Assert.AreEqual(tokens[0].Text, t1Text);
-            Assert.AreEqual(tokens[1].Kind, t2Kind);
-            Assert.AreEqual(tokens[1].Text, t2Text);
+            Assert.AreEqual(t1Kind, tokens[0].Kind);
+            Assert.AreEqual(t1Text, tokens[0].Text);
+            Assert.AreEqual(t2Kind, tokens[1].Kind);
+            Assert.AreEqual(t2Text, tokens[1].Text);
         }
 
         [TestCaseSource(nameof(GetTokenPairsWithSeparatorData))]
@@ -59,12 +59,12 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             var tokens = SyntaxTree.ParseTokens(text).ToArray();
 
             Assert.AreEqual(3, tokens.Length);
-            Assert.AreEqual(tokens[0].Kind, t1Kind);
-            Assert.AreEqual(tokens[0].Text, t1Text);
-            Assert.AreEqual(tokens[1].Kind, separatorKind);
-            Assert.AreEqual(tokens[1].Text, separatorText);
-            Assert.AreEqual(tokens[2].Kind, t2Kind);
-            Assert.AreEqual(tokens[2].Text, t2Text);
+            Assert.AreEqual(t1Kind, tokens[0].Kind);
+            Assert.AreEqual(t1Text, tokens[0].Text);
+            Assert.AreEqual(separatorKind, tokens[1].Kind);
+            Assert.AreEqual(separatorText, tokens[1].Text);
+            Assert.AreEqual(t2Kind, tokens[2].Kind);
+            Assert.AreEqual(t2Text, tokens[2].Text);
         }
 
         public static IEnumerable<object[]> GetTokensData()
@@ -188,6 +188,26 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             }
 
             if (t1Kind == SyntaxKind.GreaterToken && t2Kind == SyntaxKind.EqualsEqualsToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandAmpersandToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipeToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipePipeToken)
             {
                 return true;
             }
