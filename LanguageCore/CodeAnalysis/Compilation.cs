@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
+using LanguageCore.CodeAnalysis.Lowering;
 using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis
@@ -73,9 +75,21 @@ namespace LanguageCore.CodeAnalysis
                 return new EvaluationResult(diagnostics, null, null);
             }
 
-            var evaluator = new Evaluator(GlobalScope.Statement, variables);
+            var evaluator = new Evaluator(GetStatement(), variables);
             var value = evaluator.Evaluate();
             return new EvaluationResult(Array.Empty<Diagnostic>(), value, name);
+        }
+
+        public void EmitTree(TextWriter writer)
+        {
+            var statement = GetStatement();
+            statement.WriteTo(writer);
+        }
+
+        private BoundStatement GetStatement()
+        {
+            var result = GlobalScope.Statement;
+            return Lowerer.Lower(result);
         }
     }
 }

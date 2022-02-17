@@ -12,6 +12,8 @@ namespace Repl
     public class ReadEvalPrintLoop
     {
         private bool showParseTrees;
+        private bool showBoundTrees;
+
         private readonly Dictionary<VariableSymbol, object> variables = new Dictionary<VariableSymbol, object>();
         private readonly StringBuilder textBuilder = new StringBuilder();
         private Compilation previous;
@@ -62,12 +64,18 @@ namespace Repl
             }
 
             var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
-            var result = compilation.Evaluate(variables);
 
             if (showParseTrees)
             {
                 syntaxTree.Root.WriteTo(Console.Out);
             }
+
+            if (showBoundTrees)
+            {
+                compilation.EmitTree(Console.Out);
+            }
+            
+            var result = compilation.Evaluate(variables);
 
             textBuilder.Clear();
             commandNumber = 1;
@@ -133,7 +141,11 @@ namespace Repl
                     return true;
                 case ":show-parse-tree":
                     showParseTrees = !showParseTrees;
-                    Console.WriteLine(showParseTrees ? "Showing parse trees." : "Not showing parse trees");
+                    Console.WriteLine(showParseTrees ? "Showing parse trees." : "Not showing parse trees.");
+                    return true;
+                case ":show-bound-tree":
+                    showBoundTrees = !showBoundTrees;
+                    Console.WriteLine(showBoundTrees ? "Showing bound trees." : "Not showing bound trees.");
                     return true;
                 case ":quit":
                     return false;
