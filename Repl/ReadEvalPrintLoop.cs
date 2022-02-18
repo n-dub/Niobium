@@ -74,7 +74,7 @@ namespace Repl
             {
                 compilation.EmitTree(Console.Out);
             }
-            
+
             var result = compilation.Evaluate(variables);
 
             textBuilder.Clear();

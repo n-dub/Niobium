@@ -21,13 +21,32 @@ namespace LanguageCore.CodeAnalysis.Binding
                 case BoundNodeKind.ForStatement:
                     return RewriteForStatement((BoundForStatement) node);
                 case BoundNodeKind.LabelStatement:
-                    return RewriteLabelStatement((BoundLabelStatement)node);
+                    return RewriteLabelStatement((BoundLabelStatement) node);
                 case BoundNodeKind.GotoStatement:
-                    return RewriteGotoStatement((BoundGotoStatement)node);
+                    return RewriteGotoStatement((BoundGotoStatement) node);
                 case BoundNodeKind.ConditionalGotoStatement:
-                    return RewriteConditionalGotoStatement((BoundConditionalGotoStatement)node);
+                    return RewriteConditionalGotoStatement((BoundConditionalGotoStatement) node);
                 case BoundNodeKind.ExpressionStatement:
                     return RewriteExpressionStatement((BoundExpressionStatement) node);
+                default:
+                    throw new Exception($"Unexpected node: {node.Kind}");
+            }
+        }
+
+        public virtual BoundExpression RewriteExpression(BoundExpression node)
+        {
+            switch (node.Kind)
+            {
+                case BoundNodeKind.LiteralExpression:
+                    return RewriteLiteralExpression((BoundLiteralExpression) node);
+                case BoundNodeKind.VariableExpression:
+                    return RewriteVariableExpression((BoundVariableExpression) node);
+                case BoundNodeKind.AssignmentExpression:
+                    return RewriteAssignmentExpression((BoundAssignmentExpression) node);
+                case BoundNodeKind.UnaryExpression:
+                    return RewriteUnaryExpression((BoundUnaryExpression) node);
+                case BoundNodeKind.BinaryExpression:
+                    return RewriteBinaryExpression((BoundBinaryExpression) node);
                 default:
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
@@ -94,7 +113,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 ? new BoundForStatement(node.Variable, lowerBound, upperBound, body)
                 : node;
         }
-        
+
         protected virtual BoundStatement RewriteLabelStatement(BoundLabelStatement node)
         {
             return node;
@@ -120,25 +139,6 @@ namespace LanguageCore.CodeAnalysis.Binding
             return expression != node.Expression
                 ? new BoundExpressionStatement(expression)
                 : node;
-        }
-
-        public virtual BoundExpression RewriteExpression(BoundExpression node)
-        {
-            switch (node.Kind)
-            {
-                case BoundNodeKind.LiteralExpression:
-                    return RewriteLiteralExpression((BoundLiteralExpression) node);
-                case BoundNodeKind.VariableExpression:
-                    return RewriteVariableExpression((BoundVariableExpression) node);
-                case BoundNodeKind.AssignmentExpression:
-                    return RewriteAssignmentExpression((BoundAssignmentExpression) node);
-                case BoundNodeKind.UnaryExpression:
-                    return RewriteUnaryExpression((BoundUnaryExpression) node);
-                case BoundNodeKind.BinaryExpression:
-                    return RewriteBinaryExpression((BoundBinaryExpression) node);
-                default:
-                    throw new Exception($"Unexpected node: {node.Kind}");
-            }
         }
 
         protected virtual BoundExpression RewriteLiteralExpression(BoundLiteralExpression node)

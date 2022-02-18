@@ -2,6 +2,12 @@
 {
     internal sealed class BoundForStatement : BoundStatement
     {
+        public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
+        public VariableSymbol Variable { get; }
+        public BoundExpression LowerBound { get; }
+        public BoundExpression UpperBound { get; }
+        public BoundBlockStatement Body { get; }
+
         public BoundForStatement(VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound,
             BoundBlockStatement body)
         {
@@ -10,11 +16,5 @@
             UpperBound = upperBound;
             Body = body;
         }
-
-        public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
-        public VariableSymbol Variable { get; }
-        public BoundExpression LowerBound { get; }
-        public BoundExpression UpperBound { get; }
-        public BoundBlockStatement Body { get; }
     }
 }

@@ -52,9 +52,14 @@ namespace LanguageCore.CodeAnalysis
                         var condition = (bool) EvaluateExpression(cgs.Condition);
                         if (condition && !cgs.JumpIfFalse ||
                             !condition && cgs.JumpIfFalse)
+                        {
                             index = labelToIndex[cgs.Label];
+                        }
                         else
+                        {
                             index++;
+                        }
+
                         break;
                     case BoundNodeKind.LabelStatement:
                         index++;

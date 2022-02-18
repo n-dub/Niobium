@@ -2,6 +2,15 @@
 {
     public sealed class ForStatementSyntax : StatementSyntax
     {
+        public override SyntaxKind Kind => SyntaxKind.ForStatement;
+        public SyntaxToken ForKeyword { get; }
+        public SyntaxToken Identifier { get; }
+        public SyntaxToken EqualsToken { get; }
+        public ExpressionSyntax LowerBound { get; }
+        public SyntaxToken InKeyword { get; }
+        public ExpressionSyntax UpperBound { get; }
+        public BlockStatementSyntax Body { get; }
+
         public ForStatementSyntax(SyntaxToken forKeyword, SyntaxToken identifier, SyntaxToken equalsToken,
             ExpressionSyntax lowerBound, SyntaxToken inKeyword, ExpressionSyntax upperBound, BlockStatementSyntax body)
         {
@@ -19,14 +28,5 @@
             UpperBound = upperBound;
             Body = body;
         }
-
-        public override SyntaxKind Kind => SyntaxKind.ForStatement;
-        public SyntaxToken ForKeyword { get; }
-        public SyntaxToken Identifier { get; }
-        public SyntaxToken EqualsToken { get; }
-        public ExpressionSyntax LowerBound { get; }
-        public SyntaxToken InKeyword { get; }
-        public ExpressionSyntax UpperBound { get; }
-        public BlockStatementSyntax Body { get; }
     }
 }

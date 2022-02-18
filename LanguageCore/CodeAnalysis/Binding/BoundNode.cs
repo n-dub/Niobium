@@ -38,6 +38,20 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
+        public void WriteTo(TextWriter writer)
+        {
+            PrettyPrint(writer, this);
+        }
+
+        public override string ToString()
+        {
+            using (var writer = new StringWriter())
+            {
+                WriteTo(writer);
+                return writer.ToString();
+            }
+        }
+
         private IEnumerable<(string Name, object Value)> GetProperties()
         {
             var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -62,11 +76,6 @@ namespace LanguageCore.CodeAnalysis.Binding
                     yield return (property.Name, value);
                 }
             }
-        }
-
-        public void WriteTo(TextWriter writer)
-        {
-            PrettyPrint(writer, this);
         }
 
         private static void PrettyPrint(TextWriter writer, BoundNode node, string indent = "", bool isLast = true)
@@ -172,15 +181,6 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return ConsoleColor.Cyan;
                 default:
                     return ConsoleColor.Yellow;
-            }
-        }
-
-        public override string ToString()
-        {
-            using (var writer = new StringWriter())
-            {
-                WriteTo(writer);
-                return writer.ToString();
             }
         }
     }
