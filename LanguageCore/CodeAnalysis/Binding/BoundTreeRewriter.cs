@@ -128,7 +128,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var condition = RewriteExpression(node.Condition);
             return condition != node.Condition
-                ? new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfFalse)
+                ? new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfTrue)
                 : node;
         }
 

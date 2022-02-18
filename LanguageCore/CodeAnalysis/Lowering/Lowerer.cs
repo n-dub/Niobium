@@ -24,10 +24,13 @@ namespace LanguageCore.CodeAnalysis.Lowering
         {
             var variableDeclaration = new BoundVariableDeclarationStatement(node.Variable, node.LowerBound);
             var variableExpression = new BoundVariableExpression(node.Variable);
+            var upperBoundSymbol = new VariableSymbol("__upperBound", true, typeof(int));
+            var upperBoundDeclaration = new BoundVariableDeclarationStatement(upperBoundSymbol, node.UpperBound);
+
             var condition = new BoundBinaryExpression(
                 variableExpression,
                 BoundBinaryOperator.Bind(SyntaxKind.LessToken, typeof(int), typeof(int)),
-                node.UpperBound
+                new BoundVariableExpression(upperBoundSymbol)
             );
             var increment = new BoundExpressionStatement(
                 new BoundAssignmentExpression(
@@ -41,7 +44,12 @@ namespace LanguageCore.CodeAnalysis.Lowering
             );
             var whileBody = new BoundBlockStatement(new BoundStatement[] {node.Body, increment});
             var whileStatement = new BoundWhileStatement(condition, whileBody);
-            var result = new BoundBlockStatement(new BoundStatement[] {variableDeclaration, whileStatement});
+            var result = new BoundBlockStatement(new BoundStatement[]
+            {
+                variableDeclaration,
+                upperBoundDeclaration,
+                whileStatement
+            });
 
             return RewriteStatement(result);
         }
@@ -51,7 +59,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
             if (node.ElseStatement == null)
             {
                 var endLabel = GenerateLabel();
-                var gotoFalse = new BoundConditionalGotoStatement(endLabel, node.Condition, true);
+                var gotoFalse = new BoundConditionalGotoStatement(endLabel, node.Condition, false);
                 var endLabelStatement = new BoundLabelStatement(endLabel);
                 var result = new BoundBlockStatement(new BoundStatement[]
                 {
@@ -67,7 +75,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 var elseLabel = GenerateLabel();
                 var endLabel = GenerateLabel();
 
-                var gotoFalse = new BoundConditionalGotoStatement(elseLabel, node.Condition, true);
+                var gotoFalse = new BoundConditionalGotoStatement(elseLabel, node.Condition, false);
                 var gotoEndStatement = new BoundGotoStatement(endLabel);
                 var elseLabelStatement = new BoundLabelStatement(elseLabel);
                 var endLabelStatement = new BoundLabelStatement(endLabel);
