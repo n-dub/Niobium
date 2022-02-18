@@ -38,7 +38,8 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="ReadEvalPrintLoop.cs" />
+        <Compile Include="NiobiumRepl.cs" />
+        <Compile Include="Repl.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>

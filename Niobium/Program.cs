@@ -3,7 +3,7 @@ using System.Linq;
 using Repl;
 using Utilities;
 
-namespace LanguageCore
+namespace Niobium
 {
     internal static class Program
     {
@@ -11,7 +11,9 @@ namespace LanguageCore
         {
             if (!args.Any())
             {
-                var repl = new ReadEvalPrintLoop();
+                Console.WriteLine($"Welcome to {LanguageInfo.Name}, v{LanguageInfo.ShortVersion}");
+                Console.WriteLine("You can evaluate Niobium expressions and more (type :help or :? to get help).");
+                var repl = new NiobiumRepl();
                 repl.Start();
             }
             else
