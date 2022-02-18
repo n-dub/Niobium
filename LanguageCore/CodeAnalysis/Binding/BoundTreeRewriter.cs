@@ -20,6 +20,12 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteWhileStatement((BoundWhileStatement) node);
                 case BoundNodeKind.ForStatement:
                     return RewriteForStatement((BoundForStatement) node);
+                case BoundNodeKind.LabelStatement:
+                    return RewriteLabelStatement((BoundLabelStatement)node);
+                case BoundNodeKind.GotoStatement:
+                    return RewriteGotoStatement((BoundGotoStatement)node);
+                case BoundNodeKind.ConditionalGotoStatement:
+                    return RewriteConditionalGotoStatement((BoundConditionalGotoStatement)node);
                 case BoundNodeKind.ExpressionStatement:
                     return RewriteExpressionStatement((BoundExpressionStatement) node);
                 default:
@@ -86,6 +92,24 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             return lowerBound != node.LowerBound || upperBound != node.UpperBound || body != node.Body
                 ? new BoundForStatement(node.Variable, lowerBound, upperBound, body)
+                : node;
+        }
+        
+        protected virtual BoundStatement RewriteLabelStatement(BoundLabelStatement node)
+        {
+            return node;
+        }
+
+        protected virtual BoundStatement RewriteGotoStatement(BoundGotoStatement node)
+        {
+            return node;
+        }
+
+        protected virtual BoundStatement RewriteConditionalGotoStatement(BoundConditionalGotoStatement node)
+        {
+            var condition = RewriteExpression(node.Condition);
+            return condition != node.Condition
+                ? new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfFalse)
                 : node;
         }
 

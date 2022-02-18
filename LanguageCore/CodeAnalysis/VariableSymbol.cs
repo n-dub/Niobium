@@ -14,5 +14,7 @@ namespace LanguageCore.CodeAnalysis
             IsImmutable = isImmutable;
             Type = type;
         }
+
+        public override string ToString() => Name;
     }
 }
