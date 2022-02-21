@@ -10,6 +10,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public object Value { get; }
         public override TextSpan Span => new TextSpan(Position, Text?.Length ?? 0);
 
+        public bool IsMissing => Text is null;
+
         public SyntaxToken(SyntaxKind kind, int position, string text, object value)
         {
             Kind = kind;

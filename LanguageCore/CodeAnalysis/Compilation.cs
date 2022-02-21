@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Lowering;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis
@@ -72,12 +73,12 @@ namespace LanguageCore.CodeAnalysis
             var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
             if (diagnostics.Any())
             {
-                return new EvaluationResult(diagnostics, null, null);
+                return new EvaluationResult(diagnostics, null, null, TypeSymbol.Error);
             }
 
             var evaluator = new Evaluator(GetStatement(), variables);
-            var value = evaluator.Evaluate();
-            return new EvaluationResult(Array.Empty<Diagnostic>(), value, name);
+            var value = evaluator.Evaluate(out var type);
+            return new EvaluationResult(Array.Empty<Diagnostic>(), value, name, type);
         }
 
         public void EmitTree(TextWriter writer)

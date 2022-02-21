@@ -51,7 +51,8 @@ namespace Repl
 
             private int lineCounterOffset;
 
-            public SubmissionView(Action<string> lineRenderer, ObservableCollection<string> submissionDocument, int lineCounterOffset)
+            public SubmissionView(Action<string> lineRenderer, ObservableCollection<string> submissionDocument,
+                int lineCounterOffset)
             {
                 this.lineRenderer = lineRenderer;
                 this.submissionDocument = submissionDocument;
@@ -77,7 +78,7 @@ namespace Repl
                     Console.SetCursorPosition(0, cursorTop + lineCount);
                     Console.ForegroundColor = ConsoleColor.DarkGray;
 
-                    Console.Write($"{lineCounterOffset + lineCount + 1,3}{(lineCount == 0 ? '>' : '.')} ");
+                    Console.Write($"{lineCounterOffset + lineCount + 1,4}{(lineCount == 0 ? '>' : '.')} ");
 
                     Console.ResetColor();
                     lineRenderer(line);
@@ -105,7 +106,7 @@ namespace Repl
             private void UpdateCursorPosition()
             {
                 Console.CursorTop = cursorTop + currentLine;
-                Console.CursorLeft = 5 + currentCharacter;
+                Console.CursorLeft = 6 + currentCharacter;
             }
 
             public int CurrentLine
@@ -344,6 +345,14 @@ namespace Repl
             var start = view.CurrentCharacter;
             if (start >= line.Length)
             {
+                if (view.CurrentLine == document.Count - 1)
+                {
+                    return;
+                }
+
+                var nextLine = document[view.CurrentLine + 1];
+                document[view.CurrentLine] += nextLine;
+                document.RemoveAt(view.CurrentLine + 1);
                 return;
             }
 
@@ -396,10 +405,15 @@ namespace Repl
 
         private void UpdateDocumentFromHistory(ObservableCollection<string> document, SubmissionView view)
         {
+            if (submissionHistory.Count == 0)
+            {
+                return;
+            }
+
             document.Clear();
 
             var historyItem = submissionHistory[submissionHistoryIndex];
-            var lines = historyItem.Split(Environment.NewLine.ToCharArray());
+            var lines = historyItem.Split(new[] {Environment.NewLine}, StringSplitOptions.None);
             foreach (var line in lines)
             {
                 document.Add(line);

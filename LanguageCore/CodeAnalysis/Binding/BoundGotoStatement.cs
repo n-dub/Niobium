@@ -3,9 +3,9 @@
     internal sealed class BoundGotoStatement : BoundStatement
     {
         public override BoundNodeKind Kind => BoundNodeKind.GotoStatement;
-        public LabelSymbol Label { get; }
+        public BoundLabel Label { get; }
 
-        public BoundGotoStatement(LabelSymbol label)
+        public BoundGotoStatement(BoundLabel label)
         {
             Label = label;
         }

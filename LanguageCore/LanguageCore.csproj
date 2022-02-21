@@ -51,6 +51,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundGlobalScope.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundGotoStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundIfStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundLabel.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundLabelStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundLiteralExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNode.cs" />
@@ -69,8 +70,11 @@
         <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
         <Compile Include="CodeAnalysis\EvaluationResult.cs" />
         <Compile Include="CodeAnalysis\Evaluator.cs" />
-        <Compile Include="CodeAnalysis\LabelSymbol.cs" />
         <Compile Include="CodeAnalysis\Lowering\Lowerer.cs" />
+        <Compile Include="CodeAnalysis\Symbols\Symbol.cs" />
+        <Compile Include="CodeAnalysis\Symbols\SymbolKind.cs" />
+        <Compile Include="CodeAnalysis\Symbols\TypeSymbol.cs" />
+        <Compile Include="CodeAnalysis\Symbols\VariableSymbol.cs" />
         <Compile Include="CodeAnalysis\Syntax\AssignmentExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BlockStatementSyntax.cs" />
@@ -98,7 +102,6 @@
         <Compile Include="CodeAnalysis\Text\SourceText.cs" />
         <Compile Include="CodeAnalysis\Text\TextLine.cs" />
         <Compile Include="CodeAnalysis\Text\TextSpan.cs" />
-        <Compile Include="CodeAnalysis\VariableSymbol.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>

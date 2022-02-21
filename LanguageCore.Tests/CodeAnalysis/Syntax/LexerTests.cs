@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Syntax;
+using LanguageCore.CodeAnalysis.Text;
 using NUnit.Framework;
 
 namespace LanguageCore.Tests.CodeAnalysis.Syntax
@@ -9,6 +10,21 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
     [TestFixture]
     public class LexerTests
     {
+        [Test]
+        public void Lexer_Lexes_UnterminatedString()
+        {
+            const string text = "\"text";
+            var tokens = SyntaxTree.ParseTokens(text, out var diagnostics);
+
+            var token = tokens.First();
+            Assert.AreEqual(SyntaxKind.StringToken, token.Kind);
+            Assert.AreEqual(text, token.Text);
+
+            var diagnostic = diagnostics.First();
+            Assert.AreEqual(new TextSpan(0, 1), diagnostic.Span);
+            Assert.AreEqual("Unterminated string literal.", diagnostic.Message);
+        }
+
         [Test]
         public void Lexer_Tests_AllTokens()
         {
@@ -99,7 +115,9 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                 (SyntaxKind.NumberToken, "1"),
                 (SyntaxKind.NumberToken, "123"),
                 (SyntaxKind.IdentifierToken, "a"),
-                (SyntaxKind.IdentifierToken, "abc")
+                (SyntaxKind.IdentifierToken, "abc"),
+                (SyntaxKind.StringToken, "\"Test\""),
+                (SyntaxKind.StringToken, "\"Te\\\"st\"")
             };
 
             return fixedTokens.Concat(dynamicTokens);
@@ -208,6 +226,11 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             }
 
             if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipePipeToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.StringToken && t2Kind == SyntaxKind.StringToken)
             {
                 return true;
             }

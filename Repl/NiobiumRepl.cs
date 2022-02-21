@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
 
@@ -26,9 +27,9 @@ namespace Repl
                 {
                     Console.ForegroundColor = ConsoleColor.Magenta;
                 }
-                else if (!isNumber)
+                else if (isNumber)
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
                 }
 
                 Console.Write(token.Text);
@@ -86,18 +87,27 @@ Meta-commands available:
                 return true;
             }
 
+            var lastTwoLinesAreBlank = text.Split(new[] {Environment.NewLine}, StringSplitOptions.None)
+                .Reverse()
+                .TakeWhile(string.IsNullOrEmpty)
+                .Take(2)
+                .Count() == 2;
+
+            if (lastTwoLinesAreBlank)
+            {
+                return true;
+            }
+
             var syntaxTree = SyntaxTree.Parse(text);
 
-            return syntaxTree.Diagnostics.Count == 0;
+            return !syntaxTree.Root.Statement.GetLastToken().IsMissing;
         }
 
         protected override void EvaluateSubmission(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);
 
-            var compilation = previous == null
-                ? new Compilation(syntaxTree)
-                : previous.ContinueWith(syntaxTree);
+            var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
 
             if (showParseTree)
             {
@@ -134,14 +144,17 @@ Meta-commands available:
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.WriteLine($"<repl>:{lineNumber}:{character}: error: " + diagnostic);
                     Console.ResetColor();
-                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
 
                     var prefixSpan = TextSpan.FromBounds(line.Start, diagnostic.Span.Start);
 
                     var prefix = syntaxTree.SourceText.ToString(prefixSpan);
                     var error = syntaxTree.SourceText.ToString(diagnostic.Span);
 
-                    Console.WriteLine($"{lineNumber,4} | {line}");
+                    Console.Write($"{lineNumber,4} | ");
+                    Console.ResetColor();
+                    RenderLine(line.ToString());
+                    Console.WriteLine();
                     Console.Write(new string(' ', 7 + prefix.Length));
 
                     Console.ForegroundColor = ConsoleColor.DarkRed;

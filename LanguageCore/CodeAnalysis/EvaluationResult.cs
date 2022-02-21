@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using LanguageCore.CodeAnalysis.Symbols;
 
 namespace LanguageCore.CodeAnalysis
 {
@@ -7,17 +8,19 @@ namespace LanguageCore.CodeAnalysis
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
         public object Value { get; }
         public string Name { get; }
+        public TypeSymbol TypeSymbol { get; }
 
-        public EvaluationResult(IReadOnlyList<Diagnostic> diagnostics, object value, string name)
+        public EvaluationResult(IReadOnlyList<Diagnostic> diagnostics, object value, string name, TypeSymbol typeSymbol)
         {
             Diagnostics = diagnostics;
+            TypeSymbol = typeSymbol;
             Value = value;
             Name = name;
         }
 
         public override string ToString()
         {
-            return $"{Name}: {Value?.GetType().Name ?? "Null"} = {Value ?? "null"}";
+            return $"{Name}: {TypeSymbol} = {Value ?? "null"}";
         }
     }
 }

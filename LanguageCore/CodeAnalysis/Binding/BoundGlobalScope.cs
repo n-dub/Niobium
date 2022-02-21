@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using LanguageCore.CodeAnalysis.Symbols;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {

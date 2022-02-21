@@ -46,6 +46,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
         }
 
+        public SyntaxToken GetLastToken()
+        {
+            return GetLastToken(this);
+        }
+        
         public void WriteTo(TextWriter writer)
         {
             PrettyPrint(writer, this);
@@ -57,6 +62,19 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 WriteTo(writer);
                 return writer.ToString();
+            }
+        }
+
+        private static SyntaxToken GetLastToken(SyntaxNode node)
+        {
+            while (true)
+            {
+                if (node is SyntaxToken token)
+                {
+                    return token;
+                }
+
+                node = node.GetChildren().Last();
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LanguageCore.CodeAnalysis;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using NUnit.Framework;
 
@@ -105,7 +106,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'Bool' to 'Int32'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -124,7 +125,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'Bool' to 'Int32'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -143,7 +144,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Cannot convert type 'System.Int32' to 'System.Boolean'.
+                Cannot convert type 'Int32' to 'Bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -162,7 +163,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Cannot convert type 'System.Int32' to 'System.Boolean'.
+                Cannot convert type 'Int32' to 'Bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -241,7 +242,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'Bool' to 'Int32'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -265,7 +266,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             const string text = @"[+]true";
 
             const string diagnostics = @"
-                Unary operator '+' is not defined for type 'System.Boolean'.
+                Unary operator '+' is not defined for type 'Bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -277,7 +278,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             const string text = @"10 [*] false";
 
             const string diagnostics = @"
-                Binary operator '*' is not defined for types 'System.Int32' and 'System.Boolean'.
+                Binary operator '*' is not defined for types 'Int32' and 'Bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);

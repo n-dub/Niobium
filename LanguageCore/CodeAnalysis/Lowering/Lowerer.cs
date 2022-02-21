@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Binding;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.Lowering
@@ -24,12 +25,12 @@ namespace LanguageCore.CodeAnalysis.Lowering
         {
             var variableDeclaration = new BoundVariableDeclarationStatement(node.Variable, node.LowerBound);
             var variableExpression = new BoundVariableExpression(node.Variable);
-            var upperBoundSymbol = new VariableSymbol("__upperBound", true, typeof(int));
+            var upperBoundSymbol = new VariableSymbol("__upperBound", true, TypeSymbol.Int32);
             var upperBoundDeclaration = new BoundVariableDeclarationStatement(upperBoundSymbol, node.UpperBound);
 
             var condition = new BoundBinaryExpression(
                 variableExpression,
-                BoundBinaryOperator.Bind(SyntaxKind.LessToken, typeof(int), typeof(int)),
+                BoundBinaryOperator.Bind(SyntaxKind.LessToken, TypeSymbol.Int32, TypeSymbol.Int32),
                 new BoundVariableExpression(upperBoundSymbol)
             );
             var increment = new BoundExpressionStatement(
@@ -37,7 +38,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                     node.Variable,
                     new BoundBinaryExpression(
                         variableExpression,
-                        BoundBinaryOperator.Bind(SyntaxKind.PlusToken, typeof(int), typeof(int)),
+                        BoundBinaryOperator.Bind(SyntaxKind.PlusToken, TypeSymbol.Int32, TypeSymbol.Int32),
                         new BoundLiteralExpression(1)
                     )
                 )
@@ -143,9 +144,9 @@ namespace LanguageCore.CodeAnalysis.Lowering
             return new BoundBlockStatement(builder.ToArray());
         }
 
-        private LabelSymbol GenerateLabel()
+        private BoundLabel GenerateLabel()
         {
-            return new LabelSymbol($"Label{++labelCount}");
+            return new BoundLabel($"Label{++labelCount}");
         }
     }
 }

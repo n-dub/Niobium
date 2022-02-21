@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LanguageCore.CodeAnalysis.Binding;
+using LanguageCore.CodeAnalysis.Symbols;
 
 namespace LanguageCore.CodeAnalysis
 {
@@ -9,6 +10,7 @@ namespace LanguageCore.CodeAnalysis
         private readonly BoundBlockStatement root;
         private readonly Dictionary<VariableSymbol, object> variables;
         private object lastValue;
+        private TypeSymbol lastType;
 
         public Evaluator(BoundBlockStatement root, Dictionary<VariableSymbol, object> variables)
         {
@@ -16,9 +18,9 @@ namespace LanguageCore.CodeAnalysis
             this.variables = variables;
         }
 
-        public object Evaluate()
+        public object Evaluate(out TypeSymbol type)
         {
-            var labelToIndex = new Dictionary<LabelSymbol, int>();
+            var labelToIndex = new Dictionary<BoundLabel, int>();
 
             for (var i = 0; i < root.Statements.Count; ++i)
             {
@@ -68,6 +70,7 @@ namespace LanguageCore.CodeAnalysis
                 }
             }
 
+            type = lastType;
             return lastValue;
         }
 
@@ -75,11 +78,13 @@ namespace LanguageCore.CodeAnalysis
         {
             var value = EvaluateExpression(node.Initializer);
             variables[node.Variable] = value;
+            lastType = node.Initializer.Type;
             lastValue = value;
         }
 
         private void EvaluateExpressionStatement(BoundExpressionStatement node)
         {
+            lastType = node.Expression.Type;
             lastValue = EvaluateExpression(node.Expression);
         }
 
@@ -117,15 +122,15 @@ namespace LanguageCore.CodeAnalysis
                     return (int) left * (int) right;
                 case BoundBinaryOperatorKind.Division:
                     return (int) left / (int) right;
-                case BoundBinaryOperatorKind.BitwiseAnd when binary.Type == typeof(int):
+                case BoundBinaryOperatorKind.BitwiseAnd when binary.Type == TypeSymbol.Int32:
                     return (int) left & (int) right;
                 case BoundBinaryOperatorKind.BitwiseAnd:
                     return (bool) left & (bool) right;
-                case BoundBinaryOperatorKind.BitwiseOr when binary.Type == typeof(int):
+                case BoundBinaryOperatorKind.BitwiseOr when binary.Type == TypeSymbol.Int32:
                     return (int) left | (int) right;
                 case BoundBinaryOperatorKind.BitwiseOr:
                     return (bool) left | (bool) right;
-                case BoundBinaryOperatorKind.BitwiseXor when binary.Type == typeof(int):
+                case BoundBinaryOperatorKind.BitwiseXor when binary.Type == TypeSymbol.Int32:
                     return (int) left ^ (int) right;
                 case BoundBinaryOperatorKind.BitwiseXor:
                     return (bool) left ^ (bool) right;

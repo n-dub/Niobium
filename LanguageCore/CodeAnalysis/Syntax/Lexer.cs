@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Text;
 using Utilities;
 
@@ -18,6 +20,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private static readonly (SyntaxKind kind, string text)[] operatorKindTexts;
 
         private char Current => Peek(0);
+        private char Lookahead => Peek(1);
 
         public Lexer(SourceText sourceText)
         {
@@ -56,6 +59,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
             else if (char.IsWhiteSpace(Current))
             {
                 ReadWhiteSpace();
+            }
+            else if (Current == '"')
+            {
+                ReadString();
             }
             else
             {
@@ -120,7 +127,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var text = sourceText.ToString(start, length);
             if (!int.TryParse(text, out var result))
             {
-                Diagnostics.ReportInvalidNumber(new TextSpan(start, length), text, typeof(int));
+                Diagnostics.ReportInvalidNumber(new TextSpan(start, length), text, TypeSymbol.Int32);
             }
 
             value = result;
@@ -137,6 +144,76 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var length = position - start;
             var text = sourceText.ToString(start, length);
             kind = SyntaxFacts.GetKeywordKind(text);
+        }
+
+        private void ReadString()
+        {
+            position++;
+
+            var sb = new StringBuilder();
+
+            while (true)
+            {
+                if ("\0\r\n".Contains(Current))
+                {
+                    var span = new TextSpan(start, 1);
+                    Diagnostics.ReportUnterminatedString(span);
+                    break;
+                }
+
+                if (Current == '"')
+                {
+                    position++;
+                    break;
+                }
+
+                if (Current == '\\')
+                {
+                    if (TryReadEscapedCharacter(out var escaped))
+                    {
+                        sb.Append(escaped);
+                    }
+
+                    continue;
+                }
+
+                sb.Append(Current);
+                position++;
+            }
+
+            kind = SyntaxKind.StringToken;
+            value = sb.ToString();
+        }
+
+        private bool TryReadEscapedCharacter(out char character)
+        {
+            position++;
+
+            switch (Current)
+            {
+                case '"':
+                    character = '\"';
+                    break;
+                case 'r':
+                    character = '\r';
+                    break;
+                case 'n':
+                    character = '\n';
+                    break;
+                case 't':
+                    character = '\t';
+                    break;
+                case '\\':
+                    character = '\\';
+                    break;
+                default:
+                    Diagnostics.ReportInvalidEscapedCharacter(new TextSpan(position - 1, 2), Current);
+                    character = '\0';
+                    return false;
+            }
+
+            position++;
+            return true;
         }
     }
 }

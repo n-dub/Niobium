@@ -1,4 +1,6 @@
-﻿namespace LanguageCore.CodeAnalysis.Binding
+﻿using LanguageCore.CodeAnalysis.Symbols;
+
+namespace LanguageCore.CodeAnalysis.Binding
 {
     internal sealed class BoundForStatement : BoundStatement
     {
