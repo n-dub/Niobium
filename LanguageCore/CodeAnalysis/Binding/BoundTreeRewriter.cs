@@ -37,6 +37,8 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             switch (node.Kind)
             {
+                case BoundNodeKind.ErrorExpression:
+                    return RewriteErrorExpression((BoundErrorExpression) node);
                 case BoundNodeKind.LiteralExpression:
                     return RewriteLiteralExpression((BoundLiteralExpression) node);
                 case BoundNodeKind.VariableExpression:
@@ -139,6 +141,11 @@ namespace LanguageCore.CodeAnalysis.Binding
             return expression != node.Expression
                 ? new BoundExpressionStatement(expression)
                 : node;
+        }
+
+        protected virtual BoundExpression RewriteErrorExpression(BoundErrorExpression node)
+        {
+            return node;
         }
 
         protected virtual BoundExpression RewriteLiteralExpression(BoundLiteralExpression node)

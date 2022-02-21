@@ -2,7 +2,7 @@
 {
     public sealed class TypeSymbol : Symbol
     {
-        public static readonly TypeSymbol Error = new TypeSymbol("Error");
+        public static readonly TypeSymbol Error = new TypeSymbol("?");
 
         public static readonly TypeSymbol Bool = new TypeSymbol("Bool");
         public static readonly TypeSymbol Int32 = new TypeSymbol("Int32");

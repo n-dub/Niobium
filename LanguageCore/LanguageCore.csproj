@@ -45,6 +45,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundBinaryOperatorKind.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundBlockStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundConditionalGotoStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundErrorExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpressionStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundForStatement.cs" />
