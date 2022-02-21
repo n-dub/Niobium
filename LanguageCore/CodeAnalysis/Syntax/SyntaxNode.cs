@@ -50,7 +50,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             return GetLastToken(this);
         }
-        
+
         public void WriteTo(TextWriter writer)
         {
             PrettyPrint(writer, this);

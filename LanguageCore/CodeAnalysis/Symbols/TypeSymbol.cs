@@ -8,10 +8,10 @@
         public static readonly TypeSymbol Int32 = new TypeSymbol("Int32");
         public static readonly TypeSymbol String = new TypeSymbol("String");
 
+        public override SymbolKind Kind => SymbolKind.Type;
+
         private TypeSymbol(string name) : base(name)
         {
         }
-
-        public override SymbolKind Kind => SymbolKind.Type;
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
@@ -46,7 +45,8 @@ namespace LanguageCore.CodeAnalysis
             Report(span, message);
         }
 
-        public void ReportUndefinedBinaryOperator(TextSpan span, string operatorText, TypeSymbol leftType, TypeSymbol rightType)
+        public void ReportUndefinedBinaryOperator(TextSpan span, string operatorText, TypeSymbol leftType,
+            TypeSymbol rightType)
         {
             var message = $"Binary operator '{operatorText}' is not defined for types '{leftType}' and '{rightType}'.";
             Report(span, message);
@@ -75,7 +75,7 @@ namespace LanguageCore.CodeAnalysis
             var message = $"Variable '{name}' is immutable and cannot be assigned to.";
             Report(span, message);
         }
-        
+
         public void ReportUnterminatedString(TextSpan span)
         {
             var message = "Unterminated string literal.";

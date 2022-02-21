@@ -114,6 +114,8 @@ namespace LanguageCore.CodeAnalysis
 
             switch (binary.Op.Kind)
             {
+                case BoundBinaryOperatorKind.Addition when binary.Type == TypeSymbol.String:
+                    return (string) left + (string) right;
                 case BoundBinaryOperatorKind.Addition:
                     return (int) left + (int) right;
                 case BoundBinaryOperatorKind.Subtraction:

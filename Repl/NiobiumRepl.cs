@@ -20,21 +20,27 @@ namespace Repl
             var tokens = SyntaxTree.ParseTokens(line);
             foreach (var token in tokens)
             {
-                var isKeyword = token.Kind.IsKeyword();
-                var isNumber = token.Kind == SyntaxKind.NumberToken;
-
-                if (isKeyword)
-                {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                }
-                else if (isNumber)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkCyan;
-                }
-
+                Console.ForegroundColor = GetConsoleColor(token.Kind);
                 Console.Write(token.Text);
-
                 Console.ResetColor();
+            }
+        }
+
+        private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind)
+        {
+            if (tokenKind.IsKeyword())
+            {
+                return ConsoleColor.Magenta;
+            }
+
+            switch (tokenKind)
+            {
+                case SyntaxKind.NumberToken:
+                    return ConsoleColor.DarkCyan;
+                case SyntaxKind.StringToken:
+                    return ConsoleColor.Yellow;
+                default:
+                    return Console.ForegroundColor;
             }
         }
 

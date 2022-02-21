@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LanguageCore.CodeAnalysis.Symbols
+﻿namespace LanguageCore.CodeAnalysis.Symbols
 {
     public sealed class VariableSymbol : Symbol
     {

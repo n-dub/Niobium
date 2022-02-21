@@ -40,104 +40,6 @@ namespace Repl
             }
         }
 
-        private sealed class SubmissionView
-        {
-            private readonly Action<string> lineRenderer;
-            private readonly ObservableCollection<string> submissionDocument;
-            private readonly int cursorTop;
-            private int renderedLineCount;
-            private int currentLine;
-            private int currentCharacter;
-
-            private int lineCounterOffset;
-
-            public SubmissionView(Action<string> lineRenderer, ObservableCollection<string> submissionDocument,
-                int lineCounterOffset)
-            {
-                this.lineRenderer = lineRenderer;
-                this.submissionDocument = submissionDocument;
-                this.lineCounterOffset = lineCounterOffset;
-                this.submissionDocument.CollectionChanged += SubmissionDocumentChanged;
-                cursorTop = Console.CursorTop;
-                Render();
-            }
-
-            private void SubmissionDocumentChanged(object sender, NotifyCollectionChangedEventArgs e)
-            {
-                Render();
-            }
-
-            private void Render()
-            {
-                Console.CursorVisible = false;
-
-                var lineCount = 0;
-
-                foreach (var line in submissionDocument)
-                {
-                    Console.SetCursorPosition(0, cursorTop + lineCount);
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-
-                    Console.Write($"{lineCounterOffset + lineCount + 1,4}{(lineCount == 0 ? '>' : '.')} ");
-
-                    Console.ResetColor();
-                    lineRenderer(line);
-                    Console.WriteLine(new string(' ', Console.WindowWidth - line.Length));
-                    lineCount++;
-                }
-
-                var numberOfBlankLines = renderedLineCount - lineCount;
-                if (numberOfBlankLines > 0)
-                {
-                    var blankLine = new string(' ', Console.WindowWidth);
-                    for (var i = 0; i < numberOfBlankLines; i++)
-                    {
-                        Console.SetCursorPosition(0, cursorTop + lineCount + i);
-                        Console.WriteLine(blankLine);
-                    }
-                }
-
-                renderedLineCount = lineCount;
-
-                Console.CursorVisible = true;
-                UpdateCursorPosition();
-            }
-
-            private void UpdateCursorPosition()
-            {
-                Console.CursorTop = cursorTop + currentLine;
-                Console.CursorLeft = 6 + currentCharacter;
-            }
-
-            public int CurrentLine
-            {
-                get => currentLine;
-                set
-                {
-                    if (currentLine != value)
-                    {
-                        currentLine = value;
-                        currentCharacter = Math.Min(submissionDocument[currentLine].Length, currentCharacter);
-
-                        UpdateCursorPosition();
-                    }
-                }
-            }
-
-            public int CurrentCharacter
-            {
-                get => currentCharacter;
-                set
-                {
-                    if (currentCharacter != value)
-                    {
-                        currentCharacter = value;
-                        UpdateCursorPosition();
-                    }
-                }
-            }
-        }
-
         private string EditSubmission()
         {
             done = false;
@@ -451,5 +353,103 @@ namespace Repl
         protected abstract bool IsCompleteSubmission(string text);
 
         protected abstract void EvaluateSubmission(string text);
+
+        private sealed class SubmissionView
+        {
+            public int CurrentLine
+            {
+                get => currentLine;
+                set
+                {
+                    if (currentLine != value)
+                    {
+                        currentLine = value;
+                        currentCharacter = Math.Min(submissionDocument[currentLine].Length, currentCharacter);
+
+                        UpdateCursorPosition();
+                    }
+                }
+            }
+
+            public int CurrentCharacter
+            {
+                get => currentCharacter;
+                set
+                {
+                    if (currentCharacter != value)
+                    {
+                        currentCharacter = value;
+                        UpdateCursorPosition();
+                    }
+                }
+            }
+
+            private readonly Action<string> lineRenderer;
+            private readonly ObservableCollection<string> submissionDocument;
+            private readonly int cursorTop;
+            private int renderedLineCount;
+            private int currentLine;
+            private int currentCharacter;
+
+            private readonly int lineCounterOffset;
+
+            public SubmissionView(Action<string> lineRenderer, ObservableCollection<string> submissionDocument,
+                int lineCounterOffset)
+            {
+                this.lineRenderer = lineRenderer;
+                this.submissionDocument = submissionDocument;
+                this.lineCounterOffset = lineCounterOffset;
+                this.submissionDocument.CollectionChanged += SubmissionDocumentChanged;
+                cursorTop = Console.CursorTop;
+                Render();
+            }
+
+            private void SubmissionDocumentChanged(object sender, NotifyCollectionChangedEventArgs e)
+            {
+                Render();
+            }
+
+            private void Render()
+            {
+                Console.CursorVisible = false;
+
+                var lineCount = 0;
+
+                foreach (var line in submissionDocument)
+                {
+                    Console.SetCursorPosition(0, cursorTop + lineCount);
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+
+                    Console.Write($"{lineCounterOffset + lineCount + 1,4}{(lineCount == 0 ? '>' : '.')} ");
+
+                    Console.ResetColor();
+                    lineRenderer(line);
+                    Console.WriteLine(new string(' ', Console.WindowWidth - line.Length));
+                    lineCount++;
+                }
+
+                var numberOfBlankLines = renderedLineCount - lineCount;
+                if (numberOfBlankLines > 0)
+                {
+                    var blankLine = new string(' ', Console.WindowWidth);
+                    for (var i = 0; i < numberOfBlankLines; i++)
+                    {
+                        Console.SetCursorPosition(0, cursorTop + lineCount + i);
+                        Console.WriteLine(blankLine);
+                    }
+                }
+
+                renderedLineCount = lineCount;
+
+                Console.CursorVisible = true;
+                UpdateCursorPosition();
+            }
+
+            private void UpdateCursorPosition()
+            {
+                Console.CursorTop = cursorTop + currentLine;
+                Console.CursorLeft = 6 + currentCharacter;
+            }
+        }
     }
 }
