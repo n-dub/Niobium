@@ -28,17 +28,23 @@ namespace Repl
 
         private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind)
         {
-            if (tokenKind.IsKeyword())
-            {
-                return ConsoleColor.Magenta;
-            }
-
             switch (tokenKind)
             {
                 case SyntaxKind.NumberToken:
                     return ConsoleColor.DarkCyan;
                 case SyntaxKind.StringToken:
                     return ConsoleColor.Yellow;
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.TrueKeyword:
+                    return ConsoleColor.Blue;
+                case SyntaxKind.ElseKeyword:
+                case SyntaxKind.ForKeyword:
+                case SyntaxKind.IfKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.LetKeyword:
+                case SyntaxKind.VarKeyword:
+                case SyntaxKind.WhileKeyword:
+                    return ConsoleColor.Magenta;
                 default:
                     return Console.ForegroundColor;
             }
