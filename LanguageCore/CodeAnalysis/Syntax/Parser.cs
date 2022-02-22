@@ -56,6 +56,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return ParseWhileStatement();
                 case SyntaxKind.ForKeyword:
                     return ParseForStatement();
+                case SyntaxKind.RepeatKeyword:
+                    return ParseRepeatWhileStatement();
                 default:
                     return ParseExpressionStatement();
             }
@@ -98,6 +100,15 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var condition = ParseExpression();
             var body = ParseBlockStatement();
             return new WhileStatementSyntax(keyword, condition, body);
+        }
+
+        private StatementSyntax ParseRepeatWhileStatement()
+        {
+            var repeatKeyword = MatchToken(SyntaxKind.RepeatKeyword);
+            var body = ParseBlockStatement();
+            var whileKeyword = MatchToken(SyntaxKind.WhileKeyword);
+            var condition = ParseExpression();
+            return new RepeatWhileStatementSyntax(repeatKeyword, body, whileKeyword, condition);
         }
 
         private StatementSyntax ParseForStatement()

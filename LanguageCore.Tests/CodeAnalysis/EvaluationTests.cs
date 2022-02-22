@@ -72,6 +72,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("{ var i = 10 var result = 0 while i > 0 { result = result + i i = i - 1 } result }", 55)]
         [TestCase("{ var result = 0 for i = 1 in 11 { result = result + i } result }", 55)]
         [TestCase("{ var a = 10 for i = 1 in (a = a - 1) { } a }", 9)]
+        [TestCase("{ var a = 0 repeat { a = a + 1 } while a < 10 a}", 10)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -159,6 +160,26 @@ namespace LanguageCore.Tests.CodeAnalysis
                     while [10] {
                         x = 10
                     }
+                }
+            ";
+
+            const string diagnostics = @"
+                Cannot convert type 'Int32' to 'Bool'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+        
+        [Test]
+        public void Evaluator_RepeatWhileStatement_Reports_CannotConvert()
+        {
+            const string text = @"
+                {
+                    var x = 0
+                    repeat {
+                        x = 10
+                    }
+                    while [10]
                 }
             ";
 

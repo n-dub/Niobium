@@ -18,6 +18,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteIfStatement((BoundIfStatement) node);
                 case BoundNodeKind.WhileStatement:
                     return RewriteWhileStatement((BoundWhileStatement) node);
+                case BoundNodeKind.RepeatWhileStatement:
+                    return RewriteRepeatWhileStatement((BoundRepeatWhileStatement) node);
                 case BoundNodeKind.ForStatement:
                     return RewriteForStatement((BoundForStatement) node);
                 case BoundNodeKind.LabelStatement:
@@ -51,6 +53,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteBinaryExpression((BoundBinaryExpression) node);
                 case BoundNodeKind.CallExpression:
                     return RewriteCallExpression((BoundCallExpression) node);
+                case BoundNodeKind.ConversionExpression:
+                    return RewriteConversionExpression((BoundConversionExpression) node);
                 default:
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
@@ -104,6 +108,16 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             return condition != node.Condition || body != node.Body
                 ? new BoundWhileStatement(condition, body)
+                : node;
+        }
+
+        protected virtual BoundStatement RewriteRepeatWhileStatement(BoundRepeatWhileStatement node)
+        {
+            var condition = RewriteExpression(node.Condition);
+            var body = RewriteBlockStatement(node.Body);
+
+            return condition != node.Condition || body != node.Body
+                ? new BoundRepeatWhileStatement(condition, body)
                 : node;
         }
 
@@ -207,6 +221,17 @@ namespace LanguageCore.CodeAnalysis.Binding
             return arguments != null
                 ? new BoundCallExpression(node.Function, arguments.ToArray())
                 : node;
+        }
+        
+        protected virtual BoundExpression RewriteConversionExpression(BoundConversionExpression node)
+        {
+            var expression = RewriteExpression(node.Expression);
+            if (expression == node.Expression)
+            {
+                return node;
+            }
+
+            return new BoundConversionExpression(node.Type, expression);
         }
     }
 }

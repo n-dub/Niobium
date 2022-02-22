@@ -145,6 +145,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return "in";
                 case SyntaxKind.LetKeyword:
                     return "let";
+                case SyntaxKind.RepeatKeyword:
+                    return "repeat";
                 case SyntaxKind.TrueKeyword:
                     return "true";
                 case SyntaxKind.VarKeyword:

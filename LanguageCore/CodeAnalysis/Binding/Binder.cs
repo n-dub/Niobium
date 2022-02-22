@@ -43,6 +43,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return BindIfStatement((IfStatementSyntax) syntax);
                 case SyntaxKind.WhileStatement:
                     return BindWhileStatement((WhileStatementSyntax) syntax);
+                case SyntaxKind.RepeatWhileStatement:
+                    return BindRepeatWhileStatement((RepeatWhileStatementSyntax) syntax);
                 case SyntaxKind.ForStatement:
                     return BindForStatement((ForStatementSyntax) syntax);
                 case SyntaxKind.ExpressionStatement:
@@ -65,6 +67,13 @@ namespace LanguageCore.CodeAnalysis.Binding
             var condition = BindExpression(syntax.Condition, TypeSymbol.Bool);
             var body = BindBlockStatement(syntax.Body);
             return new BoundWhileStatement(condition, body);
+        }
+
+        private BoundStatement BindRepeatWhileStatement(RepeatWhileStatementSyntax syntax)
+        {
+            var condition = BindExpression(syntax.Condition, TypeSymbol.Bool);
+            var body = BindBlockStatement(syntax.Body);
+            return new BoundRepeatWhileStatement(condition, body);
         }
 
         private BoundStatement BindForStatement(ForStatementSyntax syntax)
@@ -290,6 +299,9 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private BoundExpression BindCallExpression(CallExpressionSyntax syntax)
         {
+            if (syntax.Arguments.Count == 1 && LookupType(syntax.Identifier.Text) is TypeSymbol type)
+                return BindConversion(type, syntax.Arguments[0]);
+
             var boundArguments = syntax.Arguments
                 .Select(argument => BindExpression(argument))
                 .ToList();
@@ -300,9 +312,9 @@ namespace LanguageCore.CodeAnalysis.Binding
                 return new BoundErrorExpression();
             }
 
-            if (syntax.Arguments.Count != function.Parameter.Count)
+            if (syntax.Arguments.Count != function.Parameters.Count)
             {
-                Diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameter.Count,
+                Diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameters.Count,
                     syntax.Arguments.Count);
                 return new BoundErrorExpression();
             }
@@ -310,7 +322,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             for (var i = 0; i < syntax.Arguments.Count; i++)
             {
                 var argument = boundArguments[i];
-                var parameter = function.Parameter[i];
+                var parameter = function.Parameters[i];
 
                 if (argument.Type != parameter.Type)
                 {
@@ -320,6 +332,19 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             return new BoundCallExpression(function, boundArguments.ToArray());
+        }
+        
+        private BoundExpression BindConversion(TypeSymbol type, ExpressionSyntax syntax)
+        {
+            var expression = BindExpression(syntax);
+            var conversion = Conversion.Classify(expression.Type, type);
+            if (!conversion.Exists)
+            {
+                Diagnostics.ReportCannotConvert(syntax.Span, expression.Type, type);
+                return new BoundErrorExpression();
+            }
+
+            return new BoundConversionExpression(type, expression);
         }
 
         private VariableSymbol BindVariable(SyntaxToken identifier, bool isReadOnly, TypeSymbol type)
@@ -333,6 +358,11 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             return variable;
+        }
+
+        private TypeSymbol LookupType(string name)
+        {
+            return TypeSymbol.TryParse(name, out var type) ? type : null;
         }
     }
 }

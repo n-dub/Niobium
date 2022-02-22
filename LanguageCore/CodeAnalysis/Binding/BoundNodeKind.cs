@@ -7,6 +7,7 @@
         VariableDeclarationStatement,
         IfStatement,
         WhileStatement,
+        RepeatWhileStatement,
         ForStatement,
         LabelStatement,
         GotoStatement,
@@ -20,6 +21,7 @@
         AssignmentExpression,
         UnaryExpression,
         BinaryExpression,
-        CallExpression
+        CallExpression,
+        ConversionExpression
     }
 }

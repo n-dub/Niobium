@@ -1,4 +1,8 @@
-﻿namespace LanguageCore.CodeAnalysis.Symbols
+﻿using System;
+using System.Linq;
+using System.Reflection;
+
+namespace LanguageCore.CodeAnalysis.Symbols
 {
     public sealed class TypeSymbol : Symbol
     {
@@ -13,6 +17,35 @@
 
         private TypeSymbol(string name) : base(name)
         {
+        }
+
+        public static bool TryParse(string name, out TypeSymbol type)
+        {
+            type = typeof(TypeSymbol)
+                .GetFields(BindingFlags.Static | BindingFlags.Public)
+                .Select(x => (TypeSymbol) x.GetValue(null))
+                .FirstOrDefault(x => x.Name == name);
+            return type != null;
+        }
+
+        public Type ToSystemType()
+        {
+            if (this == Bool)
+            {
+                return typeof(bool);
+            }
+
+            if (this == Int32)
+            {
+                return typeof(int);
+            }
+
+            if (this == String)
+            {
+                return typeof(string);
+            }
+
+            throw new Exception($"Unexpected type {this}");
         }
     }
 }

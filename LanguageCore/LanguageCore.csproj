@@ -46,6 +46,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundBlockStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundCallExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundConditionalGotoStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundConversionExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundErrorExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpressionStatement.cs" />
@@ -58,6 +59,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundLiteralExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNode.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNodeKind.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundRepeatWhileStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundScope.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundTreeRewriter.cs" />
@@ -67,6 +69,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundVariableDeclarationStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundWhileStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\Conversion.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />
         <Compile Include="CodeAnalysis\Diagnostic.cs" />
         <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
@@ -95,6 +98,7 @@
         <Compile Include="CodeAnalysis\Syntax\NameExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ParenthesizedExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\Parser.cs" />
+        <Compile Include="CodeAnalysis\Syntax\RepeatWhileStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\SeparatedSyntaxList.cs" />
         <Compile Include="CodeAnalysis\Syntax\StatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxFacts.cs" />

@@ -37,16 +37,8 @@ namespace Repl
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.TrueKeyword:
                     return ConsoleColor.Blue;
-                case SyntaxKind.ElseKeyword:
-                case SyntaxKind.ForKeyword:
-                case SyntaxKind.IfKeyword:
-                case SyntaxKind.InKeyword:
-                case SyntaxKind.LetKeyword:
-                case SyntaxKind.VarKeyword:
-                case SyntaxKind.WhileKeyword:
-                    return ConsoleColor.Magenta;
                 default:
-                    return Console.ForegroundColor;
+                    return tokenKind.IsKeyword() ? ConsoleColor.Magenta : Console.ForegroundColor;
             }
         }
 

@@ -106,6 +106,8 @@ namespace LanguageCore.CodeAnalysis
                     return EvaluateBinaryExpression((BoundBinaryExpression) node);
                 case BoundNodeKind.CallExpression:
                     return EvaluateCallExpression((BoundCallExpression) node);
+                case BoundNodeKind.ConversionExpression:
+                    return EvaluateConversionExpression((BoundConversionExpression) node);
                 default:
                     throw new Exception($"Unexpected node {node.Kind}");
             }
@@ -221,6 +223,12 @@ namespace LanguageCore.CodeAnalysis
         private static object EvaluateLiteralExpression(BoundLiteralExpression literal)
         {
             return literal.Value;
+        }
+
+        private object EvaluateConversionExpression(BoundConversionExpression node)
+        {
+            var value = EvaluateExpression(node.Expression);
+            return Convert.ChangeType(value, node.Type.ToSystemType());
         }
     }
 }

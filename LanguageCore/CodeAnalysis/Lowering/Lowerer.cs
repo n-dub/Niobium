@@ -98,24 +98,37 @@ namespace LanguageCore.CodeAnalysis.Lowering
         {
             var continueLabel = GenerateLabel();
             var checkLabel = GenerateLabel();
-            var endLabel = GenerateLabel();
 
             var gotoCheck = new BoundGotoStatement(checkLabel);
             var continueLabelStatement = new BoundLabelStatement(continueLabel);
             var checkLabelStatement = new BoundLabelStatement(checkLabel);
             var gotoTrue = new BoundConditionalGotoStatement(continueLabel, node.Condition);
-            var endLabelStatement = new BoundLabelStatement(endLabel);
             var result = new BoundBlockStatement(new BoundStatement[]
             {
                 gotoCheck,
                 continueLabelStatement,
                 node.Body,
                 checkLabelStatement,
-                gotoTrue,
-                endLabelStatement
+                gotoTrue
             });
 
             return RewriteStatement(result);
+        }
+
+        protected override BoundStatement RewriteRepeatWhileStatement(BoundRepeatWhileStatement node)
+        {
+            var continueLabel = GenerateLabel();
+
+            var continueLabelStatement = new BoundLabelStatement(continueLabel);
+            var gotoTrue = new BoundConditionalGotoStatement(continueLabel, node.Condition);
+            var result = new BoundBlockStatement(new BoundStatement[]
+            {
+                continueLabelStatement,
+                node.Body,
+                gotoTrue
+            });
+
+            return result;
         }
 
         private static BoundBlockStatement Flatten(BoundStatement statement)

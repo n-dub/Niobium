@@ -40,6 +40,7 @@
         IfKeyword,
         InKeyword,
         LetKeyword,
+        RepeatKeyword,
         TrueKeyword,
         VarKeyword,
         WhileKeyword,
@@ -53,6 +54,7 @@
         VariableDeclarationStatement,
         IfStatement,
         WhileStatement,
+        RepeatWhileStatement,
         ForStatement,
         ExpressionStatement,
 
