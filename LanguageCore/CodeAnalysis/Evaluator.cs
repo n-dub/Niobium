@@ -10,6 +10,7 @@ namespace LanguageCore.CodeAnalysis
     {
         private readonly BoundBlockStatement root;
         private readonly Dictionary<VariableSymbol, object> variables;
+        private readonly Random random = new Random();
         private object lastValue;
         private TypeSymbol lastType;
 
@@ -174,6 +175,13 @@ namespace LanguageCore.CodeAnalysis
                 var message = (string) EvaluateExpression(node.Arguments[0]);
                 Console.WriteLine(message);
                 return null;
+            }
+
+            if (node.Function == BuiltinFunctions.Random)
+            {
+                var minValue = (int) EvaluateExpression(node.Arguments[0]);
+                var maxValue = (int) EvaluateExpression(node.Arguments[1]);
+                return random.Next(minValue, maxValue);
             }
 
             throw new Exception($"Unexpected function {node.Function}");
