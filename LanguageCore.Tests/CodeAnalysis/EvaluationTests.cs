@@ -169,7 +169,7 @@ namespace LanguageCore.Tests.CodeAnalysis
 
             AssertDiagnostics(text, diagnostics);
         }
-        
+
         [Test]
         public void Evaluator_RepeatWhileStatement_Reports_CannotConvert()
         {
@@ -205,7 +205,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Variable 'x' is already declared.
+                'x' is already declared.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -264,6 +264,23 @@ namespace LanguageCore.Tests.CodeAnalysis
 
             const string diagnostics = @"
                 Cannot convert type 'Bool' to 'Int32'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Variables_Can_Shadow_Functions()
+        {
+            const string text = @"
+                {
+                    let print = 42
+                    [print](""test"")
+                }
+            ";
+
+            const string diagnostics = @"
+                Function 'print' doesn't exist.
             ";
 
             AssertDiagnostics(text, diagnostics);

@@ -9,17 +9,17 @@ namespace LanguageCore.CodeAnalysis.Binding
         public static readonly Conversion Implicit = new Conversion(true, false, true);
         public static readonly Conversion Explicit = new Conversion(true, false, false);
 
+        public bool Exists { get; }
+        public bool IsIdentity { get; }
+        public bool IsImplicit { get; }
+        public bool IsExplicit => Exists && !IsImplicit;
+
         private Conversion(bool exists, bool isIdentity, bool isImplicit)
         {
             Exists = exists;
             IsIdentity = isIdentity;
             IsImplicit = isImplicit;
         }
-
-        public bool Exists { get; }
-        public bool IsIdentity { get; }
-        public bool IsImplicit { get; }
-        public bool IsExplicit => Exists && !IsImplicit;
 
         public static Conversion Classify(TypeSymbol from, TypeSymbol to)
         {

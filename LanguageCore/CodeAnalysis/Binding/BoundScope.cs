@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Symbols;
 
@@ -9,8 +8,7 @@ namespace LanguageCore.CodeAnalysis.Binding
     {
         public BoundScope Parent { get; }
 
-        private Dictionary<string, VariableSymbol> variables;
-        private Dictionary<string, FunctionSymbol> functions;
+        private Dictionary<string, Symbol> symbols;
 
         public BoundScope(BoundScope parent)
         {
@@ -19,60 +17,68 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         public bool TryDeclareVariable(VariableSymbol variable)
         {
-            variables = variables ?? new Dictionary<string, VariableSymbol>();
-
-            if (variables.ContainsKey(variable.Name))
-            {
-                return false;
-            }
-
-            variables.Add(variable.Name, variable);
-            return true;
+            return TryDeclareSymbol(variable);
         }
 
         public bool TryLookupVariable(string name, out VariableSymbol variable)
         {
-            variable = null;
-
-            if (variables != null && variables.TryGetValue(name, out variable))
-            {
-                return true;
-            }
-
-            return Parent?.TryLookupVariable(name, out variable) ?? false;
+            return TryLookupSymbol(name, out variable);
         }
-        
+
         public bool TryDeclareFunction(FunctionSymbol function)
         {
-            functions = functions ?? new Dictionary<string, FunctionSymbol>();
-
-            if (functions.ContainsKey(function.Name))
-            {
-                return false;
-            }
-
-            functions.Add(function.Name, function);
-            return true;
+            return TryDeclareSymbol(function);
         }
 
         public bool TryLookupFunction(string name, out FunctionSymbol function)
         {
-            function = null;
-
-            if (functions != null && functions.TryGetValue(name, out function))
-                return true;
-
-            return Parent?.TryLookupFunction(name, out function) ?? false;
+            return TryLookupSymbol(name, out function);
         }
 
         public IReadOnlyList<VariableSymbol> GetDeclaredVariables()
         {
-            return variables?.Values.ToArray() ?? Array.Empty<VariableSymbol>();
+            return GetDeclaredSymbols().OfType<VariableSymbol>().ToArray();
         }
-        
+
         public IReadOnlyList<FunctionSymbol> GetDeclaredFunctions()
         {
-            return functions?.Values.ToArray() ?? Array.Empty<FunctionSymbol>();
+            return GetDeclaredSymbols().OfType<FunctionSymbol>().ToArray();
+        }
+
+        private bool TryDeclareSymbol<TSymbol>(TSymbol symbol) where TSymbol : Symbol
+        {
+            symbols = symbols ?? new Dictionary<string, Symbol>();
+
+            if (symbols.ContainsKey(symbol.Name))
+            {
+                return false;
+            }
+
+            symbols.Add(symbol.Name, symbol);
+            return true;
+        }
+
+        private bool TryLookupSymbol<TSymbol>(string name, out TSymbol symbol) where TSymbol : Symbol
+        {
+            symbol = null;
+
+            if (symbols != null && symbols.TryGetValue(name, out var declaredSymbol))
+            {
+                if (declaredSymbol is TSymbol matchingSymbol)
+                {
+                    symbol = matchingSymbol;
+                    return true;
+                }
+
+                return false;
+            }
+
+            return Parent?.TryLookupSymbol(name, out symbol) ?? false;
+        }
+
+        private IEnumerable<Symbol> GetDeclaredSymbols()
+        {
+            return symbols?.Values ?? Enumerable.Empty<Symbol>();
         }
     }
 }

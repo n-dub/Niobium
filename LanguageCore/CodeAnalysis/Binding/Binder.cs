@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
+using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
@@ -120,13 +121,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private BoundExpression BindExpression(ExpressionSyntax syntax, TypeSymbol targetType)
         {
-            var result = BindExpression(syntax);
-            if (targetType != TypeSymbol.Error && result.Type != TypeSymbol.Error && result.Type != targetType)
-            {
-                Diagnostics.ReportCannotConvert(syntax.Span, result.Type, targetType);
-            }
-
-            return result;
+            return BindConversion(syntax, targetType);
         }
 
         private BoundExpression BindExpression(ExpressionSyntax syntax, bool canBeVoid = false)
@@ -235,13 +230,9 @@ namespace LanguageCore.CodeAnalysis.Binding
                 Diagnostics.ReportCannotAssign(syntax.EqualsToken.Span, name);
             }
 
-            if (boundExpression.Type != variable.Type)
-            {
-                Diagnostics.ReportCannotConvert(syntax.Expression.Span, boundExpression.Type, variable.Type);
-                return boundExpression;
-            }
+            var convertedExpression = BindConversion(syntax.Expression.Span, boundExpression, variable.Type);
 
-            return new BoundAssignmentExpression(variable, boundExpression);
+            return new BoundAssignmentExpression(variable, convertedExpression);
         }
 
         private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax syntax)
@@ -300,7 +291,9 @@ namespace LanguageCore.CodeAnalysis.Binding
         private BoundExpression BindCallExpression(CallExpressionSyntax syntax)
         {
             if (syntax.Arguments.Count == 1 && LookupType(syntax.Identifier.Text) is TypeSymbol type)
-                return BindConversion(type, syntax.Arguments[0]);
+            {
+                return BindConversion(syntax.Arguments[0], type);
+            }
 
             var boundArguments = syntax.Arguments
                 .Select(argument => BindExpression(argument))
@@ -333,18 +326,30 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             return new BoundCallExpression(function, boundArguments.ToArray());
         }
-        
-        private BoundExpression BindConversion(TypeSymbol type, ExpressionSyntax syntax)
+
+        private BoundExpression BindConversion(TextSpan diagnosticSpan, BoundExpression expression, TypeSymbol type)
         {
-            var expression = BindExpression(syntax);
             var conversion = Conversion.Classify(expression.Type, type);
-            if (!conversion.Exists)
+
+            if (conversion.Exists)
             {
-                Diagnostics.ReportCannotConvert(syntax.Span, expression.Type, type);
-                return new BoundErrorExpression();
+                return !conversion.IsIdentity
+                    ? new BoundConversionExpression(type, expression)
+                    : expression;
             }
 
-            return new BoundConversionExpression(type, expression);
+            if (expression.Type != TypeSymbol.Error && type != TypeSymbol.Error)
+            {
+                Diagnostics.ReportCannotConvert(diagnosticSpan, expression.Type, type);
+            }
+
+            return new BoundErrorExpression();
+        }
+
+        private BoundExpression BindConversion(ExpressionSyntax syntax, TypeSymbol type)
+        {
+            var expression = BindExpression(syntax);
+            return BindConversion(syntax.Span, expression, type);
         }
 
         private VariableSymbol BindVariable(SyntaxToken identifier, bool isReadOnly, TypeSymbol type)
@@ -354,7 +359,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
             {
-                Diagnostics.ReportVariableAlreadyDeclared(identifier.Span, name);
+                Diagnostics.ReportSymbolAlreadyDeclared(identifier.Span, name);
             }
 
             return variable;

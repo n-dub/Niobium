@@ -222,7 +222,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 ? new BoundCallExpression(node.Function, arguments.ToArray())
                 : node;
         }
-        
+
         protected virtual BoundExpression RewriteConversionExpression(BoundConversionExpression node)
         {
             var expression = RewriteExpression(node.Expression);
