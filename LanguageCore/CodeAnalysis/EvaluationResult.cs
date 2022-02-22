@@ -20,7 +20,7 @@ namespace LanguageCore.CodeAnalysis
 
         public override string ToString()
         {
-            return $"{Name}: {TypeSymbol} = {Value ?? "null"}";
+            return $"{Name}: {TypeSymbol} = {Value}";
         }
     }
 }

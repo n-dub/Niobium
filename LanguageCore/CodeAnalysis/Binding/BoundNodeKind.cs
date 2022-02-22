@@ -19,6 +19,7 @@
         VariableExpression,
         AssignmentExpression,
         UnaryExpression,
-        BinaryExpression
+        BinaryExpression,
+        CallExpression
     }
 }

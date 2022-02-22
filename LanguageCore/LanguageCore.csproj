@@ -44,6 +44,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundBinaryOperator.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundBinaryOperatorKind.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundBlockStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundCallExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundConditionalGotoStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundErrorExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
@@ -72,6 +73,9 @@
         <Compile Include="CodeAnalysis\EvaluationResult.cs" />
         <Compile Include="CodeAnalysis\Evaluator.cs" />
         <Compile Include="CodeAnalysis\Lowering\Lowerer.cs" />
+        <Compile Include="CodeAnalysis\Symbols\BuiltinFunctions.cs" />
+        <Compile Include="CodeAnalysis\Symbols\FunctionSymbol.cs" />
+        <Compile Include="CodeAnalysis\Symbols\ParameterSymbol.cs" />
         <Compile Include="CodeAnalysis\Symbols\Symbol.cs" />
         <Compile Include="CodeAnalysis\Symbols\SymbolKind.cs" />
         <Compile Include="CodeAnalysis\Symbols\TypeSymbol.cs" />
@@ -79,6 +83,7 @@
         <Compile Include="CodeAnalysis\Syntax\AssignmentExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BlockStatementSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\CallExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\CompilationUnitSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ElseClauseSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ExpressionStatementSyntax.cs" />
@@ -90,6 +95,7 @@
         <Compile Include="CodeAnalysis\Syntax\NameExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ParenthesizedExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\Parser.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SeparatedSyntaxList.cs" />
         <Compile Include="CodeAnalysis\Syntax\StatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxFacts.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxKind.cs" />

@@ -7,6 +7,7 @@
         public static readonly TypeSymbol Bool = new TypeSymbol("Bool");
         public static readonly TypeSymbol Int32 = new TypeSymbol("Int32");
         public static readonly TypeSymbol String = new TypeSymbol("String");
+        public static readonly TypeSymbol Void = new TypeSymbol("Void");
 
         public override SymbolKind Kind => SymbolKind.Type;
 

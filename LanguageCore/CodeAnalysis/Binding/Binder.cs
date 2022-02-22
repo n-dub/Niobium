@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
@@ -104,7 +105,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private BoundStatement BindExpressionStatement(ExpressionStatementSyntax syntax)
         {
-            var expression = BindExpression(syntax.Expression);
+            var expression = BindExpression(syntax.Expression, true);
             return new BoundExpressionStatement(expression);
         }
 
@@ -119,7 +120,19 @@ namespace LanguageCore.CodeAnalysis.Binding
             return result;
         }
 
-        private BoundExpression BindExpression(ExpressionSyntax syntax)
+        private BoundExpression BindExpression(ExpressionSyntax syntax, bool canBeVoid = false)
+        {
+            var result = BindExpressionInternal(syntax);
+            if (!canBeVoid && result.Type == TypeSymbol.Void)
+            {
+                Diagnostics.ReportExpressionMustHaveValue(syntax.Span);
+                return new BoundErrorExpression();
+            }
+
+            return result;
+        }
+
+        private BoundExpression BindExpressionInternal(ExpressionSyntax syntax)
         {
             switch (syntax.Kind)
             {
@@ -135,6 +148,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return BindBinaryExpression((BinaryExpressionSyntax) syntax);
                 case SyntaxKind.ParenthesizedExpression:
                     return BindParenthesizedExpression((ParenthesizedExpressionSyntax) syntax);
+                case SyntaxKind.CallExpression:
+                    return BindCallExpression((CallExpressionSyntax) syntax);
                 default:
                     throw new Exception($"Unexpected syntax {syntax.Kind}");
             }
@@ -149,21 +164,32 @@ namespace LanguageCore.CodeAnalysis.Binding
                 previous = previous.Previous;
             }
 
-            BoundScope parent = null;
+            var parent = CreateRootScope();
 
             while (stack.Count > 0)
             {
                 previous = stack.Pop();
                 var scope = new BoundScope(parent);
-                foreach (var v in previous.Variables)
-                {
-                    scope.TryDeclare(v);
-                }
+                var success = previous.Variables
+                    .Select(scope.TryDeclareVariable)
+                    .All(x => x);
+                Debug.Assert(success);
 
                 parent = scope;
             }
 
             return parent;
+        }
+
+        private static BoundScope CreateRootScope()
+        {
+            var result = new BoundScope(null);
+            var success = BuiltinFunctions.GetAll()
+                .Select(result.TryDeclareFunction)
+                .All(x => x);
+            Debug.Assert(success);
+
+            return result;
         }
 
         private BoundExpression BindNameExpression(NameExpressionSyntax syntax)
@@ -175,7 +201,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 return new BoundErrorExpression();
             }
 
-            if (scope.TryLookup(name, out var variable))
+            if (scope.TryLookupVariable(name, out var variable))
             {
                 return new BoundVariableExpression(variable);
             }
@@ -189,7 +215,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var name = syntax.IdentifierToken.Text;
             var boundExpression = BindExpression(syntax.Expression);
 
-            if (!scope.TryLookup(name, out var variable))
+            if (!scope.TryLookupVariable(name, out var variable))
             {
                 Diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
                 return boundExpression;
@@ -262,12 +288,46 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
         }
 
+        private BoundExpression BindCallExpression(CallExpressionSyntax syntax)
+        {
+            var boundArguments = syntax.Arguments
+                .Select(argument => BindExpression(argument))
+                .ToList();
+
+            if (!scope.TryLookupFunction(syntax.Identifier.Text, out var function))
+            {
+                Diagnostics.ReportUndefinedFunction(syntax.Identifier.Span, syntax.Identifier.Text);
+                return new BoundErrorExpression();
+            }
+
+            if (syntax.Arguments.Count != function.Parameter.Count)
+            {
+                Diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameter.Count,
+                    syntax.Arguments.Count);
+                return new BoundErrorExpression();
+            }
+
+            for (var i = 0; i < syntax.Arguments.Count; i++)
+            {
+                var argument = boundArguments[i];
+                var parameter = function.Parameter[i];
+
+                if (argument.Type != parameter.Type)
+                {
+                    Diagnostics.ReportWrongArgumentType(syntax.Span, parameter.Name, parameter.Type, argument.Type);
+                    return new BoundErrorExpression();
+                }
+            }
+
+            return new BoundCallExpression(function, boundArguments.ToArray());
+        }
+
         private VariableSymbol BindVariable(SyntaxToken identifier, bool isReadOnly, TypeSymbol type)
         {
             var name = identifier.Text ?? "?";
             var variable = new VariableSymbol(name, isReadOnly, type);
 
-            if (!identifier.IsMissing && !scope.TryDeclare(variable))
+            if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
             {
                 Diagnostics.ReportVariableAlreadyDeclared(identifier.Span, name);
             }

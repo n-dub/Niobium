@@ -135,9 +135,13 @@ Meta-commands available:
 
             if (!result.Diagnostics.Any())
             {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine(result);
-                Console.ResetColor();
+                if (result.Value != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    Console.WriteLine(result);
+                    Console.ResetColor();
+                }
+
                 previous = compilation;
             }
             else

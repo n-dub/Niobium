@@ -49,6 +49,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteUnaryExpression((BoundUnaryExpression) node);
                 case BoundNodeKind.BinaryExpression:
                     return RewriteBinaryExpression((BoundBinaryExpression) node);
+                case BoundNodeKind.CallExpression:
+                    return RewriteCallExpression((BoundCallExpression) node);
                 default:
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
@@ -183,6 +185,27 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             return left != node.Left || right != node.Right
                 ? new BoundBinaryExpression(left, node.Op, right)
+                : node;
+        }
+
+        protected virtual BoundExpression RewriteCallExpression(BoundCallExpression node)
+        {
+            List<BoundExpression> arguments = null;
+
+            for (var i = 0; i < node.Arguments.Count; i++)
+            {
+                var oldStatement = node.Arguments[i];
+                var newStatement = RewriteExpression(oldStatement);
+                if (newStatement != oldStatement)
+                {
+                    arguments = arguments ?? node.Arguments.Take(i).ToList();
+                }
+
+                arguments?.Add(newStatement);
+            }
+
+            return arguments != null
+                ? new BoundCallExpression(node.Function, arguments.ToArray())
                 : node;
         }
     }

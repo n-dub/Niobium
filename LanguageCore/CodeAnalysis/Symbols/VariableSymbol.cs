@@ -1,6 +1,6 @@
 ﻿namespace LanguageCore.CodeAnalysis.Symbols
 {
-    public sealed class VariableSymbol : Symbol
+    public class VariableSymbol : Symbol
     {
         public bool IsImmutable { get; }
         public TypeSymbol Type { get; }
