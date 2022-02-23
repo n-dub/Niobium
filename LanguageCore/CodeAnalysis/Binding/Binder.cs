@@ -107,10 +107,29 @@ namespace LanguageCore.CodeAnalysis.Binding
         private BoundStatement BindVariableDeclaration(VariableDeclarationSyntax syntax)
         {
             var immutable = syntax.Keyword.Kind == SyntaxKind.LetKeyword;
+            var type = BindTypeClause(syntax.TypeClause);
             var initializer = BindExpression(syntax.Initializer);
-            var variable = BindVariable(syntax.Identifier, immutable, initializer.Type);
+            var variableType = type ?? initializer.Type;
+            var variable = BindVariable(syntax.Identifier, immutable, variableType);
+            var convertedInitializer = BindConversion(syntax.Initializer.Span, initializer, variableType);
 
-            return new BoundVariableDeclarationStatement(variable, initializer);
+            return new BoundVariableDeclarationStatement(variable, convertedInitializer);
+        }
+
+        private TypeSymbol BindTypeClause(TypeClauseSyntax syntax)
+        {
+            if (syntax == null)
+            {
+                return null;
+            }
+
+            var type = LookupType(syntax.Identifier.Text);
+            if (type == null)
+            {
+                Diagnostics.ReportUndefinedType(syntax.Identifier.Span, syntax.Identifier.Text);
+            }
+
+            return type;
         }
 
         private BoundStatement BindExpressionStatement(ExpressionStatementSyntax syntax)
@@ -292,7 +311,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             if (syntax.Arguments.Count == 1 && LookupType(syntax.Identifier.Text) is TypeSymbol type)
             {
-                return BindConversion(syntax.Arguments[0], type);
+                return BindConversion(syntax.Arguments[0], type, true);
             }
 
             var boundArguments = syntax.Arguments
@@ -327,12 +346,18 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundCallExpression(function, boundArguments.ToArray());
         }
 
-        private BoundExpression BindConversion(TextSpan diagnosticSpan, BoundExpression expression, TypeSymbol type)
+        private BoundExpression BindConversion(TextSpan diagnosticSpan, BoundExpression expression, TypeSymbol type,
+            bool allowExplicit = false)
         {
             var conversion = Conversion.Classify(expression.Type, type);
 
             if (conversion.Exists)
             {
+                if (!allowExplicit && conversion.IsExplicit)
+                {
+                    Diagnostics.ReportCannotConvertImplicitly(diagnosticSpan, expression.Type, type);
+                }
+
                 return !conversion.IsIdentity
                     ? new BoundConversionExpression(type, expression)
                     : expression;
@@ -346,10 +371,10 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundErrorExpression();
         }
 
-        private BoundExpression BindConversion(ExpressionSyntax syntax, TypeSymbol type)
+        private BoundExpression BindConversion(ExpressionSyntax syntax, TypeSymbol type, bool allowExplicit = false)
         {
             var expression = BindExpression(syntax);
-            return BindConversion(syntax.Span, expression, type);
+            return BindConversion(syntax.Span, expression, type, allowExplicit);
         }
 
         private VariableSymbol BindVariable(SyntaxToken identifier, bool isReadOnly, TypeSymbol type)

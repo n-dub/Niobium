@@ -20,13 +20,13 @@ namespace Repl
             var tokens = SyntaxTree.ParseTokens(line);
             foreach (var token in tokens)
             {
-                Console.ForegroundColor = GetConsoleColor(token.Kind);
+                Console.ForegroundColor = GetConsoleColor(token.Kind, token.Text);
                 Console.Write(token.Text);
                 Console.ResetColor();
             }
         }
 
-        private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind)
+        private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind, string text)
         {
             switch (tokenKind)
             {
@@ -37,6 +37,10 @@ namespace Repl
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.TrueKeyword:
                     return ConsoleColor.Blue;
+                case SyntaxKind.IdentifierToken:
+                    return TypeSymbol.TryParse(text, out _)
+                        ? ConsoleColor.DarkCyan
+                        : Console.ForegroundColor;
                 default:
                     return tokenKind.IsKeyword() ? ConsoleColor.Magenta : Console.ForegroundColor;
             }
