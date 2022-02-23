@@ -108,7 +108,7 @@ Meta-commands available:
 
             var syntaxTree = SyntaxTree.Parse(text);
 
-            return !syntaxTree.Root.Statement.GetLastToken().IsMissing;
+            return !syntaxTree.Root.Members.Last().GetLastToken().IsMissing;
         }
 
         protected override void EvaluateSubmission(string text)

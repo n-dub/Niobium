@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using LanguageCore.CodeAnalysis.Syntax;
 using NUnit.Framework;
 
@@ -139,9 +140,11 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
         private static ExpressionSyntax ParseExpression(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);
-            var statement = syntaxTree.Root.Statement;
-            Assert.IsInstanceOf<ExpressionStatementSyntax>(statement);
-            return ((ExpressionStatementSyntax) statement).Expression;
+            var member = syntaxTree.Root.Members.First();
+            Assert.IsInstanceOf<GlobalStatementSyntax>(member);
+            var globalStatement = (GlobalStatementSyntax) member;
+            Assert.IsInstanceOf<ExpressionStatementSyntax>(globalStatement.Statement);
+            return ((ExpressionStatementSyntax) globalStatement.Statement).Expression;
         }
     }
 }

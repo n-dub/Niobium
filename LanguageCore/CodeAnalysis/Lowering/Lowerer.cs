@@ -25,7 +25,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
         {
             var variableDeclaration = new BoundVariableDeclarationStatement(node.Variable, node.LowerBound);
             var variableExpression = new BoundVariableExpression(node.Variable);
-            var upperBoundSymbol = new VariableSymbol("__upperBound", true, TypeSymbol.Int32);
+            var upperBoundSymbol = new LocalVariableSymbol("__upperBound", true, TypeSymbol.Int32);
             var upperBoundDeclaration = new BoundVariableDeclarationStatement(upperBoundSymbol, node.UpperBound);
 
             var condition = new BoundBinaryExpression(

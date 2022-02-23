@@ -109,6 +109,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return ">";
                 case SyntaxKind.GreaterOrEqualsToken:
                     return ">=";
+                case SyntaxKind.ArrowToken:
+                    return "->";
                 case SyntaxKind.AmpersandToken:
                     return "&";
                 case SyntaxKind.AmpersandAmpersandToken:
@@ -141,6 +143,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return "false";
                 case SyntaxKind.ForKeyword:
                     return "for";
+                case SyntaxKind.FuncKeyword:
+                    return "func";
                 case SyntaxKind.IfKeyword:
                     return "if";
                 case SyntaxKind.InKeyword:

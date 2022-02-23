@@ -7,14 +7,16 @@ namespace LanguageCore.CodeAnalysis.Binding
     {
         public BoundGlobalScope Previous { get; }
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
+        public IReadOnlyList<FunctionSymbol> Functions { get; }
         public IReadOnlyList<VariableSymbol> Variables { get; }
         public BoundStatement Statement { get; }
 
         public BoundGlobalScope(BoundGlobalScope previous, IReadOnlyList<Diagnostic> diagnostics,
-            IReadOnlyList<VariableSymbol> variables, BoundStatement statement)
+            IReadOnlyList<FunctionSymbol> functions, IReadOnlyList<VariableSymbol> variables, BoundStatement statement)
         {
             Previous = previous;
             Diagnostics = diagnostics;
+            Functions = functions;
             Variables = variables;
             Statement = statement;
         }

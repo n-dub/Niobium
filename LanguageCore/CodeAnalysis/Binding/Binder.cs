@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LanguageCore.CodeAnalysis.Lowering;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
@@ -13,23 +14,110 @@ namespace LanguageCore.CodeAnalysis.Binding
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
         private BoundScope scope;
+        private readonly FunctionSymbol function;
 
-        public Binder(BoundScope parent)
+        public Binder(BoundScope parent, FunctionSymbol function)
         {
             scope = new BoundScope(parent);
+            this.function = function;
+
+            if (function == null)
+            {
+                return;
+            }
+
+            foreach (var p in function.Parameters)
+            {
+                scope.TryDeclareVariable(p);
+            }
         }
 
         public static BoundGlobalScope BindGlobalScope(BoundGlobalScope previous, CompilationUnitSyntax syntax)
         {
             var parentScope = CreateParentScope(previous);
-            var binder = new Binder(parentScope);
-            var expression = binder.BindStatement(syntax.Statement);
+            var binder = new Binder(parentScope, null);
+
+            foreach (var function in syntax.Members.OfType<FunctionDeclarationSyntax>())
+            {
+                binder.BindFunctionDeclaration(function);
+            }
+
+            var statements = syntax.Members
+                .OfType<GlobalStatementSyntax>()
+                .Select(x => x.Statement)
+                .Select(binder.BindStatement)
+                .ToArray();
+
+            var statement = new BoundBlockStatement(statements);
+
+            var functions = binder.scope.GetDeclaredFunctions();
             var variables = binder.scope.GetDeclaredVariables();
             var diagnostics = (previous?.Diagnostics ?? Enumerable.Empty<Diagnostic>())
                 .Concat(binder.Diagnostics)
                 .ToArray();
 
-            return new BoundGlobalScope(previous, diagnostics, variables, expression);
+            return new BoundGlobalScope(previous, diagnostics, functions, variables, statement);
+        }
+
+        public static BoundProgram BindProgram(BoundGlobalScope globalScope)
+        {
+            var parentScope = CreateParentScope(globalScope);
+
+            var functionBodies = new Dictionary<FunctionSymbol, BoundBlockStatement>();
+            var diagnostics = new DiagnosticBag();
+
+            var scope = globalScope;
+            while (scope != null)
+            {
+                foreach (var function in scope.Functions)
+                {
+                    var binder = new Binder(parentScope, function);
+                    var body = binder.BindStatement(function.Declaration.Body);
+                    var loweredBody = Lowerer.Lower(body);
+                    functionBodies.Add(function, loweredBody);
+
+                    diagnostics.AddRange(binder.Diagnostics);
+                }
+
+                scope = scope.Previous;
+            }
+
+            return new BoundProgram(globalScope, diagnostics, functionBodies);
+        }
+
+        private void BindFunctionDeclaration(FunctionDeclarationSyntax syntax)
+        {
+            var parameters = new List<ParameterSymbol>();
+
+            var seenParameterNames = new HashSet<string>();
+
+            foreach (var parameterSyntax in syntax.Parameters)
+            {
+                var parameterName = parameterSyntax.Identifier.Text;
+                var parameterType = BindTypeClause(parameterSyntax.Type);
+                if (!seenParameterNames.Add(parameterName))
+                {
+                    Diagnostics.ReportParameterAlreadyDeclared(parameterSyntax.Span, parameterName);
+                }
+                else
+                {
+                    var parameter = new ParameterSymbol(parameterName, parameterType);
+                    parameters.Add(parameter);
+                }
+            }
+
+            var type = BindTypeClause(syntax.Type) ?? TypeSymbol.Void;
+
+            if (type != TypeSymbol.Void)
+            {
+                Diagnostics.ReportFunctionsAreUnsupported(syntax.Type.Span);
+            }
+
+            var f = new FunctionSymbol(syntax.Identifier.Text, parameters, type, syntax);
+            if (!scope.TryDeclareFunction(f))
+            {
+                Diagnostics.ReportSymbolAlreadyDeclared(syntax.Identifier.Span, f.Name);
+            }
         }
 
         private BoundStatement BindStatement(StatementSyntax syntax)
@@ -193,9 +281,14 @@ namespace LanguageCore.CodeAnalysis.Binding
             {
                 previous = stack.Pop();
                 var scope = new BoundScope(parent);
-                var success = previous.Variables
+
+                var success = previous.Functions
+                    .Select(scope.TryDeclareFunction)
+                    .All(x => x);
+                success &= previous.Variables
                     .Select(scope.TryDeclareVariable)
                     .All(x => x);
+
                 Debug.Assert(success);
 
                 parent = scope;
@@ -318,15 +411,15 @@ namespace LanguageCore.CodeAnalysis.Binding
                 .Select(argument => BindExpression(argument))
                 .ToList();
 
-            if (!scope.TryLookupFunction(syntax.Identifier.Text, out var function))
+            if (!scope.TryLookupFunction(syntax.Identifier.Text, out var f))
             {
                 Diagnostics.ReportUndefinedFunction(syntax.Identifier.Span, syntax.Identifier.Text);
                 return new BoundErrorExpression();
             }
 
-            if (syntax.Arguments.Count != function.Parameters.Count)
+            if (syntax.Arguments.Count != f.Parameters.Count)
             {
-                Diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameters.Count,
+                Diagnostics.ReportWrongArgumentCount(syntax.Span, f.Name, f.Parameters.Count,
                     syntax.Arguments.Count);
                 return new BoundErrorExpression();
             }
@@ -334,16 +427,17 @@ namespace LanguageCore.CodeAnalysis.Binding
             for (var i = 0; i < syntax.Arguments.Count; i++)
             {
                 var argument = boundArguments[i];
-                var parameter = function.Parameters[i];
+                var parameter = f.Parameters[i];
 
                 if (argument.Type != parameter.Type)
                 {
-                    Diagnostics.ReportWrongArgumentType(syntax.Span, parameter.Name, parameter.Type, argument.Type);
+                    Diagnostics.ReportWrongArgumentType(syntax.Arguments[i].Span, parameter.Name, parameter.Type,
+                        argument.Type);
                     return new BoundErrorExpression();
                 }
             }
 
-            return new BoundCallExpression(function, boundArguments.ToArray());
+            return new BoundCallExpression(f, boundArguments.ToArray());
         }
 
         private BoundExpression BindConversion(TextSpan diagnosticSpan, BoundExpression expression, TypeSymbol type,
@@ -380,7 +474,9 @@ namespace LanguageCore.CodeAnalysis.Binding
         private VariableSymbol BindVariable(SyntaxToken identifier, bool isReadOnly, TypeSymbol type)
         {
             var name = identifier.Text ?? "?";
-            var variable = new VariableSymbol(name, isReadOnly, type);
+            var variable = function == null
+                ? (VariableSymbol) new GlobalVariableSymbol(name, isReadOnly, type)
+                : new LocalVariableSymbol(name, isReadOnly, type);
 
             if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
             {

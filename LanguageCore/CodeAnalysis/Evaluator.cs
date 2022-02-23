@@ -8,34 +8,45 @@ namespace LanguageCore.CodeAnalysis
 {
     internal sealed class Evaluator
     {
+        private readonly IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functionBodies;
         private readonly BoundBlockStatement root;
-        private readonly Dictionary<VariableSymbol, object> variables;
+        private readonly Dictionary<VariableSymbol, object> globals;
+        private readonly Stack<Dictionary<VariableSymbol, object>> locals;
         private readonly Random random = new Random();
         private object lastValue;
         private TypeSymbol lastType;
 
-        public Evaluator(BoundBlockStatement root, Dictionary<VariableSymbol, object> variables)
+        public Evaluator(IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functionBodies,
+            BoundBlockStatement root, Dictionary<VariableSymbol, object> variables)
         {
             this.root = root;
-            this.variables = variables;
+            this.functionBodies = functionBodies;
+            globals = variables;
+            locals = new Stack<Dictionary<VariableSymbol, object>>();
+            locals.Push(new Dictionary<VariableSymbol, object>());
         }
 
         public object Evaluate(out TypeSymbol type)
         {
+            return EvaluateStatement(root, out type);
+        }
+
+        private object EvaluateStatement(BoundBlockStatement body, out TypeSymbol type)
+        {
             var labelToIndex = new Dictionary<BoundLabel, int>();
 
-            for (var i = 0; i < root.Statements.Count; ++i)
+            for (var i = 0; i < body.Statements.Count; ++i)
             {
-                if (root.Statements[i] is BoundLabelStatement l)
+                if (body.Statements[i] is BoundLabelStatement l)
                 {
                     labelToIndex.Add(l.Label, i + 1);
                 }
             }
 
             var index = 0;
-            while (index < root.Statements.Count)
+            while (index < body.Statements.Count)
             {
-                var s = root.Statements[index];
+                var s = body.Statements[index];
 
                 switch (s.Kind)
                 {
@@ -79,9 +90,9 @@ namespace LanguageCore.CodeAnalysis
         private void EvaluateVariableDeclaration(BoundVariableDeclarationStatement node)
         {
             var value = EvaluateExpression(node.Initializer);
-            variables[node.Variable] = value;
             lastType = node.Initializer.Type;
             lastValue = value;
+            Assign(node.Variable, value);
         }
 
         private void EvaluateExpressionStatement(BoundExpressionStatement node)
@@ -186,19 +197,40 @@ namespace LanguageCore.CodeAnalysis
                 return random.Next(minValue, maxValue);
             }
 
-            throw new Exception($"Unexpected function {node.Function}");
+            var newLocals = new Dictionary<VariableSymbol, object>();
+            for (var i = 0; i < node.Arguments.Count; i++)
+            {
+                var parameter = node.Function.Parameters[i];
+                var value = EvaluateExpression(node.Arguments[i]);
+                newLocals.Add(parameter, value);
+            }
+
+            locals.Push(newLocals);
+
+            var statement = functionBodies[node.Function];
+            var result = EvaluateStatement(statement, out _);
+
+            locals.Pop();
+
+            return result;
         }
 
         private object EvaluateAssignmentExpression(BoundAssignmentExpression assignment)
         {
             var value = EvaluateExpression(assignment.Expression);
-            variables[assignment.Variable] = value;
+            Assign(assignment.Variable, value);
             return value;
         }
 
         private object EvaluateVariableExpression(BoundVariableExpression variable)
         {
-            return variables[variable.Variable];
+            if (variable.Variable.Kind == SymbolKind.GlobalVariable)
+            {
+                return globals[variable.Variable];
+            }
+
+            var localFrame = locals.Peek();
+            return localFrame[variable.Variable];
         }
 
         private object EvaluateUnaryExpression(BoundUnaryExpression unary)
@@ -229,6 +261,19 @@ namespace LanguageCore.CodeAnalysis
         {
             var value = EvaluateExpression(node.Expression);
             return Convert.ChangeType(value, node.Type.ToSystemType());
+        }
+        
+        private void Assign(VariableSymbol variable, object value)
+        {
+            if (variable.Kind == SymbolKind.GlobalVariable)
+            {
+                globals[variable] = value;
+            }
+            else
+            {
+                var localFrame = locals.Peek();
+                localFrame[variable] = value;
+            }
         }
     }
 }

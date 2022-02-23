@@ -16,6 +16,7 @@
         EqualsToken,
         TildeToken,
         HatToken,
+        ArrowToken,
         AmpersandToken,
         AmpersandAmpersandToken,
         PipeToken,
@@ -38,6 +39,7 @@
         ElseKeyword,
         FalseKeyword,
         ForKeyword,
+        FuncKeyword,
         IfKeyword,
         InKeyword,
         LetKeyword,
@@ -48,8 +50,11 @@
 
         // Nodes
         CompilationUnit,
-        ElseClause,
+        FunctionDeclaration,
+        GlobalStatement,
+        Parameter,
         TypeClause,
+        ElseClause,
 
         // Statements
         BlockStatement,

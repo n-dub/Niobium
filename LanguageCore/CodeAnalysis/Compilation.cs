@@ -76,7 +76,13 @@ namespace LanguageCore.CodeAnalysis
                 return new EvaluationResult(diagnostics, null, null, TypeSymbol.Error);
             }
 
-            var evaluator = new Evaluator(GetStatement(), variables);
+            var program = Binder.BindProgram(GlobalScope);
+            if (program.Diagnostics.Any())
+            {
+                return new EvaluationResult(program.Diagnostics.ToArray(), null, null, TypeSymbol.Error);
+            }
+
+            var evaluator = new Evaluator(program.FunctionBodies, GetStatement(), variables);
             var value = evaluator.Evaluate(out var type);
             return new EvaluationResult(Array.Empty<Diagnostic>(), value, name, type);
         }

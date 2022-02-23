@@ -289,7 +289,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         [Test]
         public void Evaluator_NameExpression_Reports_NoErrorForInsertedToken()
         {
-            const string text = @"[]";
+            const string text = @"1 + []";
 
             const string diagnostics = @"
                 Unexpected token <EndOfFileToken>, expected <IdentifierToken>.

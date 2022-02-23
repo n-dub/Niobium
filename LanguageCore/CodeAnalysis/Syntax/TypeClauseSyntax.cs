@@ -2,14 +2,14 @@
 {
     public sealed class TypeClauseSyntax : SyntaxNode
     {
-        public TypeClauseSyntax(SyntaxToken colonToken, SyntaxToken identifier)
+        public TypeClauseSyntax(SyntaxToken colonOrArrowToken, SyntaxToken identifier)
         {
-            ColonToken = colonToken;
+            ColonOrArrowToken = colonOrArrowToken;
             Identifier = identifier;
         }
 
         public override SyntaxKind Kind => SyntaxKind.TypeClause;
-        public SyntaxToken ColonToken { get; }
+        public SyntaxToken ColonOrArrowToken { get; }
         public SyntaxToken Identifier { get; }
     }
 }
