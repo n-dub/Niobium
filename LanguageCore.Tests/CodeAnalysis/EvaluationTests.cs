@@ -62,6 +62,12 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("false", false)]
         [TestCase("!true", false)]
         [TestCase("!false", true)]
+        [TestCase("\"test\"", "test")]
+        [TestCase("\"te\"\"st\"", "te\"st")]
+        [TestCase("\"test\" == \"test\"", true)]
+        [TestCase("\"test\" != \"test\"", false)]
+        [TestCase("\"test\" == \"abc\"", false)]
+        [TestCase("\"test\" != \"abc\"", true)]
         [TestCase("var a = 10", 10)]
         [TestCase("{ var a = 10 (a * a) }", 100)]
         [TestCase("{ var a = 0 (a = 10) * a }", 100)]
@@ -87,6 +93,43 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
+                Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
+                Unexpected token <EndOfFileToken>, expected <CloseBraceToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_InvokeFunctionArguments_NoInfiniteLoop()
+        {
+            const string text = @"
+                print(""Hi""[[=]][)]
+            ";
+
+            const string diagnostics = @"
+                Unexpected token <EqualsToken>, expected <CloseParenthesisToken>.
+                Unexpected token <EqualsToken>, expected <IdentifierToken>.
+                Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_FunctionParameters_NoInfiniteLoop()
+        {
+            const string text = @"
+                function hi(name: string[[[=]]][)]
+                {
+                    print(""Hi "" + name + ""!"" )
+                }[]
+            ";
+
+            const string diagnostics = @"
+                Unexpected token <EqualsToken>, expected <CloseParenthesisToken>.
+                Unexpected token <EqualsToken>, expected <OpenBraceToken>.
+                Unexpected token <EqualsToken>, expected <IdentifierToken>.
                 Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
                 Unexpected token <EndOfFileToken>, expected <CloseBraceToken>.
             ";

@@ -262,7 +262,7 @@ namespace LanguageCore.CodeAnalysis
             var value = EvaluateExpression(node.Expression);
             return Convert.ChangeType(value, node.Type.ToSystemType());
         }
-        
+
         private void Assign(VariableSymbol variable, object value)
         {
             if (variable.Kind == SymbolKind.GlobalVariable)

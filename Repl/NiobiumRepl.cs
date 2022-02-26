@@ -144,7 +144,7 @@ Meta-commands available:
             {
                 Console.ForegroundColor = ConsoleColor.DarkRed;
 
-                foreach (var diagnostic in result.Diagnostics)
+                foreach (var diagnostic in result.Diagnostics.OrderBy(x => x.Span.Start))
                 {
                     var lineIndex = syntaxTree.SourceText.GetLineIndex(diagnostic.Span.Start);
                     var line = syntaxTree.SourceText.Lines[lineIndex];

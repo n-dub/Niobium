@@ -85,16 +85,22 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var nodesAndSeparators = new List<SyntaxNode>();
 
-            while (Current.Kind != SyntaxKind.CloseParenthesisToken &&
+            var parseNextParameter = true;
+            while (parseNextParameter &&
+                   Current.Kind != SyntaxKind.CloseParenthesisToken &&
                    Current.Kind != SyntaxKind.EndOfFileToken)
             {
                 var parameter = ParseParameter();
                 nodesAndSeparators.Add(parameter);
 
-                if (Current.Kind != SyntaxKind.CloseParenthesisToken)
+                if (Current.Kind == SyntaxKind.CommaToken)
                 {
                     var comma = MatchToken(SyntaxKind.CommaToken);
                     nodesAndSeparators.Add(comma);
+                }
+                else
+                {
+                    parseNextParameter = false;
                 }
             }
 
@@ -385,16 +391,22 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var nodesAndSeparators = new List<SyntaxNode>();
 
-            while (Current.Kind != SyntaxKind.CloseParenthesisToken &&
+            var parseNextArgument = true;
+            while (parseNextArgument &&
+                   Current.Kind != SyntaxKind.CloseParenthesisToken &&
                    Current.Kind != SyntaxKind.EndOfFileToken)
             {
                 var expression = ParseExpression();
                 nodesAndSeparators.Add(expression);
 
-                if (Current.Kind != SyntaxKind.CloseParenthesisToken)
+                if (Current.Kind == SyntaxKind.CommaToken)
                 {
                     var comma = MatchToken(SyntaxKind.CommaToken);
                     nodesAndSeparators.Add(comma);
+                }
+                else
+                {
+                    parseNextArgument = false;
                 }
             }
 
