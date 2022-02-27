@@ -5,16 +5,15 @@ namespace LanguageCore.CodeAnalysis.Binding
 {
     internal sealed class BoundProgram
     {
-        public BoundGlobalScope GlobalScope { get; }
-        public DiagnosticBag Diagnostics { get; }
-        public IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> FunctionBodies { get; }
+        public IReadOnlyList<Diagnostic> Diagnostics { get; }
+        public IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> Functions { get; }
+        public BoundBlockStatement Statement { get; }
 
-        public BoundProgram(BoundGlobalScope globalScope, DiagnosticBag diagnostics,
-            IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functionBodies)
+        public BoundProgram(IReadOnlyList<Diagnostic> diagnostics, IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functions, BoundBlockStatement statement)
         {
-            GlobalScope = globalScope;
             Diagnostics = diagnostics;
-            FunctionBodies = functionBodies;
+            Functions = functions;
+            Statement = statement;
         }
     }
 }

@@ -52,15 +52,13 @@ namespace LanguageCore.CodeAnalysis.Binding
                 .Select(binder.BindStatement)
                 .ToArray();
 
-            var statement = new BoundBlockStatement(statements);
-
             var functions = binder.scope.GetDeclaredFunctions();
             var variables = binder.scope.GetDeclaredVariables();
             var diagnostics = (previous?.Diagnostics ?? Enumerable.Empty<Diagnostic>())
                 .Concat(binder.Diagnostics)
                 .ToArray();
 
-            return new BoundGlobalScope(previous, diagnostics, functions, variables, statement);
+            return new BoundGlobalScope(previous, diagnostics, functions, variables, statements);
         }
 
         public static BoundProgram BindProgram(BoundGlobalScope globalScope)
@@ -68,7 +66,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var parentScope = CreateParentScope(globalScope);
 
             var functionBodies = new Dictionary<FunctionSymbol, BoundBlockStatement>();
-            var diagnostics = new DiagnosticBag();
+            var diagnostics = new List<Diagnostic>();
 
             var scope = globalScope;
             while (scope != null)
@@ -86,7 +84,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                 scope = scope.Previous;
             }
 
-            return new BoundProgram(globalScope, diagnostics, functionBodies);
+            var statement = Lowerer.Lower(new BoundBlockStatement(globalScope.Statements));
+            return new BoundProgram(diagnostics, functionBodies, statement);
         }
 
         private void BindFunctionDeclaration(FunctionDeclarationSyntax syntax)

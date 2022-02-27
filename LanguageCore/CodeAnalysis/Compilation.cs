@@ -50,26 +50,6 @@ namespace LanguageCore.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            var name = "_";
-            switch (GlobalScope.Statement)
-            {
-                case BoundExpressionStatement statement:
-                    switch (statement.Expression)
-                    {
-                        case BoundVariableExpression variable:
-                            name = variable.Variable.Name;
-                            break;
-                        case BoundAssignmentExpression assignment:
-                            name = assignment.Variable.Name;
-                            break;
-                    }
-
-                    break;
-                case BoundVariableDeclarationStatement statement:
-                    name = statement.Variable.Name;
-                    break;
-            }
-
             var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
             if (diagnostics.Any())
             {
@@ -82,21 +62,54 @@ namespace LanguageCore.CodeAnalysis
                 return new EvaluationResult(program.Diagnostics.ToArray(), null, null, TypeSymbol.Error);
             }
 
-            var evaluator = new Evaluator(program.FunctionBodies, GetStatement(), variables);
+            var evaluator = new Evaluator(program, variables);
             var value = evaluator.Evaluate(out var type);
+            var name = GetEvaluationVariableName(program.Statement.Statements.LastOrDefault());
             return new EvaluationResult(Array.Empty<Diagnostic>(), value, name, type);
+        }
+
+        private static string GetEvaluationVariableName(BoundStatement statement)
+        {
+            switch (statement)
+            {
+                case BoundExpressionStatement s:
+                    switch (s.Expression)
+                    {
+                        case BoundVariableExpression variable:
+                            return variable.Variable.Name;
+                        case BoundAssignmentExpression assignment:
+                            return assignment.Variable.Name;
+                        default:
+                            return "_";
+                    }
+                case BoundVariableDeclarationStatement s:
+                    return s.Variable.Name;
+                default:
+                    return "_";
+            }
         }
 
         public void EmitTree(TextWriter writer)
         {
-            var statement = GetStatement();
-            statement.WriteTo(writer);
-        }
+            var program = Binder.BindProgram(GlobalScope);
 
-        private BoundBlockStatement GetStatement()
-        {
-            var result = GlobalScope.Statement;
-            return Lowerer.Lower(result);
+            if (program.Statement.Statements.Any())
+            {
+                program.Statement.WriteTo(writer);
+            }
+            else
+            {
+                foreach (var functionBody in program.Functions)
+                {
+                    if (!GlobalScope.Functions.Contains(functionBody.Key))
+                    {
+                        continue;
+                    }
+
+                    functionBody.Key.WriteTo(writer);
+                    functionBody.Value.WriteTo(writer);
+                }
+            }
         }
     }
 }

@@ -8,19 +8,16 @@ namespace LanguageCore.CodeAnalysis
 {
     internal sealed class Evaluator
     {
-        private readonly IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functionBodies;
-        private readonly BoundBlockStatement root;
+        private readonly BoundProgram program;
         private readonly Dictionary<VariableSymbol, object> globals;
         private readonly Stack<Dictionary<VariableSymbol, object>> locals;
         private readonly Random random = new Random();
         private object lastValue;
         private TypeSymbol lastType;
 
-        public Evaluator(IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functionBodies,
-            BoundBlockStatement root, Dictionary<VariableSymbol, object> variables)
+        public Evaluator(BoundProgram program, Dictionary<VariableSymbol, object> variables)
         {
-            this.root = root;
-            this.functionBodies = functionBodies;
+            this.program = program;
             globals = variables;
             locals = new Stack<Dictionary<VariableSymbol, object>>();
             locals.Push(new Dictionary<VariableSymbol, object>());
@@ -28,7 +25,7 @@ namespace LanguageCore.CodeAnalysis
 
         public object Evaluate(out TypeSymbol type)
         {
-            return EvaluateStatement(root, out type);
+            return EvaluateStatement(program.Statement, out type);
         }
 
         private object EvaluateStatement(BoundBlockStatement body, out TypeSymbol type)
@@ -207,7 +204,7 @@ namespace LanguageCore.CodeAnalysis
 
             locals.Push(newLocals);
 
-            var statement = functionBodies[node.Function];
+            var statement = program.Functions[node.Function];
             var result = EvaluateStatement(statement, out _);
 
             locals.Pop();

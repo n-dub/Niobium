@@ -9,16 +9,17 @@ namespace LanguageCore.CodeAnalysis.Binding
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
         public IReadOnlyList<FunctionSymbol> Functions { get; }
         public IReadOnlyList<VariableSymbol> Variables { get; }
-        public BoundStatement Statement { get; }
+        public IReadOnlyList<BoundStatement> Statements { get; }
 
         public BoundGlobalScope(BoundGlobalScope previous, IReadOnlyList<Diagnostic> diagnostics,
-            IReadOnlyList<FunctionSymbol> functions, IReadOnlyList<VariableSymbol> variables, BoundStatement statement)
+            IReadOnlyList<FunctionSymbol> functions, IReadOnlyList<VariableSymbol> variables,
+            IReadOnlyList<BoundStatement> statements)
         {
             Previous = previous;
             Diagnostics = diagnostics;
             Functions = functions;
             Variables = variables;
-            Statement = statement;
+            Statements = statements;
         }
     }
 }

@@ -87,6 +87,7 @@
         <Compile Include="CodeAnalysis\Symbols\ParameterSymbol.cs" />
         <Compile Include="CodeAnalysis\Symbols\Symbol.cs" />
         <Compile Include="CodeAnalysis\Symbols\SymbolKind.cs" />
+        <Compile Include="CodeAnalysis\Symbols\SymbolPrinter.cs" />
         <Compile Include="CodeAnalysis\Symbols\TypeSymbol.cs" />
         <Compile Include="CodeAnalysis\Symbols\VariableSymbol.cs" />
         <Compile Include="CodeAnalysis\Syntax\AssignmentExpressionSyntax.cs" />
