@@ -36,6 +36,8 @@
         IdentifierToken,
 
         // Keywords
+        BreakKeyword,
+        ContinueKeyword,
         ElseKeyword,
         FalseKeyword,
         ForKeyword,
@@ -63,6 +65,8 @@
         WhileStatement,
         RepeatWhileStatement,
         ForStatement,
+        BreakStatement,
+        ContinueStatement,
         ExpressionStatement,
 
         // Expressions

@@ -33,6 +33,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 BoundBinaryOperator.Bind(SyntaxKind.LessToken, TypeSymbol.Int32, TypeSymbol.Int32),
                 new BoundVariableExpression(upperBoundSymbol)
             );
+            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
             var increment = new BoundExpressionStatement(
                 new BoundAssignmentExpression(
                     node.Variable,
@@ -43,8 +44,11 @@ namespace LanguageCore.CodeAnalysis.Lowering
                     )
                 )
             );
-            var whileBody = new BoundBlockStatement(new BoundStatement[] {node.Body, increment});
-            var whileStatement = new BoundWhileStatement(condition, whileBody);
+            var whileBody = new BoundBlockStatement(new BoundStatement[]
+            {
+                node.Body, continueLabelStatement, increment
+            });
+            var whileStatement = new BoundWhileStatement(condition, whileBody, node.BreakLabel, GenerateLabel());
             var result = new BoundBlockStatement(new BoundStatement[]
             {
                 variableDeclaration,
@@ -52,7 +56,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 whileStatement
             });
 
-            return RewriteStatement(result);
+            return RewriteBlockStatement(result);
         }
 
         protected override BoundStatement RewriteIfStatement(BoundIfStatement node)
@@ -60,6 +64,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
             if (node.ElseStatement == null)
             {
                 var endLabel = GenerateLabel();
+
                 var gotoFalse = new BoundConditionalGotoStatement(endLabel, node.Condition, false);
                 var endLabelStatement = new BoundLabelStatement(endLabel);
                 var result = new BoundBlockStatement(new BoundStatement[]
@@ -69,7 +74,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                     endLabelStatement
                 });
 
-                return RewriteStatement(result);
+                return RewriteBlockStatement(result);
             }
             else
             {
@@ -90,45 +95,46 @@ namespace LanguageCore.CodeAnalysis.Lowering
                     endLabelStatement
                 });
 
-                return RewriteStatement(result);
+                return RewriteBlockStatement(result);
             }
         }
 
         protected override BoundStatement RewriteWhileStatement(BoundWhileStatement node)
         {
-            var continueLabel = GenerateLabel();
             var checkLabel = GenerateLabel();
 
             var gotoCheck = new BoundGotoStatement(checkLabel);
-            var continueLabelStatement = new BoundLabelStatement(continueLabel);
+            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
             var checkLabelStatement = new BoundLabelStatement(checkLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(continueLabel, node.Condition);
+            var gotoTrue = new BoundConditionalGotoStatement(node.ContinueLabel, node.Condition);
+            var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
             var result = new BoundBlockStatement(new BoundStatement[]
             {
                 gotoCheck,
                 continueLabelStatement,
                 node.Body,
                 checkLabelStatement,
-                gotoTrue
+                gotoTrue,
+                breakLabelStatement
             });
 
-            return RewriteStatement(result);
+            return RewriteBlockStatement(result);
         }
 
         protected override BoundStatement RewriteRepeatWhileStatement(BoundRepeatWhileStatement node)
         {
-            var continueLabel = GenerateLabel();
-
-            var continueLabelStatement = new BoundLabelStatement(continueLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(continueLabel, node.Condition);
+            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
+            var gotoTrue = new BoundConditionalGotoStatement(node.ContinueLabel, node.Condition);
+            var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
             var result = new BoundBlockStatement(new BoundStatement[]
             {
                 continueLabelStatement,
                 node.Body,
-                gotoTrue
+                gotoTrue,
+                breakLabelStatement
             });
 
-            return result;
+            return RewriteBlockStatement(result);
         }
 
         private static BoundBlockStatement Flatten(BoundStatement statement)
@@ -159,7 +165,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
         private BoundLabel GenerateLabel()
         {
-            return new BoundLabel($"Label{++labelCount}");
+            return new BoundLabel($"label{++labelCount}");
         }
     }
 }

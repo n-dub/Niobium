@@ -107,7 +107,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var body = RewriteBlockStatement(node.Body);
 
             return condition != node.Condition || body != node.Body
-                ? new BoundWhileStatement(condition, body)
+                ? new BoundWhileStatement(condition, body, node.BreakLabel, node.ContinueLabel)
                 : node;
         }
 
@@ -117,7 +117,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var body = RewriteBlockStatement(node.Body);
 
             return condition != node.Condition || body != node.Body
-                ? new BoundRepeatWhileStatement(condition, body)
+                ? new BoundRepeatWhileStatement(condition, body, node.BreakLabel, node.ContinueLabel)
                 : node;
         }
 
@@ -128,7 +128,8 @@ namespace LanguageCore.CodeAnalysis.Binding
             var body = RewriteBlockStatement(node.Body);
 
             return lowerBound != node.LowerBound || upperBound != node.UpperBound || body != node.Body
-                ? new BoundForStatement(node.Variable, lowerBound, upperBound, body)
+                ? new BoundForStatement(node.Variable, lowerBound, upperBound, body, node.BreakLabel,
+                    node.ContinueLabel)
                 : node;
         }
 

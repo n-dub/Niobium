@@ -137,6 +137,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return ":";
                 case SyntaxKind.CommaToken:
                     return ",";
+                case SyntaxKind.BreakKeyword:
+                    return "break";
+                case SyntaxKind.ContinueKeyword:
+                    return "continue";
                 case SyntaxKind.ElseKeyword:
                     return "else";
                 case SyntaxKind.FalseKeyword:

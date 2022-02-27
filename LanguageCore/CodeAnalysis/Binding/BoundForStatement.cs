@@ -2,7 +2,7 @@
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
-    internal sealed class BoundForStatement : BoundStatement
+    internal sealed class BoundForStatement : BoundLoopStatement
     {
         public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
         public VariableSymbol Variable { get; }
@@ -11,7 +11,8 @@ namespace LanguageCore.CodeAnalysis.Binding
         public BoundBlockStatement Body { get; }
 
         public BoundForStatement(VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound,
-            BoundBlockStatement body)
+            BoundBlockStatement body, BoundLabel breakLabel, BoundLabel continueLabel)
+            : base(breakLabel, continueLabel)
         {
             Variable = variable;
             LowerBound = lowerBound;

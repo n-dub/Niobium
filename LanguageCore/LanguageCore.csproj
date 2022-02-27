@@ -57,8 +57,10 @@
         <Compile Include="CodeAnalysis\Binding\BoundLabel.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundLabelStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundLiteralExpression.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundLoopStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNode.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundNodeKind.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundNodePrinter.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundProgram.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundRepeatWhileStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundScope.cs" />
@@ -76,6 +78,7 @@
         <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
         <Compile Include="CodeAnalysis\EvaluationResult.cs" />
         <Compile Include="CodeAnalysis\Evaluator.cs" />
+        <Compile Include="CodeAnalysis\IO\TextWriterExtensions.cs" />
         <Compile Include="CodeAnalysis\Lowering\Lowerer.cs" />
         <Compile Include="CodeAnalysis\Symbols\BuiltinFunctions.cs" />
         <Compile Include="CodeAnalysis\Symbols\FunctionSymbol.cs" />
@@ -89,8 +92,10 @@
         <Compile Include="CodeAnalysis\Syntax\AssignmentExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BinaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\BlockStatementSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\BreakStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\CallExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\CompilationUnitSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ContinueStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ElseClauseSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ExpressionStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\ExpressionSyntax.cs" />
