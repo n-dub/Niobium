@@ -9,7 +9,8 @@ namespace LanguageCore.CodeAnalysis.Binding
         public IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> Functions { get; }
         public BoundBlockStatement Statement { get; }
 
-        public BoundProgram(IReadOnlyList<Diagnostic> diagnostics, IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functions, BoundBlockStatement statement)
+        public BoundProgram(IReadOnlyList<Diagnostic> diagnostics,
+            IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functions, BoundBlockStatement statement)
         {
             Diagnostics = diagnostics;
             Functions = functions;

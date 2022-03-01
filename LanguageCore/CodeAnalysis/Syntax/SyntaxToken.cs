@@ -12,7 +12,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public bool IsMissing => Text is null;
 
-        public SyntaxToken(SyntaxKind kind, int position, string text, object value)
+        public SyntaxToken(SyntaxTree syntaxTree, SyntaxKind kind, int position, string text, object value)
+            : base(syntaxTree)
         {
             Kind = kind;
             Position = position;

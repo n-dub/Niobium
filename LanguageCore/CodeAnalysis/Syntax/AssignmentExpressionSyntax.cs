@@ -7,8 +7,9 @@
         public SyntaxToken EqualsToken { get; }
         public ExpressionSyntax Expression { get; }
 
-        public AssignmentExpressionSyntax(SyntaxToken identifierToken, SyntaxToken equalsToken,
+        public AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierToken, SyntaxToken equalsToken,
             ExpressionSyntax expression)
+            : base(syntaxTree)
         {
             IdentifierToken = identifierToken;
             EqualsToken = equalsToken;

@@ -9,8 +9,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public IReadOnlyList<StatementSyntax> Statements { get; }
         public SyntaxToken CloseBraceToken { get; }
 
-        public BlockStatementSyntax(SyntaxToken openBraceToken, IReadOnlyList<StatementSyntax> statements,
-            SyntaxToken closeBraceToken)
+        public BlockStatementSyntax(SyntaxTree syntaxTree, SyntaxToken openBraceToken,
+            IReadOnlyList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+            : base(syntaxTree)
         {
             OpenBraceToken = openBraceToken;
             Statements = statements;

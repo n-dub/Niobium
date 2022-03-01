@@ -11,6 +11,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
     {
         public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
+        private readonly SyntaxTree syntaxTree;
         private readonly SourceText sourceText;
         private int position;
         private int start;
@@ -22,9 +23,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private char Current => Peek(0);
         private char Lookahead => Peek(1);
 
-        public Lexer(SourceText sourceText)
+        public Lexer(SyntaxTree syntaxTree)
         {
-            this.sourceText = sourceText;
+            this.syntaxTree = syntaxTree;
+            sourceText = syntaxTree.SourceText;
         }
 
         static Lexer()
@@ -70,7 +72,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
                 if (operatorKind.Equals(default))
                 {
-                    Diagnostics.ReportBadCharacter(position, Current);
+                    var span = new TextSpan(position, 1);
+                    var location = new TextLocation(sourceText, span);
+                    Diagnostics.ReportBadCharacter(location, Current);
                     position++;
                 }
                 else
@@ -83,7 +87,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var length = position - start;
             var text = SyntaxFacts.GetText(kind) ?? sourceText.ToString(start, length);
 
-            return new SyntaxToken(kind, start, text, value);
+            return new SyntaxToken(syntaxTree, kind, start, text, value);
         }
 
         private bool TryMatchString(string match)
@@ -127,7 +131,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var text = sourceText.ToString(start, length);
             if (!int.TryParse(text, out var result))
             {
-                Diagnostics.ReportInvalidNumber(new TextSpan(start, length), text, TypeSymbol.Int32);
+                var span = new TextSpan(start, length);
+                var location = new TextLocation(sourceText, span);
+                Diagnostics.ReportInvalidNumber(location, text, TypeSymbol.Int32);
             }
 
             value = result;
@@ -157,7 +163,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 if ("\0\r\n".Contains(Current))
                 {
                     var span = new TextSpan(start, 1);
-                    Diagnostics.ReportUnterminatedString(span);
+                    var location = new TextLocation(sourceText, span);
+                    Diagnostics.ReportUnterminatedString(location);
                     break;
                 }
 
@@ -207,7 +214,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     character = '\\';
                     break;
                 default:
-                    Diagnostics.ReportInvalidEscapedCharacter(new TextSpan(position - 1, 2), Current);
+                    var span = new TextSpan(position - 1, 2);
+                    var location = new TextLocation(sourceText, span);
+                    Diagnostics.ReportInvalidEscapedCharacter(location, Current);
                     character = '\0';
                     return false;
             }

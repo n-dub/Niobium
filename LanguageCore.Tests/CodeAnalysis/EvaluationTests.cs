@@ -168,6 +168,22 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
+        public void Evaluator_FunctionReturn_Missing()
+        {
+            const string text = @"
+                func [add](a: Int32, b: Int32) -> Int32
+                {
+                }
+            ";
+
+            const string diagnostics = @"
+                Not all code paths return a value.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
         public void Evaluator_ForStatement_Reports_CannotConvert_LowerBound()
         {
             const string text = @"
@@ -297,7 +313,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
-        public void Evaluator_Assigned_Reports_Undefined()
+        public void Evaluator_AssignmentExpression_Reports_Undefined()
         {
             const string text = @"[x] = 10";
 
@@ -309,7 +325,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
-        public void Evaluator_Assigned_Reports_CannotAssign()
+        public void Evaluator_AssignmentExpression_Reports_CannotAssign()
         {
             const string text = @"
                 {
@@ -326,7 +342,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
-        public void Evaluator_Assigned_Reports_CannotConvert()
+        public void Evaluator_AssignmentExpression_Reports_CannotConvert()
         {
             const string text = @"
                 {
@@ -343,6 +359,47 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
+        public void Evaluator_AssignmentExpression_Reports_NotAVariable()
+        {
+            const string text = @"[print] = 42";
+
+            const string diagnostics = @"
+                'print' is not a variable.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_CallExpression_Reports_Undefined()
+        {
+            const string text = @"[foo](42)";
+
+            const string diagnostics = @"
+                Function 'foo' doesn't exist.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_CallExpression_Reports_NotAFunction()
+        {
+            const string text = @"
+                {
+                    let foo = 42
+                    [foo](42)
+                }
+            ";
+
+            const string diagnostics = @"
+                'foo' is not a function.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
         public void Evaluator_Variables_Can_Shadow_Functions()
         {
             const string text = @"
@@ -353,7 +410,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Function 'print' doesn't exist.
+                'print' is not a function.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -395,45 +452,6 @@ namespace LanguageCore.Tests.CodeAnalysis
             AssertDiagnostics(text, diagnostics);
         }
 
-        private static void AssertValue(string text, object expectedValue)
-        {
-            var syntaxTree = SyntaxTree.Parse(text);
-            var compilation = new Compilation(syntaxTree);
-            var variables = new Dictionary<VariableSymbol, object>();
-            var result = compilation.Evaluate(variables);
-
-            Assert.IsEmpty(result.Diagnostics);
-            Assert.AreEqual(expectedValue, result.Value);
-        }
-
-        private static void AssertDiagnostics(string text, string diagnosticText)
-        {
-            var annotatedText = AnnotatedText.Parse(text);
-            var syntaxTree = SyntaxTree.Parse(annotatedText.Text);
-            var compilation = new Compilation(syntaxTree);
-            var result = compilation.Evaluate(new Dictionary<VariableSymbol, object>());
-
-            var expectedDiagnostics = AnnotatedText.UnIndentLines(diagnosticText);
-
-            if (annotatedText.Spans.Count != expectedDiagnostics.Length)
-            {
-                throw new Exception("Must mark as many spans as there are expected diagnostics");
-            }
-
-            Assert.AreEqual(expectedDiagnostics.Length, result.Diagnostics.Count);
-
-            for (var i = 0; i < expectedDiagnostics.Length; i++)
-            {
-                var expectedMessage = expectedDiagnostics[i];
-                var actualMessage = result.Diagnostics[i].Message;
-                Assert.AreEqual(expectedMessage, actualMessage);
-
-                var expectedSpan = annotatedText.Spans[i];
-                var actualSpan = result.Diagnostics[i].Span;
-                Assert.AreEqual(expectedSpan, actualSpan);
-            }
-        }
-        
         [Test]
         public void Evaluator_Void_Function_Should_Not_Return_Value()
         {
@@ -588,6 +606,45 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             AssertDiagnostics(text, diagnostics);
+        }
+
+        private static void AssertValue(string text, object expectedValue)
+        {
+            var syntaxTree = SyntaxTree.Parse(text);
+            var compilation = new Compilation(syntaxTree);
+            var variables = new Dictionary<VariableSymbol, object>();
+            var result = compilation.Evaluate(variables);
+
+            Assert.IsEmpty(result.Diagnostics);
+            Assert.AreEqual(expectedValue, result.Value);
+        }
+
+        private static void AssertDiagnostics(string text, string diagnosticText)
+        {
+            var annotatedText = AnnotatedText.Parse(text);
+            var syntaxTree = SyntaxTree.Parse(annotatedText.Text);
+            var compilation = new Compilation(syntaxTree);
+            var result = compilation.Evaluate(new Dictionary<VariableSymbol, object>());
+
+            var expectedDiagnostics = AnnotatedText.UnIndentLines(diagnosticText);
+
+            if (annotatedText.Spans.Count != expectedDiagnostics.Length)
+            {
+                throw new Exception("Must mark as many spans as there are expected diagnostics");
+            }
+
+            Assert.AreEqual(expectedDiagnostics.Length, result.Diagnostics.Count);
+
+            for (var i = 0; i < expectedDiagnostics.Length; i++)
+            {
+                var expectedMessage = expectedDiagnostics[i];
+                var actualMessage = result.Diagnostics[i].Message;
+                Assert.AreEqual(expectedMessage, actualMessage);
+
+                var expectedSpan = annotatedText.Spans[i];
+                var actualSpan = result.Diagnostics[i].Location.Span;
+                Assert.AreEqual(expectedSpan, actualSpan);
+            }
         }
     }
 }

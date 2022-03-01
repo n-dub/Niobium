@@ -8,8 +8,10 @@
         public BlockStatementSyntax ThenStatement { get; }
         public ElseClauseSyntax ElseClause { get; }
 
-        public IfStatementSyntax(SyntaxToken ifKeyword, ExpressionSyntax condition, BlockStatementSyntax thenStatement,
+        public IfStatementSyntax(SyntaxTree syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition,
+            BlockStatementSyntax thenStatement,
             ElseClauseSyntax elseClause)
+            : base(syntaxTree)
         {
             IfKeyword = ifKeyword;
             Condition = condition;

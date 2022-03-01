@@ -5,7 +5,8 @@
         public override SyntaxKind Kind => SyntaxKind.ExpressionStatement;
         public ExpressionSyntax Expression { get; }
 
-        public ExpressionStatementSyntax(ExpressionSyntax expression)
+        public ExpressionStatementSyntax(SyntaxTree syntaxTree, ExpressionSyntax expression)
+            : base(syntaxTree)
         {
             Expression = expression;
         }

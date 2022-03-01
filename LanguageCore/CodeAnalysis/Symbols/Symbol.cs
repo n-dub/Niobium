@@ -7,11 +7,6 @@ namespace LanguageCore.CodeAnalysis.Symbols
         public abstract SymbolKind Kind { get; }
         public string Name { get; }
 
-        private protected Symbol(string name)
-        {
-            Name = name;
-        }
-        
         public void WriteTo(TextWriter writer)
         {
             SymbolPrinter.WriteTo(this, writer);
@@ -24,6 +19,11 @@ namespace LanguageCore.CodeAnalysis.Symbols
                 WriteTo(writer);
                 return writer.ToString();
             }
+        }
+
+        private protected Symbol(string name)
+        {
+            Name = name;
         }
     }
 }

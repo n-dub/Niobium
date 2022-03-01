@@ -9,8 +9,9 @@
         public SyntaxToken WhileKeyword { get; }
         public ExpressionSyntax Condition { get; }
 
-        public RepeatWhileStatementSyntax(SyntaxToken repeatKeyword, BlockStatementSyntax body,
+        public RepeatWhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken repeatKeyword, BlockStatementSyntax body,
             SyntaxToken whileKeyword, ExpressionSyntax condition)
+            : base(syntaxTree)
         {
             RepeatKeyword = repeatKeyword;
             Body = body;

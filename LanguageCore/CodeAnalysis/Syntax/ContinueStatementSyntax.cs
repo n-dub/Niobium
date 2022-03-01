@@ -5,7 +5,8 @@
         public override SyntaxKind Kind => SyntaxKind.ContinueStatement;
         public SyntaxToken Keyword { get; }
 
-        public ContinueStatementSyntax(SyntaxToken keyword)
+        public ContinueStatementSyntax(SyntaxTree syntaxTree, SyntaxToken keyword)
+            : base(syntaxTree)
         {
             Keyword = keyword;
         }

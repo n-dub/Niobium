@@ -5,7 +5,8 @@
         public override SyntaxKind Kind => SyntaxKind.GlobalStatement;
         public StatementSyntax Statement { get; }
 
-        public GlobalStatementSyntax(StatementSyntax statement)
+        public GlobalStatementSyntax(SyntaxTree syntaxTree, StatementSyntax statement)
+            : base(syntaxTree)
         {
             Statement = statement;
         }

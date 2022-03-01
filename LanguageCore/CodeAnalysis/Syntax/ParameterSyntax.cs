@@ -6,7 +6,8 @@
         public SyntaxToken Identifier { get; }
         public TypeClauseSyntax Type { get; }
 
-        public ParameterSyntax(SyntaxToken identifier, TypeClauseSyntax type)
+        public ParameterSyntax(SyntaxTree syntaxTree, SyntaxToken identifier, TypeClauseSyntax type)
+            : base(syntaxTree)
         {
             Identifier = identifier;
             Type = type;

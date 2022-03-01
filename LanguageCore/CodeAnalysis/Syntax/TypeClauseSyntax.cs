@@ -6,7 +6,8 @@
         public SyntaxToken ColonOrArrowToken { get; }
         public SyntaxToken Identifier { get; }
 
-        public TypeClauseSyntax(SyntaxToken colonOrArrowToken, SyntaxToken identifier)
+        public TypeClauseSyntax(SyntaxTree syntaxTree, SyntaxToken colonOrArrowToken, SyntaxToken identifier)
+            : base(syntaxTree)
         {
             ColonOrArrowToken = colonOrArrowToken;
             Identifier = identifier;

@@ -7,7 +7,9 @@
         public ExpressionSyntax Condition { get; }
         public BlockStatementSyntax Body { get; }
 
-        public WhileStatementSyntax(SyntaxToken whileKeyword, ExpressionSyntax condition, BlockStatementSyntax body)
+        public WhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition,
+            BlockStatementSyntax body)
+            : base(syntaxTree)
         {
             WhileKeyword = whileKeyword;
             Condition = condition;

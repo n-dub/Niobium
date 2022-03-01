@@ -8,7 +8,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public IReadOnlyList<MemberSyntax> Members { get; }
         public SyntaxToken EndOfFileToken { get; }
 
-        public CompilationUnitSyntax(IReadOnlyList<MemberSyntax> members, SyntaxToken endOfFileToken)
+        public CompilationUnitSyntax(SyntaxTree syntaxTree, IReadOnlyList<MemberSyntax> members,
+            SyntaxToken endOfFileToken)
+            : base(syntaxTree)
         {
             Members = members;
             EndOfFileToken = endOfFileToken;

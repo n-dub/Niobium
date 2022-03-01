@@ -6,6 +6,7 @@ using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
+using Utilities;
 
 namespace LanguageCore.CodeAnalysis
 {
@@ -13,7 +14,7 @@ namespace LanguageCore.CodeAnalysis
     {
         public Compilation Previous { get; }
 
-        public SyntaxTree SyntaxTree { get; }
+        public IReadOnlyList<SyntaxTree> SyntaxTrees { get; }
 
         internal BoundGlobalScope GlobalScope
         {
@@ -21,7 +22,7 @@ namespace LanguageCore.CodeAnalysis
             {
                 if (globalScope == null)
                 {
-                    var newGlobalScope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTree.Root);
+                    var newGlobalScope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTrees);
                     Interlocked.CompareExchange(ref globalScope, newGlobalScope, null);
                 }
 
@@ -31,15 +32,15 @@ namespace LanguageCore.CodeAnalysis
 
         private BoundGlobalScope globalScope;
 
-        public Compilation(SyntaxTree syntaxTree)
-            : this(null, syntaxTree)
+        public Compilation(params SyntaxTree[] syntaxTrees)
+            : this(null, syntaxTrees)
         {
         }
 
-        private Compilation(Compilation previous, SyntaxTree syntaxTree)
+        private Compilation(Compilation previous, params SyntaxTree[] syntaxTrees)
         {
             Previous = previous;
-            SyntaxTree = syntaxTree;
+            SyntaxTrees = syntaxTrees;
         }
 
         public Compilation ContinueWith(SyntaxTree syntaxTree)
@@ -49,26 +50,17 @@ namespace LanguageCore.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
+            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
+
+            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToArray();
             if (diagnostics.Any())
             {
                 return new EvaluationResult(diagnostics, null, null, TypeSymbol.Error);
             }
 
             var program = Binder.BindProgram(GlobalScope);
-            //
-            // var appPath = Environment.GetCommandLineArgs()[0];
-            // var appDirectory = Path.GetDirectoryName(appPath) ?? string.Empty;
-            // var cfgPath = Path.Combine(appDirectory, "cfg.dot");
-            // var cfgStatement = !program.Statement.Statements.Any() && program.Functions.Any()
-            //     ? program.Functions.Last().Value
-            //     : program.Statement;
-            //
-            // var cfg = ControlFlowGraph.Create(cfgStatement);
-            // using (var streamWriter = new StreamWriter(cfgPath))
-            // {
-            //     cfg.WriteTo(streamWriter);
-            // }
+
+            SaveControlFlowGraph(program);
 
             if (program.Diagnostics.Any())
             {
@@ -101,6 +93,29 @@ namespace LanguageCore.CodeAnalysis
                     functionBody.Key.WriteTo(writer);
                     functionBody.Value.WriteTo(writer);
                 }
+            }
+        }
+
+        private static void SaveControlFlowGraph(BoundProgram program)
+        {
+            // This causes problems with multiple threads writing to a single file.
+            // Also not needed in unit tests anyway.
+            if (UnitTestDetector.IsRunningFromNUnit)
+            {
+                return;
+            }
+
+            var appPath = Environment.GetCommandLineArgs()[0];
+            var appDirectory = Path.GetDirectoryName(appPath) ?? string.Empty;
+            var cfgPath = Path.Combine(appDirectory, "cfg.dot");
+            var cfgStatement = !program.Statement.Statements.Any() && program.Functions.Any()
+                ? program.Functions.Last().Value
+                : program.Statement;
+
+            var cfg = ControlFlowGraph.Create(cfgStatement);
+            using (var streamWriter = new StreamWriter(cfgPath))
+            {
+                cfg.WriteTo(streamWriter);
             }
         }
 

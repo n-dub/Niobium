@@ -12,9 +12,10 @@
         public TypeClauseSyntax Type { get; }
         public BlockStatementSyntax Body { get; }
 
-        public FunctionDeclarationSyntax(SyntaxToken funcKeyword, SyntaxToken identifier,
+        public FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken funcKeyword, SyntaxToken identifier,
             SyntaxToken openParenthesisToken, SeparatedSyntaxList<ParameterSyntax> parameters,
             SyntaxToken closeParenthesisToken, TypeClauseSyntax type, BlockStatementSyntax body)
+            : base(syntaxTree)
         {
             FuncKeyword = funcKeyword;
             Identifier = identifier;

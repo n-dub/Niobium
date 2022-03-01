@@ -10,7 +10,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Text
         [TestCase(".\r\n\r\n", 3)]
         public void SourceText_IncludesLastLine(string text, int expectedLineCount)
         {
-            var sourceText = SourceText.From(text);
+            var sourceText = SourceText.From(text, "");
             Assert.AreEqual(expectedLineCount, sourceText.Lines.Count);
         }
     }

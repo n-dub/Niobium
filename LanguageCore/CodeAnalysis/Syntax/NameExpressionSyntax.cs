@@ -5,7 +5,8 @@
         public override SyntaxKind Kind => SyntaxKind.NameExpression;
         public SyntaxToken IdentifierToken { get; }
 
-        public NameExpressionSyntax(SyntaxToken identifierToken)
+        public NameExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierToken)
+            : base(syntaxTree)
         {
             IdentifierToken = identifierToken;
         }

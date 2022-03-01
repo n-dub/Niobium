@@ -42,6 +42,10 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\LanguageCore\LanguageCore.csproj">
+        <Project>{eacfb61c-2c66-4337-bc19-4fb0e80b71ed}</Project>
+        <Name>LanguageCore</Name>
+      </ProjectReference>
       <ProjectReference Include="..\Repl\Repl.csproj">
         <Project>{6d2b4648-d1ba-4eba-a617-7c3df64201a3}</Project>
         <Name>Repl</Name>

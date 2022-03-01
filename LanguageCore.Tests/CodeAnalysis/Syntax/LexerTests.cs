@@ -21,7 +21,7 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             Assert.AreEqual(text, token.Text);
 
             var diagnostic = diagnostics.First();
-            Assert.AreEqual(new TextSpan(0, 1), diagnostic.Span);
+            Assert.AreEqual(new TextSpan(0, 1), diagnostic.Location.Span);
             Assert.AreEqual("Unterminated string literal.", diagnostic.Message);
         }
 

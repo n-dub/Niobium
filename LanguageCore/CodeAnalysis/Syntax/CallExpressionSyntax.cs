@@ -8,8 +8,9 @@
         public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
         public SyntaxToken CloseParenthesisToken { get; }
 
-        public CallExpressionSyntax(SyntaxToken identifier, SyntaxToken openParenthesisToken,
+        public CallExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesisToken,
             SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closeParenthesisToken)
+            : base(syntaxTree)
         {
             Identifier = identifier;
             OpenParenthesisToken = openParenthesisToken;

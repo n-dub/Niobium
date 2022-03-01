@@ -7,8 +7,10 @@
         public ExpressionSyntax Expression { get; }
         public SyntaxToken CloseParenthesisToken { get; }
 
-        public ParenthesizedExpressionSyntax(SyntaxToken openParenthesisToken, ExpressionSyntax expression,
+        public ParenthesizedExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken openParenthesisToken,
+            ExpressionSyntax expression,
             SyntaxToken closeParenthesisToken)
+            : base(syntaxTree)
         {
             OpenParenthesisToken = openParenthesisToken;
             Expression = expression;

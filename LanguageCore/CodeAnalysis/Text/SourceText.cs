@@ -4,6 +4,7 @@ namespace LanguageCore.CodeAnalysis.Text
 {
     public sealed class SourceText
     {
+        public string FileName { get; }
         public IReadOnlyList<TextLine> Lines { get; }
 
         public char this[int index] => text[index];
@@ -11,8 +12,9 @@ namespace LanguageCore.CodeAnalysis.Text
         public int Length => text.Length;
         private readonly string text;
 
-        private SourceText(string text)
+        private SourceText(string text, string fileName)
         {
+            FileName = fileName;
             this.text = text;
             Lines = ParseLines(this, text);
         }
@@ -45,9 +47,9 @@ namespace LanguageCore.CodeAnalysis.Text
             return lower - 1;
         }
 
-        public static SourceText From(string text)
+        public static SourceText From(string text, string fileName)
         {
-            return new SourceText(text);
+            return new SourceText(text, fileName);
         }
 
         public override string ToString()

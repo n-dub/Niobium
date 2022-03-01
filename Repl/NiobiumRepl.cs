@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
+using LanguageCore.CodeAnalysis.IO;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
-using LanguageCore.CodeAnalysis.Text;
 
 namespace Repl
 {
@@ -142,39 +142,7 @@ Meta-commands available:
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-
-                foreach (var diagnostic in result.Diagnostics.OrderBy(x => x.Span.Start))
-                {
-                    var lineIndex = syntaxTree.SourceText.GetLineIndex(diagnostic.Span.Start);
-                    var line = syntaxTree.SourceText.Lines[lineIndex];
-                    var lineNumber = lineIndex + 1;
-                    var character = diagnostic.Span.Start - line.Start + 1;
-
-                    Console.WriteLine();
-
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine($"<repl>:{lineNumber}:{character}: error: " + diagnostic);
-                    Console.ResetColor();
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-
-                    var prefixSpan = TextSpan.FromBounds(line.Start, diagnostic.Span.Start);
-
-                    var prefix = syntaxTree.SourceText.ToString(prefixSpan);
-                    var error = syntaxTree.SourceText.ToString(diagnostic.Span);
-
-                    Console.Write($"{lineNumber,4} | ");
-                    Console.ResetColor();
-                    RenderLine(line.ToString());
-                    Console.WriteLine();
-                    Console.Write(new string(' ', 7 + prefix.Length));
-
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
-                    Console.ResetColor();
-                }
-
-                Console.WriteLine();
+                Console.Out.WriteDiagnostics(result.Diagnostics);
             }
         }
     }

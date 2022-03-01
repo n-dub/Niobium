@@ -129,6 +129,7 @@
         <Compile Include="CodeAnalysis\Syntax\WhileStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Text\SourceText.cs" />
         <Compile Include="CodeAnalysis\Text\TextLine.cs" />
+        <Compile Include="CodeAnalysis\Text\TextLocation.cs" />
         <Compile Include="CodeAnalysis\Text\TextSpan.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
