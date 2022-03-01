@@ -68,6 +68,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("\"test\" != \"test\"", false)]
         [TestCase("\"test\" == \"abc\"", false)]
         [TestCase("\"test\" != \"abc\"", true)]
+        [TestCase("\"test\" + \"Abc\"", "testAbc")]
         [TestCase("var a = 10", 10)]
         [TestCase("{ var a = 10 (a * a) }", 100)]
         [TestCase("{ var a = 0 (a = 10) * a }", 100)]
@@ -431,6 +432,162 @@ namespace LanguageCore.Tests.CodeAnalysis
                 var actualSpan = result.Diagnostics[i].Span;
                 Assert.AreEqual(expectedSpan, actualSpan);
             }
+        }
+        
+        [Test]
+        public void Evaluator_Void_Function_Should_Not_Return_Value()
+        {
+            const string text = @"
+                func test() {
+                    return [1]
+                }
+            ";
+
+            const string diagnostics = @"
+                Since the function 'test' does not return a value the 'return' keyword cannot be followed by an expression.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Function_With_ReturnValue_Should_Not_Return_Void()
+        {
+            const string text = @"
+                func test() -> Int32 {
+                    [return]
+                }
+            ";
+
+            const string diagnostics = @"
+                An expression of type 'Int32' is expected.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Not_All_Code_Paths_Return_Value()
+        {
+            const string text = @"
+                func [test](n: Int32) -> Bool {
+                    if (n > 10) {
+                       return true
+                    }
+                }
+            ";
+
+            const string diagnostics = @"
+                Not all code paths return a value.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Expression_Must_Have_Value()
+        {
+            const string text = @"
+                func test(n: Int32) {
+                    return
+                }
+                let value = [test(100)]
+            ";
+
+            const string diagnostics = @"
+                Expression must have a value.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [TestCase("[break]", "break")]
+        [TestCase("[continue]", "continue")]
+        public void Evaluator_Invalid_Break_Or_Continue(string text, string keyword)
+        {
+            var diagnostics = $@"
+                The keyword '{keyword}' can only be used inside of loops.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Invalid_Return()
+        {
+            const string text = @"
+                [return]
+            ";
+
+            const string diagnostics = @"
+                The 'return' keyword can only be used inside of functions.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Parameter_Already_Declared()
+        {
+            const string text = @"
+                func sum(a: Int32, b: Int32, [a: Int32]) -> Int32 {
+                    return a + b + c
+                }
+            ";
+
+            const string diagnostics = @"
+                A parameter with the name 'a' already exists.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Function_Must_Have_Name()
+        {
+            const string text = @"
+                func [(]a: Int32, b: Int32) -> Int32 {
+                    return a + b
+                }
+            ";
+
+            const string diagnostics = @"
+                Unexpected token <OpenParenthesisToken>, expected <IdentifierToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Wrong_Argument_Type()
+        {
+            const string text = @"
+                func test(n: Int32) -> Bool {
+                    return n > 10
+                }
+                let testValue = ""string""
+                test([testValue])
+            ";
+
+            const string diagnostics = @"
+                Parameter 'n' requires a value of type 'Int32' but was given a value of type 'String'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_Bad_Type()
+        {
+            const string text = @"
+                func test(n: [invalidType]) { }
+            ";
+
+            const string diagnostics = @"
+                Type 'invalidType' doesn't exist.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
         }
     }
 }

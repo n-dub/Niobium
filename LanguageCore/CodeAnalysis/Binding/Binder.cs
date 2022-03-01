@@ -117,7 +117,8 @@ namespace LanguageCore.CodeAnalysis.Binding
             var type = BindTypeClause(syntax.Type) ?? TypeSymbol.Void;
 
             var f = new FunctionSymbol(syntax.Identifier.Text, parameters, type, syntax);
-            if (!scope.TryDeclareFunction(f))
+            if (f.Declaration.Identifier.Text != null
+                && !scope.TryDeclareFunction(f))
             {
                 Diagnostics.ReportSymbolAlreadyDeclared(syntax.Identifier.Span, f.Name);
             }
