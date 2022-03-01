@@ -235,6 +235,16 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                 return true;
             }
 
+            if (t1Kind == SyntaxKind.MinusToken && t2Kind == SyntaxKind.GreaterToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.MinusToken && t2Kind == SyntaxKind.GreaterOrEqualsToken)
+            {
+                return true;
+            }
+
             return false;
         }
 

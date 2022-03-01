@@ -28,6 +28,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteGotoStatement((BoundGotoStatement) node);
                 case BoundNodeKind.ConditionalGotoStatement:
                     return RewriteConditionalGotoStatement((BoundConditionalGotoStatement) node);
+                case BoundNodeKind.ReturnStatement:
+                    return RewriteReturnStatement((BoundReturnStatement) node);
                 case BoundNodeKind.ExpressionStatement:
                     return RewriteExpressionStatement((BoundExpressionStatement) node);
                 default:
@@ -149,6 +151,17 @@ namespace LanguageCore.CodeAnalysis.Binding
             return condition != node.Condition
                 ? new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfTrue)
                 : node;
+        }
+
+        protected virtual BoundStatement RewriteReturnStatement(BoundReturnStatement node)
+        {
+            var expression = node.Expression == null ? null : RewriteExpression(node.Expression);
+            if (expression == node.Expression)
+            {
+                return node;
+            }
+
+            return new BoundReturnStatement(expression);
         }
 
         protected virtual BoundStatement RewriteExpressionStatement(BoundExpressionStatement node)

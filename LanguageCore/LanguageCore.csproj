@@ -63,6 +63,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundNodePrinter.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundProgram.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundRepeatWhileStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundReturnStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundScope.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundTreeRewriter.cs" />
@@ -72,6 +73,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundVariableDeclarationStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundWhileStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\ControlFlowGraph.cs" />
         <Compile Include="CodeAnalysis\Binding\Conversion.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />
         <Compile Include="CodeAnalysis\Diagnostic.cs" />
@@ -112,6 +114,7 @@
         <Compile Include="CodeAnalysis\Syntax\ParenthesizedExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\Parser.cs" />
         <Compile Include="CodeAnalysis\Syntax\RepeatWhileStatementSyntax.cs" />
+        <Compile Include="CodeAnalysis\Syntax\ReturnStatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\SeparatedSyntaxList.cs" />
         <Compile Include="CodeAnalysis\Syntax\StatementSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxFacts.cs" />

@@ -76,8 +76,13 @@ namespace LanguageCore.CodeAnalysis.Binding
                     var binder = new Binder(parentScope, function);
                     var body = binder.BindStatement(function.Declaration.Body);
                     var loweredBody = Lowerer.Lower(body);
-                    functionBodies.Add(function, loweredBody);
 
+                    if (function.Type != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(loweredBody))
+                    {
+                        binder.Diagnostics.ReportAllPathsMustReturn(function.Declaration.Identifier.Span);
+                    }
+
+                    functionBodies.Add(function, loweredBody);
                     diagnostics.AddRange(binder.Diagnostics);
                 }
 
@@ -111,11 +116,6 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             var type = BindTypeClause(syntax.Type) ?? TypeSymbol.Void;
 
-            if (type != TypeSymbol.Void)
-            {
-                Diagnostics.ReportFunctionsAreUnsupported(syntax.Type.Span);
-            }
-
             var f = new FunctionSymbol(syntax.Identifier.Text, parameters, type, syntax);
             if (!scope.TryDeclareFunction(f))
             {
@@ -148,6 +148,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return BindBreakStatement((BreakStatementSyntax) syntax);
                 case SyntaxKind.ContinueStatement:
                     return BindContinueStatement((ContinueStatementSyntax) syntax);
+                case SyntaxKind.ReturnStatement:
+                    return BindReturnStatement((ReturnStatementSyntax) syntax);
                 case SyntaxKind.ExpressionStatement:
                     return BindExpressionStatement((ExpressionStatementSyntax) syntax);
                 default:
@@ -229,6 +231,38 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             var continueLabel = loopStack.Peek().ContinueLabel;
             return new BoundGotoStatement(continueLabel);
+        }
+
+        private BoundStatement BindReturnStatement(ReturnStatementSyntax syntax)
+        {
+            var expression = syntax.Expression == null ? null : BindExpression(syntax.Expression);
+
+            if (function == null)
+            {
+                Diagnostics.ReportInvalidReturn(syntax.ReturnKeyword.Span);
+                return BindErrorStatement();
+            }
+
+            if (function.Type == TypeSymbol.Void)
+            {
+                if (expression != null)
+                {
+                    Diagnostics.ReportInvalidReturnExpression(syntax.Expression.Span, function.Name);
+                }
+            }
+            else
+            {
+                if (expression == null)
+                {
+                    Diagnostics.ReportMissingReturnExpression(syntax.ReturnKeyword.Span, function.Type);
+                }
+                else
+                {
+                    expression = BindConversion(syntax.Expression.Span, expression, function.Type);
+                }
+            }
+
+            return new BoundReturnStatement(expression);
         }
 
         private BoundBlockStatement BindBlockStatement(BlockStatementSyntax syntax)
@@ -469,11 +503,33 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (syntax.Arguments.Count != f.Parameters.Count)
             {
-                Diagnostics.ReportWrongArgumentCount(syntax.Span, f.Name, f.Parameters.Count,
+                TextSpan span;
+                if (syntax.Arguments.Count > f.Parameters.Count)
+                {
+                    SyntaxNode firstExceedingNode;
+                    if (f.Parameters.Count > 0)
+                    {
+                        firstExceedingNode = syntax.Arguments.GetSeparator(f.Parameters.Count - 1);
+                    }
+                    else
+                    {
+                        firstExceedingNode = syntax.Arguments[0];
+                    }
+
+                    var lastExceedingArgument = syntax.Arguments[syntax.Arguments.Count - 1];
+                    span = TextSpan.FromBounds(firstExceedingNode.Span.Start, lastExceedingArgument.Span.End);
+                }
+                else
+                {
+                    span = syntax.CloseParenthesisToken.Span;
+                }
+
+                Diagnostics.ReportWrongArgumentCount(span, f.Name, f.Parameters.Count,
                     syntax.Arguments.Count);
                 return new BoundErrorExpression();
             }
 
+            var hasErrors = false;
             for (var i = 0; i < syntax.Arguments.Count; i++)
             {
                 var argument = boundArguments[i];
@@ -481,10 +537,19 @@ namespace LanguageCore.CodeAnalysis.Binding
 
                 if (argument.Type != parameter.Type)
                 {
-                    Diagnostics.ReportWrongArgumentType(syntax.Arguments[i].Span, parameter.Name, parameter.Type,
-                        argument.Type);
-                    return new BoundErrorExpression();
+                    if (argument.Type != TypeSymbol.Error)
+                    {
+                        Diagnostics.ReportWrongArgumentType(syntax.Arguments[i].Span, parameter.Name, parameter.Type,
+                            argument.Type);
+                    }
+
+                    hasErrors = true;
                 }
+            }
+
+            if (hasErrors)
+            {
+                return new BoundErrorExpression();
             }
 
             return new BoundCallExpression(f, boundArguments.ToArray());

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using LanguageCore.CodeAnalysis.IO;
+using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.Symbols
 {
@@ -11,19 +12,19 @@ namespace LanguageCore.CodeAnalysis.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Function:
-                    WriteFunctionTo((FunctionSymbol)symbol, writer);
+                    WriteFunctionTo((FunctionSymbol) symbol, writer);
                     break;
                 case SymbolKind.GlobalVariable:
-                    WriteGlobalVariableTo((GlobalVariableSymbol)symbol, writer);
+                    WriteGlobalVariableTo((GlobalVariableSymbol) symbol, writer);
                     break;
                 case SymbolKind.LocalVariable:
-                    WriteLocalVariableTo((LocalVariableSymbol)symbol, writer);
+                    WriteLocalVariableTo((LocalVariableSymbol) symbol, writer);
                     break;
                 case SymbolKind.Parameter:
-                    WriteParameterTo((ParameterSymbol)symbol, writer);
+                    WriteParameterTo((ParameterSymbol) symbol, writer);
                     break;
                 case SymbolKind.Type:
-                    WriteTypeTo((TypeSymbol)symbol, writer);
+                    WriteTypeTo((TypeSymbol) symbol, writer);
                     break;
                 default:
                     throw new Exception($"Unexpected symbol: {symbol.Kind}");
@@ -32,42 +33,51 @@ namespace LanguageCore.CodeAnalysis.Symbols
 
         private static void WriteFunctionTo(FunctionSymbol symbol, TextWriter writer)
         {
-            writer.WriteKeyword("function ");
+            writer.WriteKeyword(SyntaxKind.FuncKeyword);
+            writer.WriteSpace();
             writer.WriteIdentifier(symbol.Name);
-            writer.WritePunctuation("(");
+            writer.WritePunctuation(SyntaxKind.OpenParenthesisToken);
 
             for (var i = 0; i < symbol.Parameters.Count; i++)
             {
                 if (i > 0)
-                    writer.WritePunctuation(", ");
+                {
+                    writer.WritePunctuation(SyntaxKind.CommaToken);
+                    writer.WriteSpace();
+                }
 
                 symbol.Parameters[i].WriteTo(writer);
             }
 
-            writer.WritePunctuation(")");
+            writer.WritePunctuation(SyntaxKind.CloseParenthesisToken);
             writer.WriteLine();
         }
 
         private static void WriteGlobalVariableTo(VariableSymbol symbol, TextWriter writer)
         {
-            writer.WriteKeyword(symbol.IsImmutable ? "let " : "var ");
+            writer.WriteKeyword(symbol.IsImmutable ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword);
+            writer.WriteSpace();
             writer.WriteIdentifier(symbol.Name);
-            writer.WritePunctuation(": ");
+            writer.WritePunctuation(SyntaxKind.ColonToken);
+            writer.WriteSpace();
             symbol.Type.WriteTo(writer);
         }
 
         private static void WriteLocalVariableTo(VariableSymbol symbol, TextWriter writer)
         {
-            writer.WriteKeyword(symbol.IsImmutable ? "let " : "var ");
+            writer.WriteKeyword(symbol.IsImmutable ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword);
+            writer.WriteSpace();
             writer.WriteIdentifier(symbol.Name);
-            writer.WritePunctuation(": ");
+            writer.WritePunctuation(SyntaxKind.ColonToken);
+            writer.WriteSpace();
             symbol.Type.WriteTo(writer);
         }
 
         private static void WriteParameterTo(VariableSymbol symbol, TextWriter writer)
         {
             writer.WriteIdentifier(symbol.Name);
-            writer.WritePunctuation(": ");
+            writer.WritePunctuation(SyntaxKind.ColonToken);
+            writer.WriteSpace();
             symbol.Type.WriteTo(writer);
         }
 

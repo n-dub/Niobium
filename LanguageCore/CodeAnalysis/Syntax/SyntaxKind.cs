@@ -46,6 +46,7 @@
         InKeyword,
         LetKeyword,
         RepeatKeyword,
+        ReturnKeyword,
         TrueKeyword,
         VarKeyword,
         WhileKeyword,
@@ -67,6 +68,7 @@
         ForStatement,
         BreakStatement,
         ContinueStatement,
+        ReturnStatement,
         ExpressionStatement,
 
         // Expressions

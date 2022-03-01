@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
-using LanguageCore.CodeAnalysis.Lowering;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 
@@ -57,6 +56,20 @@ namespace LanguageCore.CodeAnalysis
             }
 
             var program = Binder.BindProgram(GlobalScope);
+            //
+            // var appPath = Environment.GetCommandLineArgs()[0];
+            // var appDirectory = Path.GetDirectoryName(appPath) ?? string.Empty;
+            // var cfgPath = Path.Combine(appDirectory, "cfg.dot");
+            // var cfgStatement = !program.Statement.Statements.Any() && program.Functions.Any()
+            //     ? program.Functions.Last().Value
+            //     : program.Statement;
+            //
+            // var cfg = ControlFlowGraph.Create(cfgStatement);
+            // using (var streamWriter = new StreamWriter(cfgPath))
+            // {
+            //     cfg.WriteTo(streamWriter);
+            // }
+
             if (program.Diagnostics.Any())
             {
                 return new EvaluationResult(program.Diagnostics.ToArray(), null, null, TypeSymbol.Error);
@@ -66,27 +79,6 @@ namespace LanguageCore.CodeAnalysis
             var value = evaluator.Evaluate(out var type);
             var name = GetEvaluationVariableName(program.Statement.Statements.LastOrDefault());
             return new EvaluationResult(Array.Empty<Diagnostic>(), value, name, type);
-        }
-
-        private static string GetEvaluationVariableName(BoundStatement statement)
-        {
-            switch (statement)
-            {
-                case BoundExpressionStatement s:
-                    switch (s.Expression)
-                    {
-                        case BoundVariableExpression variable:
-                            return variable.Variable.Name;
-                        case BoundAssignmentExpression assignment:
-                            return assignment.Variable.Name;
-                        default:
-                            return "_";
-                    }
-                case BoundVariableDeclarationStatement s:
-                    return s.Variable.Name;
-                default:
-                    return "_";
-            }
         }
 
         public void EmitTree(TextWriter writer)
@@ -109,6 +101,27 @@ namespace LanguageCore.CodeAnalysis
                     functionBody.Key.WriteTo(writer);
                     functionBody.Value.WriteTo(writer);
                 }
+            }
+        }
+
+        private static string GetEvaluationVariableName(BoundStatement statement)
+        {
+            switch (statement)
+            {
+                case BoundExpressionStatement s:
+                    switch (s.Expression)
+                    {
+                        case BoundVariableExpression variable:
+                            return variable.Variable.Name;
+                        case BoundAssignmentExpression assignment:
+                            return assignment.Variable.Name;
+                        default:
+                            return "_";
+                    }
+                case BoundVariableDeclarationStatement s:
+                    return s.Variable.Name;
+                default:
+                    return "_";
             }
         }
     }

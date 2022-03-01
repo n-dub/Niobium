@@ -75,6 +75,15 @@ namespace LanguageCore.CodeAnalysis
                     case BoundNodeKind.LabelStatement:
                         index++;
                         break;
+                    case BoundNodeKind.ReturnStatement:
+                        var returnStatement = (BoundReturnStatement) s;
+                        lastType = returnStatement.Expression?.Type;
+                        lastValue = returnStatement.Expression != null
+                            ? EvaluateExpression(returnStatement.Expression)
+                            : null;
+
+                        type = lastType;
+                        return lastValue;
                     default:
                         throw new Exception($"Unexpected node {s.Kind}");
                 }

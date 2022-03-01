@@ -101,19 +101,19 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
         protected override BoundStatement RewriteWhileStatement(BoundWhileStatement node)
         {
-            var checkLabel = GenerateLabel();
+            var bodyLabel = GenerateLabel();
 
-            var gotoCheck = new BoundGotoStatement(checkLabel);
+            var gotoContinue = new BoundGotoStatement(node.ContinueLabel);
+            var bodyLabelStatement = new BoundLabelStatement(bodyLabel);
             var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
-            var checkLabelStatement = new BoundLabelStatement(checkLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(node.ContinueLabel, node.Condition);
+            var gotoTrue = new BoundConditionalGotoStatement(bodyLabel, node.Condition);
             var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
             var result = new BoundBlockStatement(new BoundStatement[]
             {
-                gotoCheck,
-                continueLabelStatement,
+                gotoContinue,
+                bodyLabelStatement,
                 node.Body,
-                checkLabelStatement,
+                continueLabelStatement,
                 gotoTrue,
                 breakLabelStatement
             });
@@ -123,13 +123,17 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
         protected override BoundStatement RewriteRepeatWhileStatement(BoundRepeatWhileStatement node)
         {
+            var bodyLabel = GenerateLabel();
+
+            var bodyLabelStatement = new BoundLabelStatement(bodyLabel);
             var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(node.ContinueLabel, node.Condition);
+            var gotoTrue = new BoundConditionalGotoStatement(bodyLabel, node.Condition);
             var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
             var result = new BoundBlockStatement(new BoundStatement[]
             {
-                continueLabelStatement,
+                bodyLabelStatement,
                 node.Body,
+                continueLabelStatement,
                 gotoTrue,
                 breakLabelStatement
             });

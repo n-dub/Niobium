@@ -139,6 +139,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return ParseBreakStatement();
                 case SyntaxKind.ContinueKeyword:
                     return ParseContinueStatement();
+                case SyntaxKind.ReturnKeyword:
+                    return ParseReturnStatement();
                 case SyntaxKind.RepeatKeyword:
                     return ParseRepeatWhileStatement();
                 default:
@@ -231,6 +233,16 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var keyword = MatchToken(SyntaxKind.ContinueKeyword);
             return new ContinueStatementSyntax(keyword);
+        }
+
+        private StatementSyntax ParseReturnStatement()
+        {
+            var keyword = MatchToken(SyntaxKind.ReturnKeyword);
+            var keywordLine = sourceText.GetLineIndex(keyword.Span.Start);
+            var currentLine = sourceText.GetLineIndex(Current.Span.Start);
+            var hasExpression = Current.Kind != SyntaxKind.EndOfFileToken && keywordLine == currentLine;
+            var expression = hasExpression ? ParseExpression() : null;
+            return new ReturnStatementSyntax(keyword, expression);
         }
 
         private BlockStatementSyntax ParseBlockStatement()

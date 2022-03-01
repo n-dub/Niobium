@@ -1,35 +1,15 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.IO
 {
     internal static class TextWriterExtensions
     {
-        public static bool IsConsoleOut(this TextWriter writer)
+        public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
         {
-            if (writer == Console.Out)
-            {
-                return true;
-            }
-
-            return writer is IndentedTextWriter iw && iw.InnerWriter.IsConsoleOut();
-        }
-
-        public static void SetForeground(this TextWriter writer, ConsoleColor color)
-        {
-            if (writer.IsConsoleOut())
-            {
-                Console.ForegroundColor = color;
-            }
-        }
-
-        public static void ResetColor(this TextWriter writer)
-        {
-            if (writer.IsConsoleOut())
-            {
-                Console.ResetColor();
-            }
+            writer.WriteKeyword(SyntaxFacts.GetText(kind));
         }
 
         public static void WriteKeyword(this TextWriter writer, string text)
@@ -60,11 +40,47 @@ namespace LanguageCore.CodeAnalysis.IO
             writer.ResetColor();
         }
 
+        public static void WriteSpace(this TextWriter writer)
+        {
+            writer.WritePunctuation(" ");
+        }
+
+        public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
+        {
+            writer.WritePunctuation(SyntaxFacts.GetText(kind));
+        }
+
         public static void WritePunctuation(this TextWriter writer, string text)
         {
             writer.SetForeground(ConsoleColor.White);
             writer.Write(text);
             writer.ResetColor();
+        }
+
+        private static bool IsConsoleOut(this TextWriter writer)
+        {
+            if (writer == Console.Out)
+            {
+                return true;
+            }
+
+            return writer is IndentedTextWriter iw && iw.InnerWriter.IsConsoleOut();
+        }
+
+        private static void SetForeground(this TextWriter writer, ConsoleColor color)
+        {
+            if (writer.IsConsoleOut())
+            {
+                Console.ForegroundColor = color;
+            }
+        }
+
+        private static void ResetColor(this TextWriter writer)
+        {
+            if (writer.IsConsoleOut())
+            {
+                Console.ResetColor();
+            }
         }
     }
 }

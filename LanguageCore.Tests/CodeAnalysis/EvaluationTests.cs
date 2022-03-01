@@ -63,7 +63,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("!true", false)]
         [TestCase("!false", true)]
         [TestCase("\"test\"", "test")]
-        [TestCase("\"te\"\"st\"", "te\"st")]
+        [TestCase("\"te\\\"st\"", "te\"st")]
         [TestCase("\"test\" == \"test\"", true)]
         [TestCase("\"test\" != \"test\"", false)]
         [TestCase("\"test\" == \"abc\"", false)]
@@ -79,9 +79,39 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("{ var result = 0 for i = 1 in 11 { result = result + i } result }", 55)]
         [TestCase("{ var a = 10 for i = 1 in (a = a - 1) { } a }", 9)]
         [TestCase("{ var a = 0 repeat { a = a + 1 } while a < 10 a}", 10)]
+        [TestCase("{ var i = 0 while i < 5 { i = i + 1 if i == 5 { continue } } i }", 5)]
+        [TestCase("{ var i = 0 repeat { i = i + 1 if i == 5 { continue } } while i < 5 i }", 5)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
+        }
+
+        [Test]
+        public void Evaluator_InvokeFunctionArguments_Missing()
+        {
+            const string text = @"
+                print([)]
+            ";
+
+            const string diagnostics = @"
+                Function 'print' requires 1 arguments but was given 0.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_InvokeFunctionArguments_Exceeding()
+        {
+            const string text = @"
+                print(""Hello""[, "" "", "" world!""])
+            ";
+
+            const string diagnostics = @"
+                Function 'print' requires 1 arguments but was given 3.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
         }
 
         [Test]
@@ -120,8 +150,7 @@ namespace LanguageCore.Tests.CodeAnalysis
         public void Evaluator_FunctionParameters_NoInfiniteLoop()
         {
             const string text = @"
-                function hi(name: string[[[=]]][)]
-                {
+                func hi(name: String[[[=]]][)] {
                     print(""Hi "" + name + ""!"" )
                 }[]
             ";
