@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
 using LanguageCore.CodeAnalysis.IO;
@@ -10,10 +11,18 @@ namespace Repl
 {
     public sealed class NiobiumRepl : Repl
     {
+        private static readonly Compilation emptyCompilation = new Compilation();
+
+        private bool loadingSubmission;
         private Compilation previous;
         private bool showParseTree;
         private bool showBoundTree;
         private readonly Dictionary<VariableSymbol, object> variables = new Dictionary<VariableSymbol, object>();
+
+        public NiobiumRepl()
+        {
+            LoadSubmissions();
+        }
 
         protected override void RenderLine(string line)
         {
@@ -46,46 +55,90 @@ namespace Repl
             }
         }
 
-        protected override void EvaluateMetaCommand(string input)
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"reset"}, "Clear all previous submissions")]
+        private void EvaluateReset()
         {
-            switch (input)
-            {
-                case ":help":
-                case ":?":
-                    Console.WriteLine(
-                        @"In Niobium REPL you can use:
-Enter to evaluate an expression, Ctrl+Enter to break the line.
-Arrows (↑ and ↓) to navigate within a multi-line submission.
-PageUp and PageDown to navigate through submission history.
-Home and End to move cursor to the start and to the end of the current line respectively.
-Esc to clear the current line.
+            previous = null;
+            variables.Clear();
+            ClearSubmissions();
+        }
 
-Meta-commands available:
-   :help, :?                    Show this message with the list of commands
-   :show-parse-tree             Toggle showing parse tree of last expression
-   :quit                        Exit the REPL
-   :clear                       Clear console
-   :reset                       Clear all previously declared variables");
-                    break;
-                case ":show-parse-tree":
-                    showParseTree = !showParseTree;
-                    Console.WriteLine(showParseTree ? "Showing parse trees." : "Not showing parse trees.");
-                    break;
-                case ":show-bound-tree":
-                    showBoundTree = !showBoundTree;
-                    Console.WriteLine(showBoundTree ? "Showing bound trees." : "Not showing bound trees.");
-                    break;
-                case ":clear":
-                    Console.Clear();
-                    break;
-                case ":reset":
-                    previous = null;
-                    variables.Clear();
-                    break;
-                default:
-                    base.EvaluateMetaCommand(input);
-                    break;
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"clear"}, "Clear console")]
+        private void EvaluateClear()
+        {
+            Console.Clear();
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"show-bound-tree"}, "Toggle showing bound tree of last expression")]
+        private void EvaluateShowBoundTree()
+        {
+            showBoundTree = !showBoundTree;
+            Console.WriteLine(showBoundTree ? "Showing bound trees." : "Not showing bound trees.");
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"show-parse-tree"}, "Toggle showing parse tree of last expression")]
+        private void EvaluateShowParseTree()
+        {
+            showParseTree = !showParseTree;
+            Console.WriteLine(showParseTree ? "Showing parse trees." : "Not showing parse trees.");
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"load"}, "Load a niobium source file")]
+        private void EvaluateLoad(string path)
+        {
+            path = Path.GetFullPath(path);
+
+            if (!File.Exists(path))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"error: file does not exist '{path}'");
+                Console.ResetColor();
+                return;
             }
+
+            var text = File.ReadAllText(path);
+            EvaluateSubmission(text);
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"browse"}, "Show all declared symbols")]
+        private void EvaluateBrowse()
+        {
+            var compilation = previous ?? emptyCompilation;
+
+            var symbols = compilation
+                .GetSymbols()
+                .OrderBy(s => s.Kind)
+                .ThenBy(s => s.Name);
+
+            foreach (var symbol in symbols)
+            {
+                symbol.WriteTo(Console.Out);
+                Console.WriteLine();
+            }
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        [MetaCommand(new[] {"dump"}, "Show bound tree of a given function")]
+        private void EvaluateDump(string functionName)
+        {
+            var compilation = previous ?? emptyCompilation;
+            
+            var symbol = compilation.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
+            if (symbol == null)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"error: function '{functionName}' does not exist");
+                Console.ResetColor();
+                return;
+            }
+
+            compilation.EmitTree(symbol, Console.Out);
         }
 
         protected override bool IsCompleteSubmission(string text)
@@ -139,11 +192,69 @@ Meta-commands available:
                 }
 
                 previous = compilation;
+
+                SaveSubmission(text);
             }
             else
             {
                 Console.Out.WriteDiagnostics(result.Diagnostics);
             }
+        }
+
+        private static string GetSubmissionsDirectory()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var submissionsDirectory = Path.Combine(localAppData, "Niobium", "Submissions");
+            return submissionsDirectory;
+        }
+
+        private void LoadSubmissions()
+        {
+            var submissionsDirectory = GetSubmissionsDirectory();
+            if (!Directory.Exists(submissionsDirectory))
+            {
+                return;
+            }
+
+            var files = Directory.GetFiles(submissionsDirectory).OrderBy(f => f).ToArray();
+            if (files.Length == 0)
+            {
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"Loaded {files.Length} submission(s)");
+            Console.ResetColor();
+
+            loadingSubmission = true;
+
+            foreach (var file in files)
+            {
+                var text = File.ReadAllText(file);
+                EvaluateSubmission(text);
+            }
+
+            loadingSubmission = false;
+        }
+
+        private static void ClearSubmissions()
+        {
+            Directory.Delete(GetSubmissionsDirectory(), true);
+        }
+
+        private void SaveSubmission(string text)
+        {
+            if (loadingSubmission)
+            {
+                return;
+            }
+
+            var submissionsDirectory = GetSubmissionsDirectory();
+            Directory.CreateDirectory(submissionsDirectory);
+            var count = Directory.GetFiles(submissionsDirectory).Length;
+            var name = $"submission{count:0000}";
+            var fileName = Path.Combine(submissionsDirectory, name);
+            File.WriteAllText(fileName, text);
         }
     }
 }

@@ -1,0 +1,6 @@
+for i = 0 in 10 {
+    let recursive = factorialRecursive(i)
+    let iterative = factorialIterative(i)
+
+    print(String(i) + "! = " + String(recursive) + ", " + String(iterative))
+}

@@ -13,12 +13,12 @@ namespace Niobium
 {
     internal static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             if (!args.Any())
             {
                 Console.WriteLine($"Welcome to {LanguageInfo.Name}, v{LanguageInfo.ShortVersion}");
-                Console.WriteLine("You can evaluate Niobium expressions and more (type :help or :? to get help).");
+                Console.WriteLine("You can evaluate Niobium expressions and more (type :help to get help).");
                 var repl = new NiobiumRepl();
                 repl.Start();
             }
@@ -38,23 +38,23 @@ namespace Niobium
                             "Run this tool without arguments to enter Niobium REPL - Read Eval Print Loop");
                         break;
                     default:
-                        RunCompilation(args);
-                        break;
+                        return RunCompilation(args);
                 }
             }
+
+            return 0;
         }
 
-        private static void RunCompilation(string[] arguments)
+        private static int RunCompilation(IEnumerable<string> arguments)
         {
-            var paths = GetFilePaths(arguments);
             var syntaxTrees = new List<SyntaxTree>();
             var hasErrors = false;
 
-            foreach (var path in paths)
+            foreach (var path in GetFilePaths(arguments))
             {
                 if (!File.Exists(path))
                 {
-                    Console.WriteLine($"error: File '{path}' doesn't exist");
+                    Console.Error.WriteLine($"error: File '{path}' doesn't exist");
                     hasErrors = true;
                     continue;
                 }
@@ -64,7 +64,7 @@ namespace Niobium
 
             if (hasErrors)
             {
-                return;
+                return 1;
             }
 
             var compilation = new Compilation(syntaxTrees.ToArray());
@@ -74,13 +74,16 @@ namespace Niobium
             {
                 if (result.Value != null)
                 {
-                    Console.WriteLine(result.Value);
+                    Console.WriteLine();
+                    Console.WriteLine($"Last computed value: {result.Value}");
                 }
             }
             else
             {
                 Console.Error.WriteDiagnostics(result.Diagnostics);
             }
+
+            return 0;
         }
 
         private static IEnumerable<string> GetFilePaths(IEnumerable<string> paths)

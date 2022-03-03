@@ -50,7 +50,14 @@ namespace LanguageCore.CodeAnalysis.Symbols
             }
 
             writer.WritePunctuation(SyntaxKind.CloseParenthesisToken);
-            writer.WriteLine();
+
+            if (symbol.Type != TypeSymbol.Void)
+            {
+                writer.WriteSpace();
+                writer.WritePunctuation(SyntaxKind.ArrowToken);
+                writer.WriteSpace();
+                symbol.Type.WriteTo(writer);
+            }
         }
 
         private static void WriteGlobalVariableTo(VariableSymbol symbol, TextWriter writer)
@@ -83,7 +90,7 @@ namespace LanguageCore.CodeAnalysis.Symbols
 
         private static void WriteTypeTo(TypeSymbol symbol, TextWriter writer)
         {
-            writer.WriteIdentifier(symbol.Name);
+            writer.WriteKeyword(symbol.Name);
         }
     }
 }

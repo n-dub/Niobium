@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using Utilities;
+using Binder = LanguageCore.CodeAnalysis.Binding.Binder;
 
 namespace LanguageCore.CodeAnalysis
 {
@@ -15,6 +17,9 @@ namespace LanguageCore.CodeAnalysis
         public Compilation Previous { get; }
 
         public IReadOnlyList<SyntaxTree> SyntaxTrees { get; }
+
+        public IReadOnlyList<FunctionSymbol> Functions => GlobalScope.Functions;
+        public IReadOnlyList<VariableSymbol> Variables => GlobalScope.Variables;
 
         internal BoundGlobalScope GlobalScope
         {
@@ -41,6 +46,51 @@ namespace LanguageCore.CodeAnalysis
         {
             Previous = previous;
             SyntaxTrees = syntaxTrees;
+        }
+
+        public IEnumerable<Symbol> GetSymbols()
+        {
+            var submission = this;
+            var seenSymbolNames = new HashSet<string>();
+
+            while (submission != null)
+            {
+                const BindingFlags bindingFlags = BindingFlags.Static |
+                                                  BindingFlags.Public |
+                                                  BindingFlags.NonPublic;
+                var builtinFunctions = typeof(BuiltinFunctions)
+                    .GetFields(bindingFlags)
+                    .Where(x => x.FieldType == typeof(FunctionSymbol))
+                    .Select(x => x.GetValue(null))
+                    .Cast<FunctionSymbol>()
+                    .ToList();
+
+                foreach (var builtin in builtinFunctions)
+                {
+                    if (seenSymbolNames.Add(builtin.Name))
+                    {
+                        yield return builtin;
+                    }
+                }
+
+                foreach (var function in submission.Functions)
+                {
+                    if (seenSymbolNames.Add(function.Name))
+                    {
+                        yield return function;
+                    }
+                }
+
+                foreach (var variable in submission.Variables)
+                {
+                    if (seenSymbolNames.Add(variable.Name))
+                    {
+                        yield return variable;
+                    }
+                }
+
+                submission = submission.Previous;
+            }
         }
 
         public Compilation ContinueWith(SyntaxTree syntaxTree)
@@ -83,17 +133,28 @@ namespace LanguageCore.CodeAnalysis
             }
             else
             {
-                foreach (var functionBody in program.Functions)
+                foreach (var functionSymbol in program.Functions.Keys)
                 {
-                    if (!GlobalScope.Functions.Contains(functionBody.Key))
+                    if (GlobalScope.Functions.Contains(functionSymbol))
                     {
-                        continue;
+                        EmitTree(functionSymbol, writer);
                     }
-
-                    functionBody.Key.WriteTo(writer);
-                    functionBody.Value.WriteTo(writer);
                 }
             }
+        }
+
+        public void EmitTree(FunctionSymbol symbol, TextWriter writer)
+        {
+            var program = Binder.BindProgram(GlobalScope);
+            symbol.WriteTo(writer);
+            writer.WriteLine();
+
+            if (!program.Functions.TryGetValue(symbol, out var body))
+            {
+                return;
+            }
+
+            body.WriteTo(writer);
         }
 
         private static void SaveControlFlowGraph(BoundProgram program)

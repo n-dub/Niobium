@@ -3,30 +3,54 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Repl
 {
     public abstract class Repl
     {
+        private readonly MetaCommand[] metaCommands;
+
         private readonly List<string> submissionHistory = new List<string>();
         private int submissionHistoryIndex;
         private int globalLineCount;
 
         private bool done;
+        private bool exitRequested;
+
+        protected Repl()
+        {
+            var methods = GetType()
+                .GetMethods(BindingFlags.Public |
+                            BindingFlags.NonPublic |
+                            BindingFlags.Static |
+                            BindingFlags.Instance |
+                            BindingFlags.FlattenHierarchy)
+                .Where(x => x.GetCustomAttribute<MetaCommandAttribute>() != null)
+                .ToArray();
+
+            metaCommands = methods
+                .Select(x => x.GetCustomAttribute<MetaCommandAttribute>())
+                .Zip(methods, (a, m) => new MetaCommand(a.Names, a.Description, m))
+                .OrderByDescending(x => x.Names.Contains("help"))
+                .ThenBy(x => x.Names[0])
+                .ToArray();
+        }
 
         public void Start()
         {
             while (true)
             {
                 var text = EditSubmission();
-                if (text == ":quit")
-                {
-                    return;
-                }
 
                 if (!text.Contains(Environment.NewLine) && text.StartsWith(":"))
                 {
                     EvaluateMetaCommand(text);
+                    if (exitRequested)
+                    {
+                        return;
+                    }
                 }
                 else
                 {
@@ -38,6 +62,54 @@ namespace Repl
 
                 globalLineCount += text.Count(x => x == '\n') + 1;
             }
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        [MetaCommand(new[] {"help", "?"}, "Show this message with the list of commands")]
+        protected void EvaluateHelp()
+        {
+            Console.WriteLine(
+                @"In Niobium REPL you can use:
+Enter to evaluate an expression, Ctrl+Enter to break the line.
+Arrows (↑ and ↓) to navigate within a multi-line submission.
+PageUp and PageDown to navigate through submission history.
+Home and End to move cursor to the start and to the end of the current line respectively.
+Esc to clear the current line.
+
+Meta-commands available:");
+
+            string ConcatNames(IEnumerable<string> names)
+            {
+                return string.Join(", ", names.Select(x => ":" + x));
+            }
+
+            var maxNameLength = metaCommands
+                .Select(x => ConcatNames(x.Names))
+                .Max(x => x.Length);
+
+            foreach (var metaCommand in metaCommands)
+            {
+                var parameters = metaCommand.Method.GetParameters();
+                var name = ConcatNames(metaCommand.Names);
+                if (parameters.Any())
+                {
+                    var spaces = new string(' ', maxNameLength + 4);
+                    var stringParams = string.Join(" ", parameters.Select(x => $"<{x.Name}>"));
+                    Console.WriteLine($"  {name} {stringParams}\n{spaces}{metaCommand.Description}");
+                }
+                else
+                {
+                    var paddedName = name.PadRight(maxNameLength);
+                    Console.WriteLine($"  {paddedName}  {metaCommand.Description}");
+                }
+            }
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        [MetaCommand(new[] {"quit", "q"}, "Exit the REPL")]
+        protected void EvaluateQuit()
+        {
+            exitRequested = true;
         }
 
         private string EditSubmission()
@@ -345,16 +417,125 @@ namespace Repl
             Console.Write(line);
         }
 
-        protected virtual void EvaluateMetaCommand(string input)
+        private void EvaluateMetaCommand(string input)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Invalid command {input}.");
-            Console.ResetColor();
+            var args = new List<string>();
+            var inQuotes = false;
+            var position = 1;
+            var sb = new StringBuilder();
+            while (position < input.Length)
+            {
+                var c = input[position];
+                var l = position + 1 >= input.Length ? '\0' : input[position + 1];
+
+                if (char.IsWhiteSpace(c))
+                {
+                    if (!inQuotes)
+                    {
+                        CommitPendingArgument();
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                }
+                else if (c == '\"')
+                {
+                    if (!inQuotes)
+                    {
+                        inQuotes = true;
+                    }
+                    else if (l == '\"')
+                    {
+                        sb.Append(c);
+                        position++;
+                    }
+                    else
+                    {
+                        inQuotes = false;
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+
+                position++;
+            }
+
+            CommitPendingArgument();
+
+            void CommitPendingArgument()
+            {
+                var arg = sb.ToString();
+                if (!string.IsNullOrWhiteSpace(arg))
+                {
+                    args.Add(arg);
+                }
+
+                sb.Clear();
+            }
+
+            var commandName = args.FirstOrDefault();
+            if (args.Count > 0)
+            {
+                args.RemoveAt(0);
+            }
+
+            var command = metaCommands.SingleOrDefault(mc => mc.Names.Contains(commandName));
+            if (command == null)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Invalid command {input}.");
+                Console.ResetColor();
+                return;
+            }
+
+            var parameters = command.Method.GetParameters();
+
+            if (args.Count != parameters.Length)
+            {
+                var parameterNames = string.Join(" ", parameters.Select(p => $"<{p.Name}>"));
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("error: invalid number of arguments");
+                Console.WriteLine($"usage: :{command.Names[0]} {parameterNames}");
+                Console.ResetColor();
+                return;
+            }
+
+            command.Method.Invoke(command.Method.IsStatic ? null : this, args.Cast<object>().ToArray());
         }
 
         protected abstract bool IsCompleteSubmission(string text);
 
         protected abstract void EvaluateSubmission(string text);
+
+        [AttributeUsage(AttributeTargets.Method)]
+        protected sealed class MetaCommandAttribute : Attribute
+        {
+            public string[] Names { get; }
+            public string Description { get; }
+
+            public MetaCommandAttribute(string[] names, string description)
+            {
+                Names = names;
+                Description = description;
+            }
+        }
+
+        private sealed class MetaCommand
+        {
+            public string[] Names { get; }
+            public string Description { get; }
+            public MethodInfo Method { get; }
+
+            public MetaCommand(string[] names, string description, MethodInfo method)
+            {
+                Names = names;
+                Description = description;
+                Method = method;
+            }
+        }
 
         private sealed class SubmissionView
         {
@@ -388,7 +569,7 @@ namespace Repl
 
             private readonly Action<string> lineRenderer;
             private readonly ObservableCollection<string> submissionDocument;
-            private readonly int cursorTop;
+            private int cursorTop;
             private int renderedLineCount;
             private int currentLine;
             private int currentCharacter;
@@ -419,6 +600,16 @@ namespace Repl
 
                 foreach (var line in submissionDocument)
                 {
+                    if (cursorTop + lineCount >= Console.WindowHeight)
+                    {
+                        Console.SetCursorPosition(0, Console.WindowHeight - 1);
+                        Console.WriteLine();
+                        if (cursorTop > 0)
+                        {
+                            cursorTop--;
+                        }
+                    }
+
                     Console.SetCursorPosition(0, cursorTop + lineCount);
                     Console.ForegroundColor = ConsoleColor.DarkGray;
 
@@ -426,7 +617,7 @@ namespace Repl
 
                     Console.ResetColor();
                     lineRenderer(line);
-                    Console.WriteLine(new string(' ', Console.WindowWidth - line.Length));
+                    Console.Write(new string(' ', Console.WindowWidth - line.Length - 2));
                     lineCount++;
                 }
 

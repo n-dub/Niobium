@@ -18,38 +18,37 @@ namespace LanguageCore.CodeAnalysis.IO
                 var text = diagnostic.Location.Text;
                 var fileName = diagnostic.Location.FileName;
                 var startLine = diagnostic.Location.StartLine + 1;
-                var startCharacter = diagnostic.Location.StartCharacter + 1;
+                var startChar = diagnostic.Location.StartCharacter + 1;
                 var endLine = diagnostic.Location.EndLine + 1;
-                var endCharacter = diagnostic.Location.EndCharacter + 1;
+                var endChar = diagnostic.Location.EndCharacter + 1;
 
                 var span = diagnostic.Location.Span;
                 var lineIndex = text.GetLineIndex(span.Start);
                 var line = text.Lines[lineIndex];
 
-                Console.WriteLine();
+                writer.WriteLine();
 
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine($"{fileName}:{startLine}:{startCharacter}:{endLine}:{endCharacter}: error: " +
-                                  diagnostic);
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.DarkGray;
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.WriteLine($"{fileName}:{startLine}:{startChar}:{endLine}:{endChar}: error: {diagnostic}");
+                writer.ResetColor();
+                writer.SetForeground(ConsoleColor.DarkGray);
 
                 var prefixSpan = TextSpan.FromBounds(line.Start, span.Start);
 
                 var prefix = text.ToString(prefixSpan);
                 var error = text.ToString(span);
 
-                Console.Write($"{startLine,4} | ");
-                Console.ResetColor();
-                Console.WriteLine(line);
-                Console.Write(new string(' ', 7 + prefix.Length));
+                writer.Write($"{startLine,4} | ");
+                writer.ResetColor();
+                writer.WriteLine(line);
+                writer.Write(new string(' ', 7 + prefix.Length));
 
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
-                Console.ResetColor();
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
+                writer.ResetColor();
             }
 
-            Console.WriteLine();
+            writer.WriteLine();
         }
 
         public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
@@ -102,19 +101,24 @@ namespace LanguageCore.CodeAnalysis.IO
             writer.ResetColor();
         }
 
-        private static bool IsConsoleOut(this TextWriter writer)
+        private static bool IsConsole(this TextWriter writer)
         {
             if (writer == Console.Out)
             {
-                return true;
+                return !Console.IsOutputRedirected;
             }
 
-            return writer is IndentedTextWriter iw && iw.InnerWriter.IsConsoleOut();
+            if (writer == Console.Out)
+            {
+                return !Console.IsErrorRedirected && !Console.IsOutputRedirected;
+            }
+
+            return writer is IndentedTextWriter iw && iw.InnerWriter.IsConsole();
         }
 
         private static void SetForeground(this TextWriter writer, ConsoleColor color)
         {
-            if (writer.IsConsoleOut())
+            if (writer.IsConsole())
             {
                 Console.ForegroundColor = color;
             }
@@ -122,7 +126,7 @@ namespace LanguageCore.CodeAnalysis.IO
 
         private static void ResetColor(this TextWriter writer)
         {
-            if (writer.IsConsoleOut())
+            if (writer.IsConsole())
             {
                 Console.ResetColor();
             }
