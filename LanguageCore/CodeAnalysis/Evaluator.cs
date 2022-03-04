@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
+using Utilities;
 
 namespace LanguageCore.CodeAnalysis
 {
     internal sealed class Evaluator
     {
         private readonly BoundProgram program;
+        private readonly Dictionary<FunctionSymbol, BoundBlockStatement> functions;
         private readonly Dictionary<VariableSymbol, object> globals;
         private readonly Stack<Dictionary<VariableSymbol, object>> locals;
         private readonly Random random = new Random();
@@ -20,7 +22,19 @@ namespace LanguageCore.CodeAnalysis
             this.program = program;
             globals = variables;
             locals = new Stack<Dictionary<VariableSymbol, object>>();
+            functions = new Dictionary<FunctionSymbol, BoundBlockStatement>();
             locals.Push(new Dictionary<VariableSymbol, object>());
+
+            var current = program;
+            while (current != null)
+            {
+                foreach (var (function, body) in current.Functions.Deconstruct())
+                {
+                    functions.Add(function, body);
+                }
+
+                current = current.Previous;
+            }
         }
 
         public object Evaluate(out TypeSymbol type)
@@ -213,7 +227,7 @@ namespace LanguageCore.CodeAnalysis
 
             locals.Push(newLocals);
 
-            var statement = program.Functions[node.Function];
+            var statement = functions[node.Function];
             var result = EvaluateStatement(statement, out _);
 
             locals.Pop();

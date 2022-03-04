@@ -39,6 +39,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="CharUtils.cs" />
+        <Compile Include="EnumerableUtils.cs" />
         <Compile Include="LanguageInfo.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="UnitTestDetector.cs" />
