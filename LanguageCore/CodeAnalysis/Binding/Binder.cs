@@ -18,11 +18,13 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private int labelCounter;
         private BoundScope scope;
+        private readonly bool isScript;
         private readonly FunctionSymbol function;
 
-        public Binder(BoundScope parent, FunctionSymbol function)
+        public Binder(bool isScript, BoundScope parent, FunctionSymbol function)
         {
             scope = new BoundScope(parent);
+            this.isScript = isScript;
             this.function = function;
 
             if (function == null)
@@ -36,10 +38,11 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
-        public static BoundGlobalScope BindGlobalScope(BoundGlobalScope previous, IReadOnlyList<SyntaxTree> syntaxTrees)
+        public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope previous,
+            IReadOnlyList<SyntaxTree> syntaxTrees)
         {
             var parentScope = CreateParentScope(previous);
-            var binder = new Binder(parentScope, null);
+            var binder = new Binder(isScript, parentScope, null);
 
             var functionDeclarations = syntaxTrees
                 .SelectMany(st => st.Root.Members)
@@ -55,7 +58,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             var statements = globalStatements
                 .Select(x => x.Statement)
-                .Select(binder.BindStatement)
+                .Select(binder.BindGlobalStatement)
                 .ToArray();
 
             var functions = binder.scope.GetDeclaredFunctions();
@@ -67,7 +70,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundGlobalScope(previous, diagnostics, functions, variables, statements);
         }
 
-        public static BoundProgram BindProgram(BoundProgram previous, BoundGlobalScope globalScope)
+        public static BoundProgram BindProgram(bool isScript, BoundProgram previous, BoundGlobalScope globalScope)
         {
             var parentScope = CreateParentScope(globalScope);
 
@@ -76,7 +79,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             foreach (var function in globalScope.Functions)
             {
-                var binder = new Binder(parentScope, function);
+                var binder = new Binder(isScript, parentScope, function);
                 var body = binder.BindStatement(function.Declaration.Body);
                 var loweredBody = Lowerer.Lower(body);
 
@@ -129,7 +132,33 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundExpressionStatement(new BoundErrorExpression());
         }
 
-        private BoundStatement BindStatement(StatementSyntax syntax)
+        private BoundStatement BindGlobalStatement(StatementSyntax syntax)
+        {
+            return BindStatement(syntax, true);
+        }
+
+        private BoundStatement BindStatement(StatementSyntax syntax, bool isGlobal = false)
+        {
+            var result = BindStatementInternal(syntax);
+
+            if (!isScript || !isGlobal)
+            {
+                if (result is BoundExpressionStatement es)
+                {
+                    var isAllowedExpression = es.Expression.Kind == BoundNodeKind.ErrorExpression ||
+                                              es.Expression.Kind == BoundNodeKind.AssignmentExpression ||
+                                              es.Expression.Kind == BoundNodeKind.CallExpression;
+                    if (!isAllowedExpression)
+                    {
+                        Diagnostics.ReportInvalidExpressionStatement(syntax.Location);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private BoundStatement BindStatementInternal(StatementSyntax syntax)
         {
             switch (syntax.Kind)
             {
@@ -270,7 +299,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             scope = new BoundScope(scope);
             var statements = syntax.Statements
-                .Select(BindStatement)
+                .Select(x => BindStatement(x))
                 .ToArray();
             scope = scope.Parent;
 

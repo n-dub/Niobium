@@ -11,7 +11,7 @@ namespace Repl
 {
     public sealed class NiobiumRepl : Repl
     {
-        private static readonly Compilation emptyCompilation = new Compilation();
+        private static readonly Compilation emptyCompilation = Compilation.CreateScript(null);
 
         private bool loadingSubmission;
         private Compilation previous;
@@ -128,7 +128,7 @@ namespace Repl
         private void EvaluateDump(string functionName)
         {
             var compilation = previous ?? emptyCompilation;
-            
+
             var symbol = compilation.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
             if (symbol == null)
             {
@@ -168,7 +168,7 @@ namespace Repl
         {
             var syntaxTree = SyntaxTree.Parse(text);
 
-            var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
+            var compilation = Compilation.CreateScript(previous, syntaxTree);
 
             if (showParseTree)
             {
@@ -239,7 +239,11 @@ namespace Repl
 
         private static void ClearSubmissions()
         {
-            Directory.Delete(GetSubmissionsDirectory(), true);
+            var dir = GetSubmissionsDirectory();
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
         }
 
         private void SaveSubmission(string text)

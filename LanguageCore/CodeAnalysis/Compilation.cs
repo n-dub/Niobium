@@ -14,6 +14,7 @@ namespace LanguageCore.CodeAnalysis
 {
     public sealed class Compilation
     {
+        public bool IsScript { get; }
         public Compilation Previous { get; }
 
         public IReadOnlyList<SyntaxTree> SyntaxTrees { get; }
@@ -27,7 +28,7 @@ namespace LanguageCore.CodeAnalysis
             {
                 if (globalScope == null)
                 {
-                    var newGlobalScope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTrees);
+                    var newGlobalScope = Binder.BindGlobalScope(IsScript, Previous?.GlobalScope, SyntaxTrees);
                     Interlocked.CompareExchange(ref globalScope, newGlobalScope, null);
                 }
 
@@ -37,15 +38,21 @@ namespace LanguageCore.CodeAnalysis
 
         private BoundGlobalScope globalScope;
 
-        public Compilation(params SyntaxTree[] syntaxTrees)
-            : this(null, syntaxTrees)
+        private Compilation(bool isScript, Compilation previous, params SyntaxTree[] syntaxTrees)
         {
-        }
-
-        private Compilation(Compilation previous, params SyntaxTree[] syntaxTrees)
-        {
+            IsScript = isScript;
             Previous = previous;
             SyntaxTrees = syntaxTrees;
+        }
+
+        public static Compilation Create(params SyntaxTree[] syntaxTrees)
+        {
+            return new Compilation(false, null, syntaxTrees);
+        }
+
+        public static Compilation CreateScript(Compilation previous, params SyntaxTree[] syntaxTrees)
+        {
+            return new Compilation(true, previous, syntaxTrees);
         }
 
         public IEnumerable<Symbol> GetSymbols()
@@ -65,14 +72,6 @@ namespace LanguageCore.CodeAnalysis
                     .Cast<FunctionSymbol>()
                     .ToList();
 
-                foreach (var builtin in builtinFunctions)
-                {
-                    if (seenSymbolNames.Add(builtin.Name))
-                    {
-                        yield return builtin;
-                    }
-                }
-
                 foreach (var function in submission.Functions)
                 {
                     if (seenSymbolNames.Add(function.Name))
@@ -89,19 +88,22 @@ namespace LanguageCore.CodeAnalysis
                     }
                 }
 
+                foreach (var builtin in builtinFunctions)
+                {
+                    if (seenSymbolNames.Add(builtin.Name))
+                    {
+                        yield return builtin;
+                    }
+                }
+
                 submission = submission.Previous;
             }
         }
 
-        public Compilation ContinueWith(SyntaxTree syntaxTree)
-        {
-            return new Compilation(this, syntaxTree);
-        }
-        
         private BoundProgram GetProgram()
         {
             var previous = Previous?.GetProgram();
-            return Binder.BindProgram(previous, GlobalScope);
+            return Binder.BindProgram(IsScript, previous, GlobalScope);
         }
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
