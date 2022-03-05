@@ -588,7 +588,7 @@ namespace LanguageCore.Tests.CodeAnalysis
             ";
 
             const string diagnostics = @"
-                Parameter 'n' requires a value of type 'Int32' but was given a value of type 'String'.
+                Cannot convert type 'String' to 'Int32'. An explicit conversion exists (are you missing a cast?)
             ";
 
             AssertDiagnostics(text, diagnostics);

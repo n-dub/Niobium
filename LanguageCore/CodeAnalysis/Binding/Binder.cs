@@ -565,28 +565,12 @@ namespace LanguageCore.CodeAnalysis.Binding
                 return new BoundErrorExpression();
             }
 
-            var hasErrors = false;
             for (var i = 0; i < syntax.Arguments.Count; i++)
             {
                 var argument = boundArguments[i];
                 var parameter = f.Parameters[i];
 
-                if (argument.Type != parameter.Type)
-                {
-                    if (argument.Type != TypeSymbol.Error)
-                    {
-                        Diagnostics.ReportWrongArgumentType(syntax.Arguments[i].Location, parameter.Name,
-                            parameter.Type,
-                            argument.Type);
-                    }
-
-                    hasErrors = true;
-                }
-            }
-
-            if (hasErrors)
-            {
-                return new BoundErrorExpression();
+                boundArguments[i] = BindConversion(syntax.Arguments[i].Location, argument, parameter.Type);
             }
 
             return new BoundCallExpression(f, boundArguments.ToArray());

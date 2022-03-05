@@ -8,6 +8,7 @@ namespace LanguageCore.CodeAnalysis.Symbols
     {
         public static readonly TypeSymbol Error = new TypeSymbol("?");
 
+        public static readonly TypeSymbol Any = new TypeSymbol("Any");
         public static readonly TypeSymbol Bool = new TypeSymbol("Bool");
         public static readonly TypeSymbol Int32 = new TypeSymbol("Int32");
         public static readonly TypeSymbol String = new TypeSymbol("String");
@@ -43,6 +44,11 @@ namespace LanguageCore.CodeAnalysis.Symbols
             if (this == String)
             {
                 return typeof(string);
+            }
+
+            if (this == Any)
+            {
+                return typeof(object);
             }
 
             throw new Exception($"Unexpected type {this}");
