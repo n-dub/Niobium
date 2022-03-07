@@ -39,7 +39,15 @@ namespace LanguageCore.CodeAnalysis
 
         public object Evaluate(out TypeSymbol type)
         {
-            return EvaluateStatement(program.Statement, out type);
+            var function = program.MainFunction ?? program.ScriptFunction;
+            if (function == null)
+            {
+                type = null;
+                return null;
+            }
+
+            var body = functions[function];
+            return EvaluateStatement(body, out type);
         }
 
         private object EvaluateStatement(BoundBlockStatement body, out TypeSymbol type)

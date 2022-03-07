@@ -7,16 +7,19 @@ namespace LanguageCore.CodeAnalysis.Binding
     {
         public BoundProgram Previous { get; }
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
+        public FunctionSymbol MainFunction { get; }
+        public FunctionSymbol ScriptFunction { get; }
         public IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> Functions { get; }
-        public BoundBlockStatement Statement { get; }
 
         public BoundProgram(BoundProgram previous, IReadOnlyList<Diagnostic> diagnostics,
-            IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functions, BoundBlockStatement statement)
+            FunctionSymbol mainFunction, FunctionSymbol scriptFunction,
+            IReadOnlyDictionary<FunctionSymbol, BoundBlockStatement> functions)
         {
             Previous = previous;
             Diagnostics = diagnostics;
+            MainFunction = mainFunction;
+            ScriptFunction = scriptFunction;
             Functions = functions;
-            Statement = statement;
         }
     }
 }

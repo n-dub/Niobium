@@ -7,7 +7,6 @@ using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
-using Utilities;
 using Binder = LanguageCore.CodeAnalysis.Binding.Binder;
 
 namespace LanguageCore.CodeAnalysis
@@ -18,6 +17,7 @@ namespace LanguageCore.CodeAnalysis
         public Compilation Previous { get; }
 
         public IReadOnlyList<SyntaxTree> SyntaxTrees { get; }
+        public FunctionSymbol MainFunction => GlobalScope.MainFunction;
 
         public IReadOnlyList<FunctionSymbol> Functions => GlobalScope.Functions;
         public IReadOnlyList<VariableSymbol> Variables => GlobalScope.Variables;
@@ -118,7 +118,7 @@ namespace LanguageCore.CodeAnalysis
 
             var program = GetProgram();
 
-            SaveControlFlowGraph(program);
+            // SaveControlFlowGraph(program);
 
             if (program.Diagnostics.Any())
             {
@@ -127,27 +127,18 @@ namespace LanguageCore.CodeAnalysis
 
             var evaluator = new Evaluator(program, variables);
             var value = evaluator.Evaluate(out var type);
-            var name = GetEvaluationVariableName(program.Statement.Statements.LastOrDefault());
-            return new EvaluationResult(Array.Empty<Diagnostic>(), value, name, type);
+            return new EvaluationResult(Array.Empty<Diagnostic>(), value, "_", type);
         }
 
         public void EmitTree(TextWriter writer)
         {
-            var program = GetProgram();
-
-            if (program.Statement.Statements.Any())
+            if (GlobalScope.MainFunction != null)
             {
-                program.Statement.WriteTo(writer);
+                EmitTree(GlobalScope.MainFunction, writer);
             }
-            else
+            else if (GlobalScope.ScriptFunction != null)
             {
-                foreach (var functionSymbol in program.Functions.Keys)
-                {
-                    if (GlobalScope.Functions.Contains(functionSymbol))
-                    {
-                        EmitTree(functionSymbol, writer);
-                    }
-                }
+                EmitTree(GlobalScope.ScriptFunction, writer);
             }
         }
 
@@ -165,6 +156,7 @@ namespace LanguageCore.CodeAnalysis
             body.WriteTo(writer);
         }
 
+#if false
         private static void SaveControlFlowGraph(BoundProgram program)
         {
             // This causes problems with multiple threads writing to a single file.
@@ -187,26 +179,6 @@ namespace LanguageCore.CodeAnalysis
                 cfg.WriteTo(streamWriter);
             }
         }
-
-        private static string GetEvaluationVariableName(BoundStatement statement)
-        {
-            switch (statement)
-            {
-                case BoundExpressionStatement s:
-                    switch (s.Expression)
-                    {
-                        case BoundVariableExpression variable:
-                            return variable.Variable.Name;
-                        case BoundAssignmentExpression assignment:
-                            return assignment.Variable.Name;
-                        default:
-                            return "_";
-                    }
-                case BoundVariableDeclarationStatement s:
-                    return s.Variable.Name;
-                default:
-                    return "_";
-            }
-        }
+#endif
     }
 }

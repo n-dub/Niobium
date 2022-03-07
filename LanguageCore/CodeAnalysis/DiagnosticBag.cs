@@ -148,9 +148,21 @@ namespace LanguageCore.CodeAnalysis
             Report(location, message);
         }
 
-        public void ReportInvalidReturn(TextLocation location)
+        public void ReportOnlyOneFileCanHaveGlobalStatements(TextLocation location)
         {
-            var message = "The 'return' keyword can only be used inside of functions.";
+            var message = "At most one file can have global statements.";
+            Report(location, message);
+        }
+
+        public void ReportMainMustHaveCorrectSignature(TextLocation location)
+        {
+            var message = "main must not take arguments and not return anything.";
+            Report(location, message);
+        }
+
+        public void ReportCannotMixMainAndGlobalStatements(TextLocation location)
+        {
+            var message = "Cannot declare main function when global statements are used.";
             Report(location, message);
         }
 

@@ -108,7 +108,7 @@ namespace LanguageCore.CodeAnalysis.IO
                 return !Console.IsOutputRedirected;
             }
 
-            if (writer == Console.Out)
+            if (writer == Console.Error)
             {
                 return !Console.IsErrorRedirected && !Console.IsOutputRedirected;
             }
