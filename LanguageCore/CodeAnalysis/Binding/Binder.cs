@@ -366,7 +366,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 }
                 else if (expression != null)
                 {
-                    Diagnostics.ReportInvalidReturnExpression(syntax.Expression.Location, function.Name);
+                    Diagnostics.ReportInvalidReturnWithValueInGlobalStatements(syntax.Expression.Location);
                 }
             }
             else

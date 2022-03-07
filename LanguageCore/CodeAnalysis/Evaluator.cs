@@ -288,7 +288,7 @@ namespace LanguageCore.CodeAnalysis
         private object EvaluateConversionExpression(BoundConversionExpression node)
         {
             var value = EvaluateExpression(node.Expression);
-            return Convert.ChangeType(value, node.Type.ToSystemType());
+            return Convert.ChangeType(value, TypeSymbol.ToSystemType(node.Type));
         }
 
         private void Assign(VariableSymbol variable, object value)

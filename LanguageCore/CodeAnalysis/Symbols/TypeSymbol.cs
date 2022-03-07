@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -14,6 +15,11 @@ namespace LanguageCore.CodeAnalysis.Symbols
         public static readonly TypeSymbol String = new TypeSymbol("String");
         public static readonly TypeSymbol Void = new TypeSymbol("Void");
 
+        public static IEnumerable<TypeSymbol> AllTypes => typeof(TypeSymbol)
+            .GetFields(BindingFlags.Static | BindingFlags.Public)
+            .Select(x => (TypeSymbol) x.GetValue(null))
+            .Where(x => x != Error);
+
         public override SymbolKind Kind => SymbolKind.Type;
 
         private TypeSymbol(string name) : base(name)
@@ -22,36 +28,38 @@ namespace LanguageCore.CodeAnalysis.Symbols
 
         public static bool TryParse(string name, out TypeSymbol type)
         {
-            type = typeof(TypeSymbol)
-                .GetFields(BindingFlags.Static | BindingFlags.Public)
-                .Select(x => (TypeSymbol) x.GetValue(null))
-                .FirstOrDefault(x => x.Name == name);
+            type = AllTypes.FirstOrDefault(x => x.Name == name);
             return type != null;
         }
 
-        public Type ToSystemType()
+        public static Type ToSystemType(TypeSymbol symbol)
         {
-            if (this == Bool)
+            if (symbol == Bool)
             {
                 return typeof(bool);
             }
 
-            if (this == Int32)
+            if (symbol == Int32)
             {
                 return typeof(int);
             }
 
-            if (this == String)
+            if (symbol == String)
             {
                 return typeof(string);
             }
 
-            if (this == Any)
+            if (symbol == Any)
             {
                 return typeof(object);
             }
 
-            throw new Exception($"Unexpected type {this}");
+            if (symbol == Void)
+            {
+                return typeof(void);
+            }
+
+            throw new Exception($"Unexpected type {symbol}");
         }
     }
 }

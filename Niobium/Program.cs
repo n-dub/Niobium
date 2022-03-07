@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using LanguageCore.CodeAnalysis;
 using LanguageCore.CodeAnalysis.IO;
-using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
+using Mono.Options;
 using Repl;
 using Utilities;
 
@@ -15,51 +15,100 @@ namespace Niobium
     {
         public static int Main(string[] args)
         {
+            string outputPath = null;
+            string moduleName = null;
+            var referencePaths = new List<string>();
+            var sourcePaths = new List<string>();
+            var helpRequested = false;
+            var versionRequested = false;
+
+            var options = new OptionSet
+            {
+                $"usage: {LanguageInfo.Name} <source files> [options]\n" +
+                "Run this tool without arguments to enter Niobium REPL",
+                {"r=", "The {path} of an assembly to reference", referencePaths.Add},
+                {"o=", "The output {path} of the assembly to create", v => outputPath = v},
+                {"m=", "The {name} of the module", v => moduleName = v},
+                {"h|help", "Prints this help message", _ => helpRequested = true},
+                {"v|version", "Prints compiler's version", _ => versionRequested = true},
+                {"<>", sourcePaths.Add}
+            };
+
+            options.Parse(args);
+
+            if (helpRequested)
+            {
+                options.WriteOptionDescriptions(Console.Out);
+                return 0;
+            }
+
+            if (versionRequested)
+            {
+                Console.WriteLine(
+                    $"{LanguageInfo.Name}, version {LanguageInfo.Name.ToLower()}-{LanguageInfo.FullVersion}");
+                Console.WriteLine(LanguageInfo.Description);
+                Console.WriteLine(LanguageInfo.Copyright);
+                return 0;
+            }
+
             if (!args.Any())
             {
                 Console.WriteLine($"Welcome to {LanguageInfo.Name}, v{LanguageInfo.ShortVersion}");
-                Console.WriteLine("You can evaluate Niobium expressions and more (type :help to get help).");
+                Console.WriteLine("You can evaluate Niobium expressions and more (type :help or :? to get help).");
                 var repl = new NiobiumRepl();
                 repl.Start();
             }
             else
             {
-                switch (args.First())
-                {
-                    case "--version":
-                        Console.WriteLine(
-                            $"{LanguageInfo.Name}, version {LanguageInfo.Name.ToLower()}-{LanguageInfo.FullVersion}");
-                        Console.WriteLine(LanguageInfo.Description);
-                        Console.WriteLine(LanguageInfo.Copyright);
-                        break;
-                    case "--help":
-                        Console.WriteLine($"{LanguageInfo.Name}, v{LanguageInfo.ShortVersion}");
-                        Console.WriteLine(
-                            "Run this tool without arguments to enter Niobium REPL - Read Eval Print Loop");
-                        break;
-                    default:
-                        return RunCompilation(args);
-                }
+                return RunCompilation(sourcePaths, referencePaths, moduleName, outputPath);
             }
 
             return 0;
         }
 
-        private static int RunCompilation(IEnumerable<string> arguments)
+        private static int RunCompilation(IReadOnlyList<string> sourcePaths, IReadOnlyList<string> referencePaths,
+            string moduleName, string outputPath)
         {
             var syntaxTrees = new List<SyntaxTree>();
-            var hasErrors = false;
 
-            foreach (var path in GetFilePaths(arguments))
+            if (!sourcePaths.Any())
             {
-                if (!File.Exists(path))
+                Console.Error.Write("error: at least one source file is needed");
+                return 1;
+            }
+
+            if (outputPath == null)
+            {
+                outputPath = sourcePaths.Count != 1
+                    ? Path.Combine(Path.GetDirectoryName(sourcePaths[0]) ?? ".", "a.exe")
+                    : Path.ChangeExtension(sourcePaths[0], ".exe");
+            }
+
+            if (moduleName == null)
+            {
+                moduleName = Path.GetFileNameWithoutExtension(outputPath);
+            }
+
+            var hasErrors = false;
+            foreach (var sourcePath in sourcePaths)
+            {
+                if (!File.Exists(sourcePath))
                 {
-                    Console.Error.WriteLine($"error: File '{path}' doesn't exist");
+                    Console.Error.WriteLine($"error: file '{sourcePath}' doesn't exist");
                     hasErrors = true;
                     continue;
                 }
 
-                syntaxTrees.Add(SyntaxTree.Load(path));
+                syntaxTrees.Add(SyntaxTree.Load(sourcePath));
+            }
+
+            foreach (var referencePath in referencePaths)
+            {
+                if (!File.Exists(referencePath))
+                {
+                    Console.Error.WriteLine($"error: file '{referencePath}' doesn't exist");
+                    hasErrors = true;
+                }
             }
 
             if (hasErrors)
@@ -68,41 +117,15 @@ namespace Niobium
             }
 
             var compilation = Compilation.Create(syntaxTrees.ToArray());
-            var result = compilation.Evaluate(new Dictionary<VariableSymbol, object>());
+            var diagnostics = compilation.Emit(moduleName, referencePaths, outputPath);
 
-            if (!result.Diagnostics.Any())
+            if (diagnostics.Any())
             {
-                if (result.Value != null)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine($"Last computed value: {result.Value}");
-                }
-            }
-            else
-            {
-                Console.Error.WriteDiagnostics(result.Diagnostics);
+                Console.Error.WriteDiagnostics(diagnostics);
+                return 1;
             }
 
             return 0;
-        }
-
-        private static IEnumerable<string> GetFilePaths(IEnumerable<string> paths)
-        {
-            var result = new SortedSet<string>();
-
-            foreach (var path in paths)
-            {
-                if (Directory.Exists(path))
-                {
-                    result.UnionWith(Directory.EnumerateFiles(path, "*.nb", SearchOption.AllDirectories));
-                }
-                else
-                {
-                    result.Add(path);
-                }
-            }
-
-            return result;
         }
     }
 }

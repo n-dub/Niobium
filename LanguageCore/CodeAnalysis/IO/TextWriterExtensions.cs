@@ -12,8 +12,18 @@ namespace LanguageCore.CodeAnalysis.IO
     {
         public static void WriteDiagnostics(this TextWriter writer, IEnumerable<Diagnostic> diagnostics)
         {
-            foreach (var diagnostic in diagnostics.OrderBy(x => x.Location.Span.Start)
-                .ThenBy(x => x.Location.Span.Length))
+            var splitDiagnostics = diagnostics
+                .GroupBy(x => x.Location.Text is null)
+                .ToArray();
+            var sourceFileDiagnostics = splitDiagnostics
+                .Where(x => !x.Key)
+                .SelectMany(x => x).OrderBy(x => x.Location.Span.Start)
+                .ThenBy(x => x.Location.Span.Length);
+            var otherDiagnostics = splitDiagnostics
+                .Where(x => x.Key)
+                .SelectMany(x => x);
+
+            foreach (var diagnostic in sourceFileDiagnostics)
             {
                 var text = diagnostic.Location.Text;
                 var fileName = diagnostic.Location.FileName;
@@ -45,6 +55,13 @@ namespace LanguageCore.CodeAnalysis.IO
 
                 writer.SetForeground(ConsoleColor.DarkRed);
                 writer.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
+                writer.ResetColor();
+            }
+
+            foreach (var diagnostic in otherDiagnostics)
+            {
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.WriteLine($"error: {diagnostic}");
                 writer.ResetColor();
             }
 

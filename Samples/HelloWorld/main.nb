@@ -1,2 +1,1 @@
-let name = getName()
-print("Hi, " + name + "!")
+print("Hello, World!")

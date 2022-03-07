@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
+using Mono.Cecil;
 
 namespace LanguageCore.CodeAnalysis
 {
@@ -166,6 +168,12 @@ namespace LanguageCore.CodeAnalysis
             Report(location, message);
         }
 
+        public void ReportInvalidReturnWithValueInGlobalStatements(TextLocation location)
+        {
+            var message = "The 'return' keyword cannot be followed by an expression in global statements.";
+            Report(location, message);
+        }
+
         public void ReportInvalidReturnExpression(TextLocation location, string functionName)
         {
             var message = $"Since the function '{functionName}' does not return a value"
@@ -183,6 +191,39 @@ namespace LanguageCore.CodeAnalysis
         {
             var message = "Only assignment and call expressions can be used as a statement.";
             Report(location, message);
+        }
+
+        public void ReportInvalidReference(string path)
+        {
+            var message = $"The reference is not a valid .NET assembly: '{path}'";
+            Report(default, message);
+        }
+
+        public void ReportRequiredTypeNotFound(string niobiumName, string metadataName)
+        {
+            var message = niobiumName == null
+                ? $"The required type '{metadataName}' cannot be resolved among the given references."
+                : $"The required type '{niobiumName}' ('{metadataName}') cannot be resolved among the given references.";
+            Report(default, message);
+        }
+
+        public void ReportRequiredTypeAmbiguous(string niobiumName, string metadataName,
+            IEnumerable<TypeDefinition> foundTypes)
+        {
+            var assemblyNames = foundTypes.Select(t => t.Module.Assembly.Name.Name);
+            var assemblyNameList = string.Join(", ", assemblyNames);
+            var message = niobiumName == null
+                ? $"The required type '{metadataName}' was found in multiple references: {assemblyNameList}."
+                : $"The required type '{niobiumName}' ('{metadataName}') was found in multiple references: {assemblyNameList}.";
+            Report(default, message);
+        }
+
+        public void ReportRequiredMethodNotFound(string typeName, string methodName, string[] parameterTypeNames)
+        {
+            var parameterTypeNameList = string.Join(", ", parameterTypeNames);
+            var message =
+                $"The required method '{typeName}.{methodName}({parameterTypeNameList})' cannot be resolved among the given references.";
+            Report(default, message);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

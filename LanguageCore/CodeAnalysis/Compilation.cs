@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
+using LanguageCore.CodeAnalysis.Emit;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using Binder = LanguageCore.CodeAnalysis.Binding.Binder;
@@ -154,6 +155,26 @@ namespace LanguageCore.CodeAnalysis
             }
 
             body.WriteTo(writer);
+        }
+
+        public IReadOnlyList<Diagnostic> Emit(string moduleName, IReadOnlyList<string> references, string outputPath)
+        {
+            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
+
+            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToArray();
+            if (diagnostics.Any())
+            {
+                return diagnostics;
+            }
+
+            var program = GetProgram();
+
+            if (program.Diagnostics.Any())
+            {
+                return program.Diagnostics;
+            }
+
+            return Emitter.Emit(program, moduleName, references, outputPath);
         }
 
 #if false
