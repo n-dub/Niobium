@@ -14,11 +14,11 @@ namespace LanguageCore.CodeAnalysis.Lowering
         {
         }
 
-        public static BoundBlockStatement Lower(BoundStatement statement)
+        public static BoundBlockStatement Lower(FunctionSymbol function, BoundStatement statement)
         {
             var lowerer = new Lowerer();
             var result = lowerer.RewriteStatement(statement);
-            return Flatten(result);
+            return Flatten(function, result);
         }
 
         protected override BoundStatement RewriteForStatement(BoundForStatement node)
@@ -141,7 +141,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
             return RewriteBlockStatement(result);
         }
 
-        private static BoundBlockStatement Flatten(BoundStatement statement)
+        private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)
         {
             var builder = new List<BoundStatement>();
             var stack = new Stack<BoundStatement>();
@@ -164,7 +164,21 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 }
             }
 
+            if (function.Type == TypeSymbol.Void)
+            {
+                if (builder.Count == 0 || CanFallThrough(builder.Last()))
+                {
+                    builder.Add(new BoundReturnStatement(null));
+                }
+            }
+
             return new BoundBlockStatement(builder.ToArray());
+        }
+
+        private static bool CanFallThrough(BoundStatement boundStatement)
+        {
+            return boundStatement.Kind != BoundNodeKind.ReturnStatement &&
+                   boundStatement.Kind != BoundNodeKind.GotoStatement;
         }
 
         private BoundLabel GenerateLabel()
