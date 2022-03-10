@@ -1,0 +1,32 @@
+func calculate(x: Int32, y: Int32, op: String) -> Int32 {
+    if op == "+"    { return x + y }
+    if op == "-"    { return x - y }
+    if op == "*"    { return x * y }
+    if op == "/"    { return x / y }
+    if op == "**"   { return power(x, y) }
+    if op == "rand" { return random(x, y) }
+
+    print("Invalid operation '" + op + "'")
+    return -1
+}
+
+print("Write first number:")
+let left = Int32(readLine())
+
+print("Write operation (+ - * / ** rand !):")
+let operation = readLine()
+
+if operation == "!" {
+    print(String(left) + operation + " = " + String(factorial(left)))
+} else {
+    print("Write second number:")
+    let right = Int32(readLine())
+
+    let result = calculate(left, right, operation)
+
+    if operation == "rand" {
+        print("rand(" + String(left) + ", " + String(right) + ") = " + String(result))
+    } else {
+        print(String(left) + " " + operation + " " + String(right) + " = " + String(result))
+    }
+}

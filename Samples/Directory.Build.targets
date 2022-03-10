@@ -1,6 +1,12 @@
 <Project>
   <Target Name="CreateManifestResourceNames" />
   <Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn)">
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)"
+                    Condition="'%(FileName)' != 'System.Runtime' AND
+                               '%(FileName)' != 'System.Console' AND
+                               '%(FileName)' != 'System.Runtime.Extensions'" />
+    </ItemGroup>
     <Exec Command="..\..\Niobium\bin\Debug\Niobium.exe @(Compile->'&quot;%(Identity)&quot;', ' ') -o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'-r &quot;%(Identity)&quot;', ' ')"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>

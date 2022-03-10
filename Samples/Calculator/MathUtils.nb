@@ -1,0 +1,24 @@
+func factorial(n: Int32) -> Int32 {
+    var result = 1
+    for i = 1 in n + 1 {
+        result = result * i
+    }
+
+    return result
+}
+
+func isEven(x: Int32) -> Bool {
+    return x / 2 * 2 == x
+}
+
+func power(x: Int32, y: Int32) -> Int32 {
+    if y <= 0 { return 1 }
+    if y == 1 { return x }
+
+    let a = power(x, y / 2)
+    if isEven(y) {
+        return a * a
+    }
+
+    return a * a * x
+}

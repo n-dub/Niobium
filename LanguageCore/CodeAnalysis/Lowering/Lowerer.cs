@@ -51,8 +51,8 @@ namespace LanguageCore.CodeAnalysis.Lowering
             var whileStatement = new BoundWhileStatement(condition, whileBody, node.BreakLabel, GenerateLabel());
             var result = new BoundBlockStatement(new BoundStatement[]
             {
-                variableDeclaration,
                 upperBoundDeclaration,
+                variableDeclaration,
                 whileStatement
             });
 
@@ -143,7 +143,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
         private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)
         {
-            var builder = new List<BoundStatement>();
+            var statements = new List<BoundStatement>();
             var stack = new Stack<BoundStatement>();
             stack.Push(statement);
 
@@ -160,19 +160,19 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 }
                 else
                 {
-                    builder.Add(current);
+                    statements.Add(current);
                 }
             }
 
             if (function.Type == TypeSymbol.Void)
             {
-                if (builder.Count == 0 || CanFallThrough(builder.Last()))
+                if (statements.Count == 0 || CanFallThrough(statements.Last()))
                 {
-                    builder.Add(new BoundReturnStatement(null));
+                    statements.Add(new BoundReturnStatement(null));
                 }
             }
 
-            return new BoundBlockStatement(builder.ToArray());
+            return new BoundBlockStatement(statements.ToArray());
         }
 
         private static bool CanFallThrough(BoundStatement boundStatement)

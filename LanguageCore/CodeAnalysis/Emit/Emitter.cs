@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
+using LanguageCore.CodeAnalysis.Syntax;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -15,20 +16,33 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private readonly Dictionary<TypeSymbol, TypeReference> knownTypes;
 
+        private readonly TypeReference randomReference;
+        private readonly MethodReference randomCtorReference;
+        private readonly MethodReference randomNextReference;
+
+        private readonly MethodReference objectEqualsReference;
         private readonly MethodReference consoleWriteLineReference;
         private readonly MethodReference consoleReadLineReference;
         private readonly MethodReference stringConcatReference;
+        private readonly MethodReference convertToBooleanReference;
+        private readonly MethodReference convertToInt32Reference;
+        private readonly MethodReference convertToStringReference;
 
         private readonly AssemblyDefinition assemblyDefinition;
         private readonly Dictionary<FunctionSymbol, MethodDefinition> methods;
+        private readonly Dictionary<VariableSymbol, VariableDefinition> locals;
 
-        private readonly Dictionary<VariableSymbol, VariableDefinition> locals =
-            new Dictionary<VariableSymbol, VariableDefinition>();
+        private readonly Dictionary<BoundLabel, int> labels;
+        private readonly List<(int InstructionIndex, BoundLabel Target)> fixUps;
 
         private TypeDefinition typeDefinition;
+        private FieldDefinition randomFieldDefinition;
 
         private Emitter(string moduleName, IReadOnlyList<string> references)
         {
+            locals = new Dictionary<VariableSymbol, VariableDefinition>();
+            fixUps = new List<(int InstructionIndex, BoundLabel Target)>();
+            labels = new Dictionary<BoundLabel, int>();
             methods = new Dictionary<FunctionSymbol, MethodDefinition>();
             var assemblies = new List<AssemblyDefinition>();
 
@@ -135,9 +149,19 @@ namespace LanguageCore.CodeAnalysis.Emit
                 return null;
             }
 
+            randomReference = ResolveType(null, "System.Random");
+            randomCtorReference = ResolveMethod("System.Random", ".ctor", Array.Empty<string>());
+            randomNextReference = ResolveMethod("System.Random", "Next", new[] {"System.Int32", "System.Int32"});
+
+            objectEqualsReference = ResolveMethod("System.Object", "Equals", new[] {"System.Object", "System.Object"});
+
             consoleReadLineReference = ResolveMethod("System.Console", "ReadLine", Array.Empty<string>());
             consoleWriteLineReference = ResolveMethod("System.Console", "WriteLine", new[] {"System.String"});
             stringConcatReference = ResolveMethod("System.String", "Concat", new[] {"System.String", "System.String"});
+
+            convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new[] {"System.Object"});
+            convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new[] {"System.Object"});
+            convertToStringReference = ResolveMethod("System.Convert", "ToString", new[] {"System.Object"});
         }
 
         public static IReadOnlyList<Diagnostic> Emit(BoundProgram program, string moduleName,
@@ -208,10 +232,20 @@ namespace LanguageCore.CodeAnalysis.Emit
             var ilProcessor = method.Body.GetILProcessor();
 
             locals.Clear();
+            labels.Clear();
+            fixUps.Clear();
 
             foreach (var statement in body.Statements)
             {
                 EmitStatement(ilProcessor, statement);
+            }
+
+            foreach (var (instructionIndex, targetLabel) in fixUps)
+            {
+                var targetInstructionIndex = labels[targetLabel];
+                var targetInstruction = ilProcessor.Body.Instructions[targetInstructionIndex];
+                var instructionToFixup = ilProcessor.Body.Instructions[instructionIndex];
+                instructionToFixup.Operand = targetInstruction;
             }
 
             method.Body.OptimizeMacros();
@@ -257,17 +291,22 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private void EmitLabelStatement(ILProcessor ilProcessor, BoundLabelStatement node)
         {
-            throw new NotImplementedException();
+            labels.Add(node.Label, ilProcessor.Body.Instructions.Count);
         }
 
         private void EmitGotoStatement(ILProcessor ilProcessor, BoundGotoStatement node)
         {
-            throw new NotImplementedException();
+            fixUps.Add((ilProcessor.Body.Instructions.Count, node.Label));
+            ilProcessor.Emit(OpCodes.Br, Instruction.Create(OpCodes.Nop));
         }
 
         private void EmitConditionalGotoStatement(ILProcessor ilProcessor, BoundConditionalGotoStatement node)
         {
-            throw new NotImplementedException();
+            EmitExpression(ilProcessor, node.Condition);
+
+            var opCode = node.JumpIfTrue ? OpCodes.Brtrue : OpCodes.Brfalse;
+            fixUps.Add((ilProcessor.Body.Instructions.Count, node.Label));
+            ilProcessor.Emit(opCode, Instruction.Create(OpCodes.Nop));
         }
 
         private void EmitReturnStatement(ILProcessor ilProcessor, BoundReturnStatement node)
@@ -367,33 +406,142 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private void EmitUnaryExpression(ILProcessor ilProcessor, BoundUnaryExpression node)
         {
-            throw new NotImplementedException();
+            EmitExpression(ilProcessor, node.Operand);
+
+            switch (node.Op.Kind)
+            {
+                case BoundUnaryOperatorKind.Identity:
+                    // Done
+                    break;
+                case BoundUnaryOperatorKind.LogicalNegation:
+                    ilProcessor.Emit(OpCodes.Ldc_I4_0);
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    break;
+                case BoundUnaryOperatorKind.Negation:
+                    ilProcessor.Emit(OpCodes.Neg);
+                    break;
+                case BoundUnaryOperatorKind.OnesComplement:
+                    ilProcessor.Emit(OpCodes.Not);
+                    break;
+                default:
+                    throw new Exception(
+                        $"Unexpected unary operator {SyntaxFacts.GetText(node.Op.SyntaxKind)}({node.Operand.Type})");
+            }
         }
 
         private void EmitBinaryExpression(ILProcessor ilProcessor, BoundBinaryExpression node)
         {
+            EmitExpression(ilProcessor, node.Left);
+            EmitExpression(ilProcessor, node.Right);
+
             if (node.Op.Kind == BoundBinaryOperatorKind.Addition)
             {
-                if (node.Left.Type == TypeSymbol.String &&
-                    node.Right.Type == TypeSymbol.String)
+                if (node.Left.Type == TypeSymbol.String && node.Right.Type == TypeSymbol.String)
                 {
-                    EmitExpression(ilProcessor, node.Left);
-                    EmitExpression(ilProcessor, node.Right);
                     ilProcessor.Emit(OpCodes.Call, stringConcatReference);
-                }
-                else
-                {
-                    throw new NotImplementedException();
+                    return;
                 }
             }
-            else
+
+            if (node.Op.Kind == BoundBinaryOperatorKind.Equals)
             {
-                throw new NotImplementedException();
+                if (node.Left.Type == TypeSymbol.Any && node.Right.Type == TypeSymbol.Any ||
+                    node.Left.Type == TypeSymbol.String && node.Right.Type == TypeSymbol.String)
+                {
+                    ilProcessor.Emit(OpCodes.Call, objectEqualsReference);
+                    return;
+                }
+            }
+
+            if (node.Op.Kind == BoundBinaryOperatorKind.NotEquals)
+            {
+                if (node.Left.Type == TypeSymbol.Any && node.Right.Type == TypeSymbol.Any ||
+                    node.Left.Type == TypeSymbol.String && node.Right.Type == TypeSymbol.String)
+                {
+                    ilProcessor.Emit(OpCodes.Call, objectEqualsReference);
+                    ilProcessor.Emit(OpCodes.Ldc_I4_0);
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    return;
+                }
+            }
+
+            switch (node.Op.Kind)
+            {
+                case BoundBinaryOperatorKind.Addition:
+                    ilProcessor.Emit(OpCodes.Add);
+                    break;
+                case BoundBinaryOperatorKind.Subtraction:
+                    ilProcessor.Emit(OpCodes.Sub);
+                    break;
+                case BoundBinaryOperatorKind.Multiplication:
+                    ilProcessor.Emit(OpCodes.Mul);
+                    break;
+                case BoundBinaryOperatorKind.Division:
+                    ilProcessor.Emit(OpCodes.Div);
+                    break;
+                // TODO: Implement short-circuit evaluation
+                case BoundBinaryOperatorKind.LogicalAnd:
+                case BoundBinaryOperatorKind.BitwiseAnd:
+                    ilProcessor.Emit(OpCodes.And);
+                    break;
+                // TODO: Implement short-circuit evaluation
+                case BoundBinaryOperatorKind.LogicalOr:
+                case BoundBinaryOperatorKind.BitwiseOr:
+                    ilProcessor.Emit(OpCodes.Or);
+                    break;
+                case BoundBinaryOperatorKind.BitwiseXor:
+                    ilProcessor.Emit(OpCodes.Xor);
+                    break;
+                case BoundBinaryOperatorKind.Equals:
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    break;
+                case BoundBinaryOperatorKind.NotEquals:
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    ilProcessor.Emit(OpCodes.Ldc_I4_0);
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    break;
+                case BoundBinaryOperatorKind.Less:
+                    ilProcessor.Emit(OpCodes.Clt);
+                    break;
+                case BoundBinaryOperatorKind.LessOrEquals:
+                    ilProcessor.Emit(OpCodes.Cgt);
+                    ilProcessor.Emit(OpCodes.Ldc_I4_0);
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    break;
+                case BoundBinaryOperatorKind.Greater:
+                    ilProcessor.Emit(OpCodes.Cgt);
+                    break;
+                case BoundBinaryOperatorKind.GreaterOrEquals:
+                    ilProcessor.Emit(OpCodes.Clt);
+                    ilProcessor.Emit(OpCodes.Ldc_I4_0);
+                    ilProcessor.Emit(OpCodes.Ceq);
+                    break;
+                default:
+                    throw new Exception(
+                        $"Unexpected binary operator {SyntaxFacts.GetText(node.Op.SyntaxKind)}({node.Left.Type}, {node.Right.Type})");
             }
         }
 
         private void EmitCallExpression(ILProcessor ilProcessor, BoundCallExpression node)
         {
+            if (node.Function == BuiltinFunctions.Random)
+            {
+                if (randomFieldDefinition == null)
+                {
+                    EmitRandomField();
+                }
+
+                ilProcessor.Emit(OpCodes.Ldsfld, randomFieldDefinition);
+
+                foreach (var argument in node.Arguments)
+                {
+                    EmitExpression(ilProcessor, argument);
+                }
+
+                ilProcessor.Emit(OpCodes.Callvirt, randomNextReference);
+                return;
+            }
+
             foreach (var argument in node.Arguments)
             {
                 EmitExpression(ilProcessor, argument);
@@ -407,20 +555,65 @@ namespace LanguageCore.CodeAnalysis.Emit
             {
                 ilProcessor.Emit(OpCodes.Call, consoleWriteLineReference);
             }
-            else if (node.Function == BuiltinFunctions.Random)
-            {
-                throw new NotImplementedException();
-            }
             else
             {
-                var methodDefinition = methods[node.Function];
-                ilProcessor.Emit(OpCodes.Call, methodDefinition);
+                ilProcessor.Emit(OpCodes.Call, methods[node.Function]);
             }
+        }
+
+        private void EmitRandomField()
+        {
+            randomFieldDefinition = new FieldDefinition(
+                "__rnd",
+                FieldAttributes.Static | FieldAttributes.Private,
+                randomReference
+            );
+            typeDefinition.Fields.Add(randomFieldDefinition);
+
+            var staticConstructor = new MethodDefinition(
+                ".cctor",
+                MethodAttributes.Static |
+                MethodAttributes.Private |
+                MethodAttributes.SpecialName |
+                MethodAttributes.RTSpecialName,
+                knownTypes[TypeSymbol.Void]
+            );
+            typeDefinition.Methods.Insert(0, staticConstructor);
+
+            var ilProcessor = staticConstructor.Body.GetILProcessor();
+            ilProcessor.Emit(OpCodes.Newobj, randomCtorReference);
+            ilProcessor.Emit(OpCodes.Stsfld, randomFieldDefinition);
+            ilProcessor.Emit(OpCodes.Ret);
         }
 
         private void EmitConversionExpression(ILProcessor ilProcessor, BoundConversionExpression node)
         {
-            throw new NotImplementedException();
+            EmitExpression(ilProcessor, node.Expression);
+            if (node.Expression.Type == TypeSymbol.Bool || node.Expression.Type == TypeSymbol.Int32)
+            {
+                ilProcessor.Emit(OpCodes.Box, knownTypes[node.Expression.Type]);
+            }
+
+            if (node.Type == TypeSymbol.Any)
+            {
+                // Done
+            }
+            else if (node.Type == TypeSymbol.Bool)
+            {
+                ilProcessor.Emit(OpCodes.Call, convertToBooleanReference);
+            }
+            else if (node.Type == TypeSymbol.Int32)
+            {
+                ilProcessor.Emit(OpCodes.Call, convertToInt32Reference);
+            }
+            else if (node.Type == TypeSymbol.String)
+            {
+                ilProcessor.Emit(OpCodes.Call, convertToStringReference);
+            }
+            else
+            {
+                throw new Exception($"Unexpected conversion from {node.Expression.Type} to {node.Type}");
+            }
         }
     }
 }
