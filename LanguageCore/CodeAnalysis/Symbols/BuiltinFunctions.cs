@@ -8,7 +8,7 @@ namespace LanguageCore.CodeAnalysis.Symbols
     internal static class BuiltinFunctions
     {
         public static readonly FunctionSymbol Print = new FunctionSymbol("print",
-            new[] {new ParameterSymbol("message", TypeSymbol.String, 0)}, TypeSymbol.Void);
+            new[] {new ParameterSymbol("value", TypeSymbol.Any, 0)}, TypeSymbol.Void);
 
         public static readonly FunctionSymbol ReadLine = new FunctionSymbol("readLine",
             Array.Empty<ParameterSymbol>(), TypeSymbol.String);

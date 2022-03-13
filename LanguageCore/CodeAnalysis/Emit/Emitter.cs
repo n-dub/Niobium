@@ -156,7 +156,7 @@ namespace LanguageCore.CodeAnalysis.Emit
             objectEqualsReference = ResolveMethod("System.Object", "Equals", new[] {"System.Object", "System.Object"});
 
             consoleReadLineReference = ResolveMethod("System.Console", "ReadLine", Array.Empty<string>());
-            consoleWriteLineReference = ResolveMethod("System.Console", "WriteLine", new[] {"System.String"});
+            consoleWriteLineReference = ResolveMethod("System.Console", "WriteLine", new[] {"System.Object"});
             stringConcatReference = ResolveMethod("System.String", "Concat", new[] {"System.String", "System.String"});
 
             convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new[] {"System.Object"});

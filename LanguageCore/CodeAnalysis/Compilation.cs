@@ -61,18 +61,9 @@ namespace LanguageCore.CodeAnalysis
             var submission = this;
             var seenSymbolNames = new HashSet<string>();
 
+            var builtinFunctions = BuiltinFunctions.GetAll().ToArray();
             while (submission != null)
             {
-                const BindingFlags bindingFlags = BindingFlags.Static |
-                                                  BindingFlags.Public |
-                                                  BindingFlags.NonPublic;
-                var builtinFunctions = typeof(BuiltinFunctions)
-                    .GetFields(bindingFlags)
-                    .Where(x => x.FieldType == typeof(FunctionSymbol))
-                    .Select(x => x.GetValue(null))
-                    .Cast<FunctionSymbol>()
-                    .ToList();
-
                 foreach (var function in submission.Functions)
                 {
                     if (seenSymbolNames.Add(function.Name))
