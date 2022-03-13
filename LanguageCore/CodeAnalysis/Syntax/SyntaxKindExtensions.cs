@@ -7,6 +7,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
     {
         private static readonly SyntaxKind[] keywords;
         private static readonly SyntaxKind[] tokens;
+        private static readonly SyntaxKind[] trivia;
 
         static SyntaxKindExtensions()
         {
@@ -19,6 +20,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 .Cast<SyntaxKind>()
                 .Where(k => k.ToString().EndsWith("Token"))
                 .ToArray();
+
+            trivia = Enum.GetValues(typeof(SyntaxKind))
+                .Cast<SyntaxKind>()
+                .Where(k => k.ToString().EndsWith("Trivia"))
+                .ToArray();
         }
 
         public static bool IsKeyword(this SyntaxKind syntaxKind)
@@ -26,9 +32,25 @@ namespace LanguageCore.CodeAnalysis.Syntax
             return keywords.Contains(syntaxKind);
         }
 
-        public static bool IsToken(this SyntaxKind syntaxKind)
+        public static bool IsNonKeywordToken(this SyntaxKind syntaxKind)
         {
             return tokens.Contains(syntaxKind);
+        }
+
+        public static bool IsToken(this SyntaxKind syntaxKind)
+        {
+            return syntaxKind.IsNonKeywordToken() || syntaxKind.IsKeyword();
+        }
+
+        public static bool IsComment(this SyntaxKind syntaxKind)
+        {
+            return syntaxKind == SyntaxKind.MultiLineCommentTrivia ||
+                   syntaxKind == SyntaxKind.SingleLineCommentTrivia;
+        }
+
+        public static bool IsTrivia(this SyntaxKind syntaxKind)
+        {
+            return trivia.Contains(syntaxKind);
         }
     }
 }

@@ -26,16 +26,15 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
         }
 
         [Test]
-        public void Lexer_Tests_AllTokens()
+        public void Lexer_Covers_AllTokens()
         {
             var tokenKinds = Enum.GetValues(typeof(SyntaxKind))
                 .Cast<SyntaxKind>()
-                .Where(k => k.IsKeyword() || k.IsToken());
+                .Where(SyntaxKindExtensions.IsToken);
 
             var testedTokenKinds = GetTokens().Concat(GetSeparators()).Select(t => t.kind);
 
             var untestedTokenKinds = new SortedSet<SyntaxKind>(tokenKinds);
-            untestedTokenKinds.Remove(SyntaxKind.BadToken);
             untestedTokenKinds.Remove(SyntaxKind.EndOfFileToken);
             untestedTokenKinds.ExceptWith(testedTokenKinds);
 
@@ -127,11 +126,12 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
         {
             return new[]
             {
-                (SyntaxKind.WhitespaceToken, " "),
-                (SyntaxKind.WhitespaceToken, "  "),
-                (SyntaxKind.WhitespaceToken, "\r"),
-                (SyntaxKind.WhitespaceToken, "\n"),
-                (SyntaxKind.WhitespaceToken, "\r\n")
+                (SyntaxKind.WhitespaceTrivia, " "),
+                (SyntaxKind.WhitespaceTrivia, "  "),
+                (SyntaxKind.WhitespaceTrivia, "\r"),
+                (SyntaxKind.WhitespaceTrivia, "\n"),
+                (SyntaxKind.WhitespaceTrivia, "\r\n"),
+                (SyntaxKind.MultiLineCommentTrivia, "/**/")
             };
         }
 
@@ -245,6 +245,26 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                 return true;
             }
 
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.SlashToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.StarToken)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.SingleLineCommentTrivia)
+            {
+                return true;
+            }
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.MultiLineCommentTrivia)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -274,7 +294,10 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
                     {
                         foreach (var s in GetSeparators())
                         {
-                            yield return (t1.kind, t1.text, s.kind, s.text, t2.kind, t2.text);
+                            if (!RequiresSeparator(t1.kind, s.kind) && !RequiresSeparator(s.kind, t2.kind))
+                            {
+                                yield return (t1.kind, t1.text, s.kind, s.text, t2.kind, t2.text);
+                            }
                         }
                     }
                 }

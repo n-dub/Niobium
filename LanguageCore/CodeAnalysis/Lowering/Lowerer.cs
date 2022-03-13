@@ -150,10 +150,10 @@ namespace LanguageCore.CodeAnalysis.Lowering
                 condition = node.JumpIfTrue ? condition : !condition;
                 if (condition)
                 {
-                    return new BoundGotoStatement(node.Label);
+                    return RewriteGotoStatement(new BoundGotoStatement(node.Label));
                 }
 
-                return new BoundNopStatement();
+                return RewriteNopStatement(new BoundNopStatement());
             }
 
             return base.RewriteConditionalGotoStatement(node);

@@ -412,9 +412,10 @@ Meta-commands available:");
             submissionHistory.Clear();
         }
 
-        protected virtual void RenderLine(string line)
+        protected virtual object RenderLine(IReadOnlyList<string> lines, int lineIndex, object state)
         {
-            Console.Write(line);
+            Console.Write(lines[lineIndex]);
+            return state;
         }
 
         private void EvaluateMetaCommand(string input)
@@ -510,6 +511,8 @@ Meta-commands available:");
 
         protected abstract void EvaluateSubmission(string text);
 
+        private delegate object LineRenderHandler(IReadOnlyList<string> lines, int lineIndex, object state);
+
         [AttributeUsage(AttributeTargets.Method)]
         protected sealed class MetaCommandAttribute : Attribute
         {
@@ -567,7 +570,7 @@ Meta-commands available:");
                 }
             }
 
-            private readonly Action<string> lineRenderer;
+            private readonly LineRenderHandler lineRenderer;
             private readonly ObservableCollection<string> submissionDocument;
             private int cursorTop;
             private int renderedLineCount;
@@ -576,7 +579,7 @@ Meta-commands available:");
 
             private readonly int lineCounterOffset;
 
-            public SubmissionView(Action<string> lineRenderer, ObservableCollection<string> submissionDocument,
+            public SubmissionView(LineRenderHandler lineRenderer, ObservableCollection<string> submissionDocument,
                 int lineCounterOffset)
             {
                 this.lineRenderer = lineRenderer;
@@ -597,6 +600,7 @@ Meta-commands available:");
                 Console.CursorVisible = false;
 
                 var lineCount = 0;
+                var state = (object) null;
 
                 foreach (var line in submissionDocument)
                 {
@@ -616,7 +620,7 @@ Meta-commands available:");
                     Console.Write($"{lineCounterOffset + lineCount + 1,4}{(lineCount == 0 ? '>' : '.')} ");
 
                     Console.ResetColor();
-                    lineRenderer(line);
+                    state = lineRenderer(submissionDocument, lineCount, state);
                     Console.Write(new string(' ', Console.WindowWidth - line.Length - 2));
                     lineCount++;
                 }

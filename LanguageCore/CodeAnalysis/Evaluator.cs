@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using Utilities;
@@ -171,8 +170,6 @@ namespace LanguageCore.CodeAnalysis
                     return (int) left + (int) right;
                 case BoundBinaryOperatorKind.Subtraction:
                     return (int) left - (int) right;
-                case BoundBinaryOperatorKind.Multiplication when binary.Type == TypeSymbol.String:
-                    return string.Join("", Enumerable.Repeat((string) left, (int) right));
                 case BoundBinaryOperatorKind.Multiplication:
                     return (int) left * (int) right;
                 case BoundBinaryOperatorKind.Division:

@@ -24,7 +24,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 token = lexer.Lex();
 
-                if (token.Kind != SyntaxKind.WhitespaceToken && token.Kind != SyntaxKind.BadToken)
+                if (!token.Kind.IsTrivia())
                 {
                     tokenList.Add(token);
                 }

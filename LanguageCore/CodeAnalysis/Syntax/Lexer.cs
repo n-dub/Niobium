@@ -43,7 +43,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public SyntaxToken Lex()
         {
             start = position;
-            kind = SyntaxKind.BadToken;
+            kind = SyntaxKind.BadTokenTrivia;
             value = null;
 
             if (Current == '\0')
@@ -65,6 +65,14 @@ namespace LanguageCore.CodeAnalysis.Syntax
             else if (Current == '"')
             {
                 ReadString();
+            }
+            else if (Current == '/' && Lookahead == '/')
+            {
+                ReadSingleLineComment();
+            }
+            else if (Current == '/' && Lookahead == '*')
+            {
+                ReadMultiLineComment();
             }
             else
             {
@@ -117,7 +125,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 position++;
             }
 
-            kind = SyntaxKind.WhitespaceToken;
+            kind = SyntaxKind.WhitespaceTrivia;
         }
 
         private void ReadNumberToken()
@@ -190,6 +198,49 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
             kind = SyntaxKind.StringToken;
             value = sb.ToString();
+        }
+
+        private void ReadSingleLineComment()
+        {
+            position += 2;
+
+            while (true)
+            {
+                if ("\0\r\n".Contains(Current))
+                {
+                    break;
+                }
+
+                position++;
+            }
+
+            kind = SyntaxKind.SingleLineCommentTrivia;
+        }
+
+        private void ReadMultiLineComment()
+        {
+            position += 2;
+
+            while (true)
+            {
+                if (Current == '\0')
+                {
+                    var span = new TextSpan(start, 2);
+                    var location = new TextLocation(sourceText, span);
+                    Diagnostics.ReportUnterminatedMultiLineComment(location);
+                    break;
+                }
+
+                if (Current == '*' && Lookahead == '/')
+                {
+                    position += 2;
+                    break;
+                }
+
+                position++;
+            }
+
+            kind = SyntaxKind.MultiLineCommentTrivia;
         }
 
         private bool TryReadEscapedCharacter(out char character)

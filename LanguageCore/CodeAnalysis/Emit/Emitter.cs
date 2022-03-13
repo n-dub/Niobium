@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
@@ -20,10 +21,12 @@ namespace LanguageCore.CodeAnalysis.Emit
         private readonly MethodReference randomCtorReference;
         private readonly MethodReference randomNextReference;
 
+        private readonly MethodReference[] stringConcatReferences;
+        private readonly MethodReference stringConcatArrayReference;
+
         private readonly MethodReference objectEqualsReference;
         private readonly MethodReference consoleWriteLineReference;
         private readonly MethodReference consoleReadLineReference;
-        private readonly MethodReference stringConcatReference;
         private readonly MethodReference convertToBooleanReference;
         private readonly MethodReference convertToInt32Reference;
         private readonly MethodReference convertToStringReference;
@@ -149,6 +152,15 @@ namespace LanguageCore.CodeAnalysis.Emit
                 return null;
             }
 
+            stringConcatReferences = new MethodReference[5];
+            for (var i = 2; i < stringConcatReferences.Length; ++i)
+            {
+                var parameters = Enumerable.Repeat("System.String", i).ToArray();
+                stringConcatReferences[i] = ResolveMethod("System.String", "Concat", parameters);
+            }
+
+            stringConcatArrayReference = ResolveMethod("System.String", "Concat", new[] {"System.String[]"});
+
             randomReference = ResolveType(null, "System.Random");
             randomCtorReference = ResolveMethod("System.Random", ".ctor", Array.Empty<string>());
             randomNextReference = ResolveMethod("System.Random", "Next", new[] {"System.Int32", "System.Int32"});
@@ -157,7 +169,6 @@ namespace LanguageCore.CodeAnalysis.Emit
 
             consoleReadLineReference = ResolveMethod("System.Console", "ReadLine", Array.Empty<string>());
             consoleWriteLineReference = ResolveMethod("System.Console", "WriteLine", new[] {"System.Object"});
-            stringConcatReference = ResolveMethod("System.String", "Concat", new[] {"System.String", "System.String"});
 
             convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new[] {"System.Object"});
             convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new[] {"System.Object"});
@@ -442,17 +453,17 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private void EmitBinaryExpression(ILProcessor ilProcessor, BoundBinaryExpression node)
         {
-            EmitExpression(ilProcessor, node.Left);
-            EmitExpression(ilProcessor, node.Right);
-
             if (node.Op.Kind == BoundBinaryOperatorKind.Addition)
             {
                 if (node.Left.Type == TypeSymbol.String && node.Right.Type == TypeSymbol.String)
                 {
-                    ilProcessor.Emit(OpCodes.Call, stringConcatReference);
+                    EmitStringConcatExpression(ilProcessor, node);
                     return;
                 }
             }
+
+            EmitExpression(ilProcessor, node.Left);
+            EmitExpression(ilProcessor, node.Right);
 
             if (node.Op.Kind == BoundBinaryOperatorKind.Equals)
             {
@@ -530,6 +541,107 @@ namespace LanguageCore.CodeAnalysis.Emit
                 default:
                     throw new Exception(
                         $"Unexpected binary operator {SyntaxFacts.GetText(node.Op.SyntaxKind)}({node.Left.Type}, {node.Right.Type})");
+            }
+        }
+
+        private void EmitStringConcatExpression(ILProcessor ilProcessor, BoundBinaryExpression node)
+        {
+            var nodes = FoldConstants(Flatten(node)).ToList();
+
+            if (nodes.Count == 0)
+            {
+                ilProcessor.Emit(OpCodes.Ldstr, string.Empty);
+            }
+            else if (nodes.Count < stringConcatReferences.Length)
+            {
+                foreach (var operand in nodes)
+                {
+                    EmitExpression(ilProcessor, operand);
+                }
+
+                if (stringConcatReferences[nodes.Count] != null)
+                {
+                    ilProcessor.Emit(OpCodes.Call, stringConcatReferences[nodes.Count]);
+                }
+            }
+            else
+            {
+                ilProcessor.Emit(OpCodes.Ldc_I4, nodes.Count);
+                ilProcessor.Emit(OpCodes.Newarr, knownTypes[TypeSymbol.String]);
+
+                for (var i = 0; i < nodes.Count; i++)
+                {
+                    ilProcessor.Emit(OpCodes.Dup);
+                    ilProcessor.Emit(OpCodes.Ldc_I4, i);
+                    EmitExpression(ilProcessor, nodes[i]);
+                    ilProcessor.Emit(OpCodes.Stelem_Ref);
+                }
+
+                ilProcessor.Emit(OpCodes.Call, stringConcatArrayReference);
+            }
+
+            static IEnumerable<BoundExpression> Flatten(BoundExpression node)
+            {
+                if (node is BoundBinaryExpression binaryExpression &&
+                    binaryExpression.Op.Kind == BoundBinaryOperatorKind.Addition &&
+                    binaryExpression.Left.Type == TypeSymbol.String &&
+                    binaryExpression.Right.Type == TypeSymbol.String)
+                {
+                    foreach (var result in Flatten(binaryExpression.Left))
+                    {
+                        yield return result;
+                    }
+
+                    foreach (var result in Flatten(binaryExpression.Right))
+                    {
+                        yield return result;
+                    }
+                }
+                else
+                {
+                    if (node.Type != TypeSymbol.String)
+                    {
+                        throw new Exception($"Unexpected node type in string concatenation: {node.Type}");
+                    }
+
+                    yield return node;
+                }
+            }
+
+            static IEnumerable<BoundExpression> FoldConstants(IEnumerable<BoundExpression> nodes)
+            {
+                StringBuilder sb = null;
+
+                foreach (var node in nodes)
+                {
+                    if (node.ConstantValue != null)
+                    {
+                        var stringValue = (string) node.ConstantValue.Value;
+
+                        if (string.IsNullOrEmpty(stringValue))
+                        {
+                            continue;
+                        }
+
+                        sb ??= new StringBuilder();
+                        sb.Append(stringValue);
+                    }
+                    else
+                    {
+                        if (sb?.Length > 0)
+                        {
+                            yield return new BoundLiteralExpression(sb.ToString());
+                            sb.Clear();
+                        }
+
+                        yield return node;
+                    }
+                }
+
+                if (sb?.Length > 0)
+                {
+                    yield return new BoundLiteralExpression(sb.ToString());
+                }
             }
         }
 

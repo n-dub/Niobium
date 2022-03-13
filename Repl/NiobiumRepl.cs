@@ -6,6 +6,7 @@ using LanguageCore.CodeAnalysis;
 using LanguageCore.CodeAnalysis.IO;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
+using LanguageCore.CodeAnalysis.Text;
 
 namespace Repl
 {
@@ -24,19 +25,51 @@ namespace Repl
             LoadSubmissions();
         }
 
-        protected override void RenderLine(string line)
+        protected override object RenderLine(IReadOnlyList<string> lines, int lineIndex, object state)
         {
-            var tokens = SyntaxTree.ParseTokens(line);
-            foreach (var token in tokens)
+            RenderState renderState;
+
+            if (state == null)
             {
+                var text = string.Join(Environment.NewLine, lines);
+                var sourceText = SourceText.From(text, string.Empty);
+                var tokens = SyntaxTree.ParseTokens(sourceText);
+                renderState = new RenderState(sourceText, tokens);
+            }
+            else
+            {
+                renderState = (RenderState) state;
+            }
+
+            var lineSpan = renderState.Text.Lines[lineIndex].Span;
+
+            foreach (var token in renderState.Tokens)
+            {
+                if (!lineSpan.OverlapsWith(token.Span))
+                {
+                    continue;
+                }
+
+                var tokenStart = Math.Max(token.Span.Start, lineSpan.Start);
+                var tokenEnd = Math.Min(token.Span.End, lineSpan.End);
+                var tokenSpan = TextSpan.FromBounds(tokenStart, tokenEnd);
+                var tokenText = renderState.Text.ToString(tokenSpan);
+
                 Console.ForegroundColor = GetConsoleColor(token.Kind, token.Text);
-                Console.Write(token.Text);
+                Console.Write(tokenText);
                 Console.ResetColor();
             }
+
+            return renderState;
         }
 
         private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind, string text)
         {
+            if (tokenKind.IsComment())
+            {
+                return ConsoleColor.Green;
+            }
+
             switch (tokenKind)
             {
                 case SyntaxKind.NumberToken:
@@ -51,7 +84,7 @@ namespace Repl
                         ? ConsoleColor.DarkCyan
                         : Console.ForegroundColor;
                 default:
-                    return tokenKind.IsKeyword() ? ConsoleColor.Magenta : Console.ForegroundColor;
+                    return tokenKind.IsKeyword() ? ConsoleColor.Magenta : ConsoleColor.White;
             }
         }
 
@@ -160,8 +193,9 @@ namespace Repl
             }
 
             var syntaxTree = SyntaxTree.Parse(text);
+            var lastMember = syntaxTree.Root.Members.LastOrDefault();
 
-            return !syntaxTree.Root.Members.Last().GetLastToken().IsMissing;
+            return lastMember != null && !lastMember.GetLastToken().IsMissing;
         }
 
         protected override void EvaluateSubmission(string text)
@@ -259,6 +293,18 @@ namespace Repl
             var name = $"submission{count:0000}";
             var fileName = Path.Combine(submissionsDirectory, name);
             File.WriteAllText(fileName, text);
+        }
+
+        private sealed class RenderState
+        {
+            public SourceText Text { get; }
+            public IReadOnlyList<SyntaxToken> Tokens { get; }
+
+            public RenderState(SourceText text, IReadOnlyList<SyntaxToken> tokens)
+            {
+                Text = text;
+                Tokens = tokens;
+            }
         }
     }
 }

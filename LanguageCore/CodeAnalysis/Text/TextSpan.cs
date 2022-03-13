@@ -18,6 +18,11 @@
             return new TextSpan(start, length);
         }
 
+        public bool OverlapsWith(TextSpan span)
+        {
+            return Start < span.End && End > span.Start;
+        }
+
         public override string ToString()
         {
             return $"{Start}..{End}";

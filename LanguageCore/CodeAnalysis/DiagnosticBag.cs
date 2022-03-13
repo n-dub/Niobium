@@ -114,6 +114,12 @@ namespace LanguageCore.CodeAnalysis
             Report(location, message);
         }
 
+        public void ReportUnterminatedMultiLineComment(TextLocation location)
+        {
+            var message = "Unterminated multi-line comment.";
+            Report(location, message);
+        }
+
         public void ReportInvalidEscapedCharacter(TextLocation location, char character)
         {
             var message = $"Invalid escaped character sequence '\\{character}'.";

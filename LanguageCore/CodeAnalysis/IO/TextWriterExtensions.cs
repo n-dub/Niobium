@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
 
@@ -75,7 +76,11 @@ namespace LanguageCore.CodeAnalysis.IO
 
         public static void WriteKeyword(this TextWriter writer, string text)
         {
-            writer.SetForeground(ConsoleColor.Magenta);
+            var color = TypeSymbol.TryParse(text, out _)
+                ? ConsoleColor.DarkCyan
+                : ConsoleColor.Magenta;
+
+            writer.SetForeground(color);
             writer.Write(text);
             writer.ResetColor();
         }
