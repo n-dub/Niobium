@@ -170,6 +170,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                             statements.Add(statement);
                             StartBlock();
                             break;
+                        case BoundNodeKind.NopStatement:
                         case BoundNodeKind.VariableDeclarationStatement:
                         case BoundNodeKind.ExpressionStatement:
                             statements.Add(statement);
@@ -263,6 +264,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                             case BoundNodeKind.ReturnStatement:
                                 Connect(current, end);
                                 break;
+                            case BoundNodeKind.NopStatement:
                             case BoundNodeKind.VariableDeclarationStatement:
                             case BoundNodeKind.LabelStatement:
                             case BoundNodeKind.ExpressionStatement:

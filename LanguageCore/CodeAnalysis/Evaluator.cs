@@ -69,6 +69,9 @@ namespace LanguageCore.CodeAnalysis
 
                 switch (s.Kind)
                 {
+                    case BoundNodeKind.NopStatement:
+                        index++;
+                        break;
                     case BoundNodeKind.VariableDeclarationStatement:
                         EvaluateVariableDeclaration((BoundVariableDeclarationStatement) s);
                         index++;
@@ -131,10 +134,13 @@ namespace LanguageCore.CodeAnalysis
 
         private object EvaluateExpression(BoundExpression node)
         {
+            if (node.ConstantValue != null)
+            {
+                return EvaluateConstantExpression(node);
+            }
+
             switch (node.Kind)
             {
-                case BoundNodeKind.LiteralExpression:
-                    return EvaluateLiteralExpression((BoundLiteralExpression) node);
                 case BoundNodeKind.VariableExpression:
                     return EvaluateVariableExpression((BoundVariableExpression) node);
                 case BoundNodeKind.AssignmentExpression:
@@ -280,9 +286,9 @@ namespace LanguageCore.CodeAnalysis
             }
         }
 
-        private static object EvaluateLiteralExpression(BoundLiteralExpression literal)
+        private static object EvaluateConstantExpression(BoundExpression node)
         {
-            return literal.Value;
+            return node.ConstantValue.Value;
         }
 
         private object EvaluateConversionExpression(BoundConversionExpression node)

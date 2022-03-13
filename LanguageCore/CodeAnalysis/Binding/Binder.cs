@@ -411,7 +411,8 @@ namespace LanguageCore.CodeAnalysis.Binding
             var type = BindTypeClause(syntax.TypeClause);
             var initializer = BindExpression(syntax.Initializer);
             var variableType = type ?? initializer.Type;
-            var variable = BindVariableDeclaration(syntax.Identifier, immutable, variableType);
+            var variable =
+                BindVariableDeclaration(syntax.Identifier, immutable, variableType, initializer.ConstantValue);
             var convertedInitializer = BindConversion(syntax.Initializer.Location, initializer, variableType);
 
             return new BoundVariableDeclarationStatement(variable, convertedInitializer);
@@ -707,12 +708,13 @@ namespace LanguageCore.CodeAnalysis.Binding
             return BindConversion(syntax.Location, expression, type, allowExplicit);
         }
 
-        private VariableSymbol BindVariableDeclaration(SyntaxToken identifier, bool isImmutable, TypeSymbol type)
+        private VariableSymbol BindVariableDeclaration(SyntaxToken identifier, bool isImmutable, TypeSymbol type,
+            BoundConstant constant = null)
         {
             var name = identifier.Text ?? "?";
             var variable = function == null
-                ? (VariableSymbol) new GlobalVariableSymbol(name, isImmutable, type)
-                : new LocalVariableSymbol(name, isImmutable, type);
+                ? (VariableSymbol) new GlobalVariableSymbol(name, isImmutable, type, constant)
+                : new LocalVariableSymbol(name, isImmutable, type, constant);
 
             if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
             {

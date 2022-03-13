@@ -28,6 +28,9 @@ namespace LanguageCore.CodeAnalysis.Binding
                 case BoundNodeKind.BlockStatement:
                     WriteBlockStatement((BoundBlockStatement) node, writer);
                     break;
+                case BoundNodeKind.NopStatement:
+                    WriteNopStatement((BoundNopStatement) node, writer);
+                    break;
                 case BoundNodeKind.VariableDeclarationStatement:
                     WriteVariableDeclaration((BoundVariableDeclarationStatement) node, writer);
                     break;
@@ -153,6 +156,12 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             writer.Indent--;
             writer.WritePunctuation(SyntaxKind.CloseBraceToken);
+            writer.WriteLine();
+        }
+
+        private static void WriteNopStatement(BoundNopStatement node, IndentedTextWriter writer)
+        {
+            writer.WriteKeyword("nop");
             writer.WriteLine();
         }
 

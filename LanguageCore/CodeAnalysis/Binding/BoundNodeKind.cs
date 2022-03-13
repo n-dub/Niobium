@@ -4,6 +4,7 @@
     {
         // Statement
         BlockStatement,
+        NopStatement,
         VariableDeclarationStatement,
         IfStatement,
         WhileStatement,

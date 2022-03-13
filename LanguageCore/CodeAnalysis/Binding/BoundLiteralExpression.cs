@@ -7,12 +7,11 @@ namespace LanguageCore.CodeAnalysis.Binding
     {
         public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
         public override TypeSymbol Type { get; }
-        public object Value { get; }
+        public object Value => ConstantValue.Value;
+        public override BoundConstant ConstantValue { get; }
 
         public BoundLiteralExpression(object value)
         {
-            Value = value;
-
             switch (value)
             {
                 case bool _:
@@ -27,6 +26,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                 default:
                     throw new Exception($"Unexpected literal '{value}' of type {value.GetType()}");
             }
+
+            ConstantValue = new BoundConstant(value);
         }
     }
 }

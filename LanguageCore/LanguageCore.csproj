@@ -62,6 +62,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundBlockStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundCallExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundConditionalGotoStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\BoundConstant.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundConversionExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundErrorExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundExpression.cs" />
@@ -89,6 +90,7 @@
         <Compile Include="CodeAnalysis\Binding\BoundVariableDeclarationStatement.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundVariableExpression.cs" />
         <Compile Include="CodeAnalysis\Binding\BoundWhileStatement.cs" />
+        <Compile Include="CodeAnalysis\Binding\ConstantFolding.cs" />
         <Compile Include="CodeAnalysis\Binding\ControlFlowGraph.cs" />
         <Compile Include="CodeAnalysis\Binding\Conversion.cs" />
         <Compile Include="CodeAnalysis\Compilation.cs" />

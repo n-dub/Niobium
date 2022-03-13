@@ -12,6 +12,8 @@ namespace LanguageCore.CodeAnalysis.Binding
             {
                 case BoundNodeKind.BlockStatement:
                     return RewriteBlockStatement((BoundBlockStatement) node);
+                case BoundNodeKind.NopStatement:
+                    return RewriteNopStatement((BoundNopStatement) node);
                 case BoundNodeKind.VariableDeclarationStatement:
                     return RewriteVariableDeclaration((BoundVariableDeclarationStatement) node);
                 case BoundNodeKind.IfStatement:
@@ -81,6 +83,11 @@ namespace LanguageCore.CodeAnalysis.Binding
             return statements != null
                 ? new BoundBlockStatement(statements.ToArray())
                 : node;
+        }
+
+        protected virtual BoundStatement RewriteNopStatement(BoundNopStatement node)
+        {
+            return node;
         }
 
         protected virtual BoundStatement RewriteVariableDeclaration(BoundVariableDeclarationStatement node)

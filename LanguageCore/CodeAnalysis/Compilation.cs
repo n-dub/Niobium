@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Emit;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
-using Binder = LanguageCore.CodeAnalysis.Binding.Binder;
 
 namespace LanguageCore.CodeAnalysis
 {
