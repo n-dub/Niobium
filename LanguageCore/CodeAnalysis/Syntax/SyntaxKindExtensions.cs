@@ -32,6 +32,12 @@ namespace LanguageCore.CodeAnalysis.Syntax
             return keywords.Contains(syntaxKind);
         }
 
+        public static bool IsLiteralKeyword(this SyntaxKind syntaxKind)
+        {
+            return syntaxKind == SyntaxKind.TrueKeyword ||
+                   syntaxKind == SyntaxKind.FalseKeyword;
+        }
+
         public static bool IsNonKeywordToken(this SyntaxKind syntaxKind)
         {
             return tokens.Contains(syntaxKind);

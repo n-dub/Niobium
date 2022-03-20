@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LanguageCore.CodeAnalysis.Symbols;
@@ -17,6 +18,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private int start;
         private SyntaxKind kind;
         private object value;
+
+        private readonly List<SyntaxTrivia> triviaBuilder = new List<SyntaxTrivia>();
 
         private static readonly (SyntaxKind kind, string text)[] operatorKindTexts;
 
@@ -42,8 +45,104 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public SyntaxToken Lex()
         {
+            ReadTrivia(true);
+
+            var leadingTrivia = triviaBuilder.ToArray();
+            var tokenStart = position;
+
+            ReadToken();
+
+            var tokenKind = kind;
+            var tokenValue = value;
+            var tokenLength = position - start;
+
+            ReadTrivia(false);
+
+            var trailingTrivia = triviaBuilder.ToArray();
+
+            var tokenText = SyntaxFacts.GetText(tokenKind) ?? sourceText.ToString(tokenStart, tokenLength);
+
+            return new SyntaxToken(syntaxTree, tokenKind, tokenStart, tokenText, tokenValue, leadingTrivia,
+                trailingTrivia);
+        }
+
+        private void ReadTrivia(bool leading)
+        {
+            triviaBuilder.Clear();
+
+            var done = false;
+
+            while (!done)
+            {
+                start = position;
+                kind = SyntaxKind.BadToken;
+                value = null;
+
+                switch (Current)
+                {
+                    case '\0':
+                        done = true;
+                        break;
+                    case '/' when Lookahead == '/':
+                        ReadSingleLineComment();
+                        break;
+                    case '/' when Lookahead == '*':
+                        ReadMultiLineComment();
+                        break;
+                    case '\n':
+                    case '\r':
+                        if (!leading)
+                        {
+                            done = true;
+                        }
+
+                        ReadLineBreak();
+                        break;
+                    case ' ':
+                    case '\t':
+                        ReadWhiteSpace();
+                        break;
+                    default:
+                        if (char.IsWhiteSpace(Current))
+                        {
+                            ReadWhiteSpace();
+                        }
+                        else
+                        {
+                            done = true;
+                        }
+
+                        break;
+                }
+
+                var length = position - start;
+                if (length > 0)
+                {
+                    var text = sourceText.ToString(start, length);
+                    var trivia = new SyntaxTrivia(syntaxTree, kind, start, text);
+                    triviaBuilder.Add(trivia);
+                }
+            }
+        }
+
+        private void ReadLineBreak()
+        {
+            if (Current == '\r' && Lookahead == '\n')
+            {
+                position += 2;
+            }
+            else
+            {
+                position++;
+            }
+
+            kind = SyntaxKind.LineBreakTrivia;
+        }
+
+        private void ReadToken()
+        {
             start = position;
-            kind = SyntaxKind.BadTokenTrivia;
+            kind = SyntaxKind.BadToken;
             value = null;
 
             if (Current == '\0')
@@ -58,21 +157,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 ReadNumberToken();
             }
-            else if (char.IsWhiteSpace(Current))
-            {
-                ReadWhiteSpace();
-            }
             else if (Current == '"')
             {
                 ReadString();
-            }
-            else if (Current == '/' && Lookahead == '/')
-            {
-                ReadSingleLineComment();
-            }
-            else if (Current == '/' && Lookahead == '*')
-            {
-                ReadMultiLineComment();
             }
             else
             {
@@ -91,11 +178,6 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     position += operatorKind.text.Length;
                 }
             }
-
-            var length = position - start;
-            var text = SyntaxFacts.GetText(kind) ?? sourceText.ToString(start, length);
-
-            return new SyntaxToken(syntaxTree, kind, start, text, value);
         }
 
         private bool TryMatchString(string match)

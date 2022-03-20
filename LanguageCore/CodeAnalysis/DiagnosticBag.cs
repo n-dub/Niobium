@@ -17,9 +17,9 @@ namespace LanguageCore.CodeAnalysis
             return diagnostics.GetEnumerator();
         }
 
-        public void AddRange(DiagnosticBag other)
+        public void AddRange(IEnumerable<Diagnostic> otherDiagnostics)
         {
-            diagnostics.AddRange(other.diagnostics);
+            diagnostics.AddRange(otherDiagnostics);
         }
 
         public void ReportInvalidNumber(TextLocation location, string text, TypeSymbol type)

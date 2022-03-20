@@ -35,10 +35,22 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             var testedTokenKinds = GetTokens().Concat(GetSeparators()).Select(t => t.kind);
 
             var untestedTokenKinds = new SortedSet<SyntaxKind>(tokenKinds);
+            untestedTokenKinds.Remove(SyntaxKind.BadToken);
             untestedTokenKinds.Remove(SyntaxKind.EndOfFileToken);
             untestedTokenKinds.ExceptWith(testedTokenKinds);
 
             Assert.IsEmpty(untestedTokenKinds);
+        }
+
+        [TestCaseSource(nameof(GetSeparatorsData))]
+        public void Lexer_Lexes_Separator(SyntaxKind kind, string text)
+        {
+            var tokens = SyntaxTree.ParseTokens(text, true);
+
+            var token = tokens.First();
+            var trivia = token.LeadingTrivia.First();
+            Assert.AreEqual(kind, trivia.Kind);
+            Assert.AreEqual(text, trivia.Text);
         }
 
         [TestCaseSource(nameof(GetTokensData))]
@@ -73,19 +85,27 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             var text = t1Text + separatorText + t2Text;
             var tokens = SyntaxTree.ParseTokens(text).ToArray();
 
-            Assert.AreEqual(3, tokens.Length);
+            Assert.AreEqual(2, tokens.Length);
             Assert.AreEqual(t1Kind, tokens[0].Kind);
             Assert.AreEqual(t1Text, tokens[0].Text);
-            Assert.AreEqual(separatorKind, tokens[1].Kind);
-            Assert.AreEqual(separatorText, tokens[1].Text);
-            Assert.AreEqual(t2Kind, tokens[2].Kind);
-            Assert.AreEqual(t2Text, tokens[2].Text);
+
+            var separator = tokens[0].TrailingTrivia.Single();
+            Assert.AreEqual(separatorKind, separator.Kind);
+            Assert.AreEqual(separatorText, separator.Text);
+
+            Assert.AreEqual(t2Kind, tokens[1].Kind);
+            Assert.AreEqual(t2Text, tokens[1].Text);
         }
 
         public static IEnumerable<object[]> GetTokensData()
         {
             return GetTokens()
-                .Concat(GetSeparators())
+                .Select(t => new object[] {t.kind, t.text});
+        }
+
+        public static IEnumerable<object[]> GetSeparatorsData()
+        {
+            return GetSeparators()
                 .Select(t => new object[] {t.kind, t.text});
         }
 
@@ -128,9 +148,9 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             {
                 (SyntaxKind.WhitespaceTrivia, " "),
                 (SyntaxKind.WhitespaceTrivia, "  "),
-                (SyntaxKind.WhitespaceTrivia, "\r"),
-                (SyntaxKind.WhitespaceTrivia, "\n"),
-                (SyntaxKind.WhitespaceTrivia, "\r\n"),
+                (SyntaxKind.LineBreakTrivia, "\r"),
+                (SyntaxKind.LineBreakTrivia, "\n"),
+                (SyntaxKind.LineBreakTrivia, "\r\n"),
                 (SyntaxKind.MultiLineCommentTrivia, "/**/")
             };
         }

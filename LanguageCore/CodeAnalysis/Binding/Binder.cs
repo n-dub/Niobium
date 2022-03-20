@@ -21,7 +21,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         private readonly bool isScript;
         private readonly FunctionSymbol function;
 
-        public Binder(bool isScript, BoundScope parent, FunctionSymbol function)
+        private Binder(bool isScript, BoundScope parent, FunctionSymbol function)
         {
             scope = new BoundScope(parent);
             this.isScript = isScript;
@@ -43,6 +43,13 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var parentScope = CreateParentScope(previous);
             var binder = new Binder(isScript, parentScope, null);
+
+            binder.Diagnostics.AddRange(syntaxTrees.SelectMany(st => st.Diagnostics));
+            if (binder.Diagnostics.Any())
+            {
+                return new BoundGlobalScope(previous, binder.Diagnostics.ToArray(), null, null,
+                    Array.Empty<FunctionSymbol>(), Array.Empty<VariableSymbol>(), Array.Empty<BoundStatement>());
+            }
 
             var functionDeclarations = syntaxTrees
                 .SelectMany(st => st.Root.Members)
@@ -83,14 +90,9 @@ namespace LanguageCore.CodeAnalysis.Binding
             if (isScript)
             {
                 mainFunction = null;
-                if (globalStatements.Any())
-                {
-                    scriptFunction = new FunctionSymbol("__eval", Array.Empty<ParameterSymbol>(), TypeSymbol.Any);
-                }
-                else
-                {
-                    scriptFunction = null;
-                }
+                scriptFunction = globalStatements.Any()
+                    ? new FunctionSymbol("__eval", Array.Empty<ParameterSymbol>(), TypeSymbol.Any)
+                    : null;
             }
             else
             {
@@ -137,6 +139,12 @@ namespace LanguageCore.CodeAnalysis.Binding
         public static BoundProgram BindProgram(bool isScript, BoundProgram previous, BoundGlobalScope globalScope)
         {
             var parentScope = CreateParentScope(globalScope);
+
+            if (globalScope.Diagnostics.Any())
+            {
+                return new BoundProgram(previous, globalScope.Diagnostics, null, null,
+                    new Dictionary<FunctionSymbol, BoundBlockStatement>());
+            }
 
             var functionBodies = new Dictionary<FunctionSymbol, BoundBlockStatement>();
             var diagnostics = new List<Diagnostic>();
@@ -359,10 +367,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             {
                 if (isScript)
                 {
-                    if (expression == null)
-                    {
-                        expression = new BoundLiteralExpression("");
-                    }
+                    expression ??= new BoundLiteralExpression("");
                 }
                 else if (expression != null)
                 {
@@ -614,7 +619,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private BoundExpression BindCallExpression(CallExpressionSyntax syntax)
         {
-            if (syntax.Arguments.Count == 1 && LookupType(syntax.Identifier.Text) is TypeSymbol type)
+            if (syntax.Arguments.Count == 1 && LookupType(syntax.Identifier.Text) is { } type)
             {
                 return BindConversion(syntax.Arguments[0], type, true);
             }

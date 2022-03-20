@@ -24,6 +24,16 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
         }
 
+        public virtual TextSpan FullSpan
+        {
+            get
+            {
+                var first = GetChildren().First().FullSpan;
+                var last = GetChildren().Last().FullSpan;
+                return TextSpan.FromBounds(first.Start, last.End);
+            }
+        }
+
         protected SyntaxNode(SyntaxTree syntaxTree)
         {
             SyntaxTree = syntaxTree;
@@ -96,8 +106,37 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         private static void PrettyPrint(TextWriter writer, SyntaxNode node, string indent = "", bool isLast = true)
         {
+            if (node is null)
+            {
+                return;
+            }
+
             var writerIsConsole = writer == Console.Out;
-            var marker = isLast ? "└──" : "├──";
+            var token = node as SyntaxToken;
+
+            if (token != null)
+            {
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    if (writerIsConsole)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    }
+
+                    writer.Write(indent);
+                    writer.Write("├──");
+
+                    if (writerIsConsole)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    }
+
+                    writer.WriteLine($"L: {trivia.Kind}");
+                }
+            }
+
+            var hasTrailingTrivia = token != null && token.TrailingTrivia.Any();
+            var tokenMarker = !hasTrailingTrivia && isLast ? "└──" : "├──";
 
             if (writerIsConsole)
             {
@@ -105,7 +144,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             writer.Write(indent);
-            writer.Write(marker);
+            writer.Write(tokenMarker);
 
             if (writerIsConsole)
             {
@@ -114,10 +153,10 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
             writer.Write(node.Kind);
 
-            if (node is SyntaxToken t && t.Value != null)
+            if (token?.Value != null)
             {
                 writer.Write(" ");
-                writer.Write(t.Value);
+                writer.Write(token.Value);
             }
 
             if (writerIsConsole)
@@ -126,6 +165,31 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             writer.WriteLine();
+
+            if (token != null)
+            {
+                foreach (var trivia in token.TrailingTrivia)
+                {
+                    var isLastTrailingTrivia = trivia == token.TrailingTrivia.Last();
+                    var triviaMarker = isLast && isLastTrailingTrivia ? "└──" : "├──";
+
+                    if (writerIsConsole)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    }
+
+                    writer.Write(indent);
+                    writer.Write(triviaMarker);
+
+                    if (writerIsConsole)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    }
+
+                    writer.WriteLine($"T: {trivia.Kind}");
+                }
+            }
+
             indent += isLast ? "   " : "│  ";
             var lastChild = node.GetChildren().LastOrDefault();
 

@@ -38,22 +38,24 @@ namespace LanguageCore.CodeAnalysis.Syntax
             return new SyntaxTree(text, Parse);
         }
 
-        public static IReadOnlyList<SyntaxToken> ParseTokens(string text)
+        public static IReadOnlyList<SyntaxToken> ParseTokens(string text, bool includeEndOfFile = false)
         {
-            return ParseTokens(SourceText.From(text, DefaultFileName));
+            return ParseTokens(SourceText.From(text, DefaultFileName), includeEndOfFile);
         }
 
-        public static IReadOnlyList<SyntaxToken> ParseTokens(string text, out IReadOnlyList<Diagnostic> diagnostics)
+        public static IReadOnlyList<SyntaxToken> ParseTokens(string text, out IReadOnlyList<Diagnostic> diagnostics,
+            bool includeEndOfFile = false)
         {
-            return ParseTokens(SourceText.From(text, DefaultFileName), out diagnostics);
+            return ParseTokens(SourceText.From(text, DefaultFileName), out diagnostics, includeEndOfFile);
         }
 
-        public static IReadOnlyList<SyntaxToken> ParseTokens(SourceText text)
+        public static IReadOnlyList<SyntaxToken> ParseTokens(SourceText text, bool includeEndOfFile = false)
         {
-            return ParseTokens(text, out _);
+            return ParseTokens(text, out _, includeEndOfFile);
         }
 
-        public static IReadOnlyList<SyntaxToken> ParseTokens(SourceText text, out IReadOnlyList<Diagnostic> diagnostics)
+        public static IReadOnlyList<SyntaxToken> ParseTokens(SourceText text, out IReadOnlyList<Diagnostic> diagnostics,
+            bool includeEndOfFile = false)
         {
             var tokens = new List<SyntaxToken>();
 
@@ -68,10 +70,17 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     if (token.Kind == SyntaxKind.EndOfFileToken)
                     {
                         root = new CompilationUnitSyntax(st, Array.Empty<MemberSyntax>(), token);
-                        break;
                     }
 
-                    tokens.Add(token);
+                    if (token.Kind != SyntaxKind.EndOfFileToken || includeEndOfFile)
+                    {
+                        tokens.Add(token);
+                    }
+
+                    if (token.Kind == SyntaxKind.EndOfFileToken)
+                    {
+                        break;
+                    }
                 }
 
                 d = l.Diagnostics.ToArray();

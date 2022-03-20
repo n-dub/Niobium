@@ -98,12 +98,9 @@ namespace LanguageCore.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
-
-            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToArray();
-            if (diagnostics.Any())
+            if (GlobalScope.Diagnostics.Any())
             {
-                return new EvaluationResult(diagnostics, null, null, TypeSymbol.Error);
+                return new EvaluationResult(GlobalScope.Diagnostics, null, null, TypeSymbol.Error);
             }
 
             var program = GetProgram();

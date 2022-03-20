@@ -1,3 +1,23 @@
+//! Calculate result of an arithmetic operation.
+//!
+//! This function calculates result of a binary expression given two operands
+//! and an operation.
+//!
+//! Supported operations:
+//!   "+"    - Addition;
+//!   "-"    - Subtraction;
+//!   "*"    - Multiplication;
+//!   "/"    - Division;
+//!   "**"   - Exponentiation;
+//!   "rand" - Random number in [x; y);
+//!
+//! Otherwise prints "Invalid operation" and returns -1.
+//!
+//! \par x  - Left operand.
+//! \par y  - Right operand.
+//! \par op - Operation string.
+//!
+//! \ret The result of operation, -1 on invalid parameters
 func calculate(x: Int32, y: Int32, op: String) -> Int32 {
     if op == "+"    { return x + y }
     if op == "-"    { return x - y }

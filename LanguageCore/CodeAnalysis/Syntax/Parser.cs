@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using LanguageCore.CodeAnalysis.Text;
 
 namespace LanguageCore.CodeAnalysis.Syntax
@@ -17,6 +19,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         public Parser(SyntaxTree syntaxTree)
         {
             var tokenList = new List<SyntaxToken>();
+            var badTokens = new List<SyntaxToken>();
 
             var lexer = new Lexer(syntaxTree);
             SyntaxToken token;
@@ -24,8 +27,39 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 token = lexer.Lex();
 
-                if (!token.Kind.IsTrivia())
+                if (token.Kind == SyntaxKind.BadToken)
                 {
+                    badTokens.Add(token);
+                }
+                else
+                {
+                    if (badTokens.Count > 0)
+                    {
+                        var leadingTrivia = token.LeadingTrivia.ToList();
+                        var index = 0;
+
+                        foreach (var badToken in badTokens)
+                        {
+                            foreach (var lt in badToken.LeadingTrivia)
+                            {
+                                leadingTrivia.Insert(index++, lt);
+                            }
+
+                            var trivia = new SyntaxTrivia(syntaxTree, SyntaxKind.SkippedTextTrivia, badToken.Position,
+                                badToken.Text);
+                            leadingTrivia.Insert(index++, trivia);
+
+                            foreach (var tt in badToken.TrailingTrivia)
+                            {
+                                leadingTrivia.Insert(index++, tt);
+                            }
+                        }
+
+                        badTokens.Clear();
+                        token = new SyntaxToken(token.SyntaxTree, token.Kind, token.Position, token.Text, token.Value,
+                            leadingTrivia.ToArray(), token.TrailingTrivia);
+                    }
+
                     tokenList.Add(token);
                 }
             } while (token.Kind != SyntaxKind.EndOfFileToken);
@@ -302,7 +336,8 @@ namespace LanguageCore.CodeAnalysis.Syntax
             }
 
             Diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, kind);
-            return new SyntaxToken(syntaxTree, kind, Current.Position, null, null);
+            return new SyntaxToken(syntaxTree, kind, Current.Position, null, null,
+                Array.Empty<SyntaxTrivia>(), Array.Empty<SyntaxTrivia>());
         }
 
         private ExpressionSyntax ParseExpression()

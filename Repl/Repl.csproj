@@ -39,6 +39,8 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Authoring\Classification.cs" />
+        <Compile Include="Authoring\Classifier.cs" />
         <Compile Include="NiobiumRepl.cs" />
         <Compile Include="Repl.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

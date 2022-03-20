@@ -143,6 +143,7 @@
         <Compile Include="CodeAnalysis\Syntax\SyntaxNode.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxToken.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxTree.cs" />
+        <Compile Include="CodeAnalysis\Syntax\SyntaxTrivia.cs" />
         <Compile Include="CodeAnalysis\Syntax\TypeClauseSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\UnaryExpressionSyntax.cs" />
         <Compile Include="CodeAnalysis\Syntax\VariableDeclarationSyntax.cs" />

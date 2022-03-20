@@ -6,7 +6,7 @@ using LanguageCore.CodeAnalysis;
 using LanguageCore.CodeAnalysis.IO;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
-using LanguageCore.CodeAnalysis.Text;
+using Repl.Authoring;
 
 namespace Repl
 {
@@ -27,65 +27,58 @@ namespace Repl
 
         protected override object RenderLine(IReadOnlyList<string> lines, int lineIndex, object state)
         {
-            RenderState renderState;
+            SyntaxTree syntaxTree;
 
             if (state == null)
             {
                 var text = string.Join(Environment.NewLine, lines);
-                var sourceText = SourceText.From(text, string.Empty);
-                var tokens = SyntaxTree.ParseTokens(sourceText);
-                renderState = new RenderState(sourceText, tokens);
+                syntaxTree = SyntaxTree.Parse(text);
             }
             else
             {
-                renderState = (RenderState) state;
+                syntaxTree = (SyntaxTree) state;
             }
 
-            var lineSpan = renderState.Text.Lines[lineIndex].Span;
-
-            foreach (var token in renderState.Tokens)
+            // TODO: malformed expressions must be included in the SyntaxTree
+            if (lines.Count == 1 && lines[0].FirstOrDefault() == ':')
             {
-                if (!lineSpan.OverlapsWith(token.Span))
+                return base.RenderLine(lines, lineIndex, state);
+            }
+
+            var lineSpan = syntaxTree.SourceText.Lines[lineIndex].Span;
+            var classifiedSpans = Classifier.Classify(syntaxTree, lineSpan);
+
+            foreach (var classifiedSpan in classifiedSpans)
+            {
+                var classifiedText = syntaxTree.SourceText.ToString(classifiedSpan.Span);
+
+                switch (classifiedSpan.Classification)
                 {
-                    continue;
+                    case Classification.Keyword:
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        break;
+                    case Classification.LiteralKeyword:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        break;
+                    case Classification.Number:
+                        Console.ForegroundColor = ConsoleColor.DarkCyan;
+                        break;
+                    case Classification.String:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case Classification.Comment:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                    default:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
                 }
 
-                var tokenStart = Math.Max(token.Span.Start, lineSpan.Start);
-                var tokenEnd = Math.Min(token.Span.End, lineSpan.End);
-                var tokenSpan = TextSpan.FromBounds(tokenStart, tokenEnd);
-                var tokenText = renderState.Text.ToString(tokenSpan);
-
-                Console.ForegroundColor = GetConsoleColor(token.Kind, token.Text);
-                Console.Write(tokenText);
+                Console.Write(classifiedText);
                 Console.ResetColor();
             }
 
-            return renderState;
-        }
-
-        private static ConsoleColor GetConsoleColor(SyntaxKind tokenKind, string text)
-        {
-            if (tokenKind.IsComment())
-            {
-                return ConsoleColor.Green;
-            }
-
-            switch (tokenKind)
-            {
-                case SyntaxKind.NumberToken:
-                    return ConsoleColor.DarkCyan;
-                case SyntaxKind.StringToken:
-                    return ConsoleColor.Yellow;
-                case SyntaxKind.FalseKeyword:
-                case SyntaxKind.TrueKeyword:
-                    return ConsoleColor.Blue;
-                case SyntaxKind.IdentifierToken:
-                    return TypeSymbol.TryParse(text, out _)
-                        ? ConsoleColor.DarkCyan
-                        : Console.ForegroundColor;
-                default:
-                    return tokenKind.IsKeyword() ? ConsoleColor.Magenta : ConsoleColor.White;
-            }
+            return syntaxTree;
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -293,18 +286,6 @@ namespace Repl
             var name = $"submission{count:0000}";
             var fileName = Path.Combine(submissionsDirectory, name);
             File.WriteAllText(fileName, text);
-        }
-
-        private sealed class RenderState
-        {
-            public SourceText Text { get; }
-            public IReadOnlyList<SyntaxToken> Tokens { get; }
-
-            public RenderState(SourceText text, IReadOnlyList<SyntaxToken> tokens)
-            {
-                Text = text;
-                Tokens = tokens;
-            }
         }
     }
 }

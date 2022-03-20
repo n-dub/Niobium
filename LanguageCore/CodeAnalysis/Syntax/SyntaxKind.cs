@@ -2,12 +2,17 @@
 {
     public enum SyntaxKind
     {
-        // Tokens
-        EndOfFileToken,
-        BadTokenTrivia,
+        BadToken,
+
+        // Trivia
+        SkippedTextTrivia,
+        LineBreakTrivia,
         WhitespaceTrivia,
         SingleLineCommentTrivia,
         MultiLineCommentTrivia,
+
+        // Tokens
+        EndOfFileToken,
         NumberToken,
         StringToken,
         PlusToken,
