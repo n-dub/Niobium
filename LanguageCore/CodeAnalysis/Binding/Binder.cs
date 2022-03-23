@@ -45,7 +45,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var binder = new Binder(isScript, parentScope, null);
 
             binder.Diagnostics.AddRange(syntaxTrees.SelectMany(st => st.Diagnostics));
-            if (binder.Diagnostics.Any())
+            if (binder.Diagnostics.HasErrors())
             {
                 return new BoundGlobalScope(previous, binder.Diagnostics.ToArray(), null, null,
                     Array.Empty<FunctionSymbol>(), Array.Empty<VariableSymbol>(), Array.Empty<BoundStatement>());
@@ -129,6 +129,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             var diagnostics = (previous?.Diagnostics ?? Enumerable.Empty<Diagnostic>())
+                .Select(x => x.Expire())
                 .Concat(binder.Diagnostics)
                 .ToArray();
             var variables = binder.scope.GetDeclaredVariables();
@@ -141,14 +142,14 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var parentScope = CreateParentScope(globalScope);
 
-            if (globalScope.Diagnostics.Any())
+            if (globalScope.Diagnostics.HasErrors())
             {
                 return new BoundProgram(previous, globalScope.Diagnostics, null, null,
                     new Dictionary<FunctionSymbol, BoundBlockStatement>());
             }
 
             var functionBodies = new Dictionary<FunctionSymbol, BoundBlockStatement>();
-            var diagnostics = new List<Diagnostic>();
+            var diagnostics = globalScope.Diagnostics.ToList();
 
             foreach (var function in globalScope.Functions)
             {
@@ -287,6 +288,19 @@ namespace LanguageCore.CodeAnalysis.Binding
         private BoundStatement BindIfStatement(IfStatementSyntax syntax)
         {
             var condition = BindExpression(syntax.Condition, TypeSymbol.Bool);
+
+            if (condition.ConstantValue != null)
+            {
+                if ((bool) condition.ConstantValue.Value == false)
+                {
+                    Diagnostics.ReportUnreachableCode(syntax.ThenStatement);
+                }
+                else if (syntax.ElseClause != null)
+                {
+                    Diagnostics.ReportUnreachableCode(syntax.ElseClause.ElseStatement);
+                }
+            }
+
             var thenStatement = BindBlockStatement(syntax.ThenStatement);
             var elseStatement = syntax.ElseClause == null ? null : BindBlockStatement(syntax.ElseClause.ElseStatement);
             return new BoundIfStatement(condition, thenStatement, elseStatement);

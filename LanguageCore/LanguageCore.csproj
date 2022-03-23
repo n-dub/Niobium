@@ -100,6 +100,8 @@
         <Compile Include="CodeAnalysis\Compilation.cs" />
         <Compile Include="CodeAnalysis\Diagnostic.cs" />
         <Compile Include="CodeAnalysis\DiagnosticBag.cs" />
+        <Compile Include="CodeAnalysis\DiagnosticExtensions.cs" />
+        <Compile Include="CodeAnalysis\DiagnosticKind.cs" />
         <Compile Include="CodeAnalysis\Emit\Emitter.cs" />
         <Compile Include="CodeAnalysis\EvaluationResult.cs" />
         <Compile Include="CodeAnalysis\Evaluator.cs" />

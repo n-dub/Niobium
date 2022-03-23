@@ -10,7 +10,7 @@ namespace LanguageCore.CodeAnalysis.Symbols
         public TypeSymbol Type { get; }
         public FunctionDeclarationSyntax? Declaration { get; }
 
-        public FunctionSymbol(string name, IReadOnlyList<ParameterSymbol> parameters, TypeSymbol type,
+        internal FunctionSymbol(string name, IReadOnlyList<ParameterSymbol> parameters, TypeSymbol type,
             FunctionDeclarationSyntax? declaration = null) : base(name)
         {
             Parameters = parameters;

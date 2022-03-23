@@ -155,7 +155,10 @@ namespace Repl
         {
             var compilation = previous ?? emptyCompilation;
 
-            var symbol = compilation.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
+            var symbol = compilation.GetSymbols()
+                .OfType<FunctionSymbol>()
+                .SingleOrDefault(f => f.Name == functionName);
+
             if (symbol == null)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -209,23 +212,22 @@ namespace Repl
 
             var result = compilation.Evaluate(variables);
 
-            if (!result.Diagnostics.Any())
+            Console.Out.WriteDiagnostics(result.Diagnostics.Where(x => !x.Expired));
+            if (result.Diagnostics.HasErrors())
             {
-                if (result.Value != null)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkCyan;
-                    Console.WriteLine(result);
-                    Console.ResetColor();
-                }
-
-                previous = compilation;
-
-                SaveSubmission(text);
+                return;
             }
-            else
+
+            if (result.Value != null)
             {
-                Console.Out.WriteDiagnostics(result.Diagnostics);
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.WriteLine(result);
+                Console.ResetColor();
             }
+
+            previous = compilation;
+
+            SaveSubmission(text);
         }
 
         private static string GetSubmissionsDirectory()

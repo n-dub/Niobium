@@ -192,7 +192,7 @@ namespace LanguageCore.CodeAnalysis.Emit
         public static IReadOnlyList<Diagnostic> Emit(BoundProgram program, string moduleName,
             IReadOnlyList<string> references, string outputPath)
         {
-            if (program.Diagnostics.Any())
+            if (program.Diagnostics.HasErrors())
             {
                 return program.Diagnostics;
             }
@@ -203,7 +203,7 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private IReadOnlyList<Diagnostic> Emit(BoundProgram program, string outputPath)
         {
-            if (diagnostics.Any())
+            if (diagnostics.HasErrors())
             {
                 return diagnostics.ToArray();
             }

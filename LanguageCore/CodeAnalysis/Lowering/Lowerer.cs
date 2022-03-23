@@ -110,11 +110,18 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
         protected override BoundExpression RewriteCompoundAssignmentExpression(BoundCompoundAssignmentExpression node)
         {
-            var variableExpression = Variable(node.Variable);
-            var expression = Binary(variableExpression, node.Op, node.Expression);
-            var assignment = Assignment(node.Variable, expression);
+            var newNode = (BoundCompoundAssignmentExpression) base.RewriteCompoundAssignmentExpression(node);
 
-            return RewriteAssignmentExpression(assignment);
+            var result = Assignment(
+                newNode.Variable,
+                Binary(
+                    Variable(newNode.Variable),
+                    newNode.Op,
+                    newNode.Expression
+                )
+            );
+
+            return result;
         }
 
         private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)

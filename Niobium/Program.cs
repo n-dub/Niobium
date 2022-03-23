@@ -115,8 +115,8 @@ namespace Niobium
 
             if (diagnostics.Any())
             {
-                Console.Error.WriteDiagnostics(diagnostics);
-                return 1;
+                Console.Error.WriteDiagnostics(diagnostics.Where(x => !x.Expired));
+                return diagnostics.HasErrors() ? 1 : 0;
             }
 
             return 0;

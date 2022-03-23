@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -98,7 +97,7 @@ namespace LanguageCore.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            if (GlobalScope.Diagnostics.Any())
+            if (GlobalScope.Diagnostics.HasErrors())
             {
                 return new EvaluationResult(GlobalScope.Diagnostics, null, null, TypeSymbol.Error);
             }
@@ -107,14 +106,14 @@ namespace LanguageCore.CodeAnalysis
 
             // SaveControlFlowGraph(program);
 
-            if (program.Diagnostics.Any())
+            if (program.Diagnostics.HasErrors())
             {
                 return new EvaluationResult(program.Diagnostics.ToArray(), null, null, TypeSymbol.Error);
             }
 
             var evaluator = new Evaluator(program, variables);
             var value = evaluator.Evaluate(out var type);
-            return new EvaluationResult(Array.Empty<Diagnostic>(), value, "_", type);
+            return new EvaluationResult(program.Diagnostics, value, "_", type);
         }
 
         public void EmitTree(TextWriter writer)
@@ -149,14 +148,14 @@ namespace LanguageCore.CodeAnalysis
             var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
 
             var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToArray();
-            if (diagnostics.Any())
+            if (diagnostics.HasErrors())
             {
                 return diagnostics;
             }
 
             var program = GetProgram();
 
-            if (program.Diagnostics.Any())
+            if (program.Diagnostics.HasErrors())
             {
                 return program.Diagnostics;
             }

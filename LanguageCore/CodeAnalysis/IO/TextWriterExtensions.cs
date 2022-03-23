@@ -26,6 +26,8 @@ namespace LanguageCore.CodeAnalysis.IO
 
             foreach (var diagnostic in sourceFileDiagnostics)
             {
+                var color = GetDiagnosticColor(diagnostic.Kind);
+
                 var text = diagnostic.Location.Text;
                 var fileName = diagnostic.Location.FileName;
                 var startLine = diagnostic.Location.StartLine + 1;
@@ -39,8 +41,8 @@ namespace LanguageCore.CodeAnalysis.IO
 
                 writer.WriteLine();
 
-                writer.SetForeground(ConsoleColor.DarkRed);
-                writer.WriteLine($"{fileName}:{startLine}:{startChar}:{endLine}:{endChar}: error: {diagnostic}");
+                writer.SetForeground(color);
+                writer.WriteLine($"{fileName}:{startLine}:{startChar}:{endLine}:{endChar}: {diagnostic}");
                 writer.ResetColor();
                 writer.SetForeground(ConsoleColor.DarkGray);
 
@@ -54,15 +56,16 @@ namespace LanguageCore.CodeAnalysis.IO
                 writer.WriteLine(line);
                 writer.Write(new string(' ', 7 + prefix.Length));
 
-                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.SetForeground(color);
                 writer.WriteLine("^" + new string('~', Math.Max(0, error.Length - 1)));
                 writer.ResetColor();
             }
 
             foreach (var diagnostic in otherDiagnostics)
             {
-                writer.SetForeground(ConsoleColor.DarkRed);
-                writer.WriteLine($"error: {diagnostic}");
+                var color = GetDiagnosticColor(diagnostic.Kind);
+                writer.SetForeground(color);
+                writer.WriteLine(diagnostic);
                 writer.ResetColor();
             }
 
@@ -121,6 +124,16 @@ namespace LanguageCore.CodeAnalysis.IO
             writer.SetForeground(ConsoleColor.White);
             writer.Write(text);
             writer.ResetColor();
+        }
+
+        private static ConsoleColor GetDiagnosticColor(this DiagnosticKind kind)
+        {
+            return kind switch
+            {
+                DiagnosticKind.Error => ConsoleColor.DarkRed,
+                DiagnosticKind.Warning => ConsoleColor.DarkYellow,
+                _ => throw new Exception($"Unexpected diagnostic kind {kind}")
+            };
         }
 
         private static bool IsConsole(this TextWriter writer)
