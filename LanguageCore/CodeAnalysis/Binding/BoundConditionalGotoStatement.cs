@@ -23,10 +23,20 @@
             return new BoundConditionalGotoStatement(label.Label, condition, jumpIfTrue);
         }
 
+        public static BoundConditionalGotoStatement GotoIf(BoundLabel label, BoundExpression condition,
+            bool jumpIfTrue)
+        {
+            return new BoundConditionalGotoStatement(label, condition, jumpIfTrue);
+        }
+
         public static BoundConditionalGotoStatement GotoTrue(BoundLabelStatement label, BoundExpression condition)
-            => GotoIf(label, condition, jumpIfTrue: true);
+        {
+            return GotoIf(label, condition, true);
+        }
 
         public static BoundConditionalGotoStatement GotoFalse(BoundLabelStatement label, BoundExpression condition)
-            => GotoIf(label, condition, jumpIfTrue: false);
+        {
+            return GotoIf(label, condition, false);
+        }
     }
 }

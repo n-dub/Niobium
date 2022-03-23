@@ -6,13 +6,12 @@ using LanguageCore.CodeAnalysis.Lowering;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
-using System.Diagnostics.CodeAnalysis;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
     internal sealed class Binder
     {
-        public DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
+        private DiagnosticBag Diagnostics { get; } = new DiagnosticBag();
 
         private readonly Stack<(BoundLabel BreakLabel, BoundLabel ContinueLabel)> loopStack =
             new Stack<(BoundLabel BreakLabel, BoundLabel ContinueLabel)>();
@@ -73,6 +72,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var firstGlobalStatementPerSyntaxTree = syntaxTrees
                 .Select(st => st.Root.Members.OfType<GlobalStatementSyntax>().FirstOrDefault())
                 .Where(g => g != null)
+                .Select(g => g!)
                 .ToArray();
 
             if (firstGlobalStatementPerSyntaxTree.Length > 1)
@@ -243,6 +243,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 {
                     var isAllowedExpression = es.Expression.Kind == BoundNodeKind.ErrorExpression ||
                                               es.Expression.Kind == BoundNodeKind.AssignmentExpression ||
+                                              es.Expression.Kind == BoundNodeKind.CompoundAssignmentExpression ||
                                               es.Expression.Kind == BoundNodeKind.CallExpression;
                     if (!isAllowedExpression)
                     {
@@ -556,12 +557,31 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             if (variable.IsImmutable)
             {
-                Diagnostics.ReportCannotAssign(syntax.EqualsToken.Location, name);
+                Diagnostics.ReportCannotAssign(syntax.AssignmentToken.Location, name);
             }
 
-            var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+            if (syntax.AssignmentToken.Kind != SyntaxKind.EqualsToken)
+            {
+                var equivalentOperatorTokenKind =
+                    SyntaxFacts.GetBinaryOperatorOfAssignmentOperator(syntax.AssignmentToken.Kind);
+                var boundOperator =
+                    BoundBinaryOperator.Bind(equivalentOperatorTokenKind, variable.Type, boundExpression.Type);
 
-            return new BoundAssignmentExpression(variable, convertedExpression);
+                if (boundOperator == null)
+                {
+                    Diagnostics.ReportUndefinedBinaryOperator(syntax.AssignmentToken.Location,
+                        syntax.AssignmentToken.Text, variable.Type, boundExpression.Type);
+                    return new BoundErrorExpression();
+                }
+
+                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+                return new BoundCompoundAssignmentExpression(variable, boundOperator, convertedExpression);
+            }
+            else
+            {
+                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+                return new BoundAssignmentExpression(variable, convertedExpression);
+            }
         }
 
         private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax syntax)
@@ -716,7 +736,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         private VariableSymbol BindVariableDeclaration(SyntaxToken identifier, bool isImmutable, TypeSymbol type,
             BoundConstant? constant = null)
         {
-            var name = identifier.Text ?? "?";
+            var name = identifier.IsMissing ? "?" : identifier.Text;
             var variable = function == null
                 ? (VariableSymbol) new GlobalVariableSymbol(name, isImmutable, type, constant)
                 : new LocalVariableSymbol(name, isImmutable, type, constant);

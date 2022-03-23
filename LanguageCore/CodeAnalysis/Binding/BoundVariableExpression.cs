@@ -14,4 +14,17 @@ namespace LanguageCore.CodeAnalysis.Binding
             Variable = variable;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundVariableExpression Variable(VariableSymbol variable)
+        {
+            return new BoundVariableExpression(variable);
+        }
+
+        public static BoundVariableExpression Variable(BoundVariableDeclarationStatement variable)
+        {
+            return new BoundVariableExpression(variable.Variable);
+        }
+    }
 }

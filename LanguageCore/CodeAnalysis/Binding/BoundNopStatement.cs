@@ -4,7 +4,7 @@
     {
         public override BoundNodeKind Kind => BoundNodeKind.NopStatement;
     }
-    
+
     internal static partial class BoundNodeFactory
     {
         public static BoundNopStatement Nop()

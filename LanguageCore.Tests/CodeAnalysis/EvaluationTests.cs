@@ -82,6 +82,19 @@ namespace LanguageCore.Tests.CodeAnalysis
         [TestCase("{ var a = 0 repeat { a = a + 1 } while a < 10 return a}", 10)]
         [TestCase("{ var i = 0 while i < 5 { i = i + 1 if i == 5 { continue } } return i }", 5)]
         [TestCase("{ var i = 0 repeat { i = i + 1 if i == 5 { continue } } while i < 5 return i }", 5)]
+        [TestCase("{ var a = 1 a += 2 + 3 return a }", 6)]
+        [TestCase("{ var a = 1 a -= 2 + 3 return a }", -4)]
+        [TestCase("{ var a = 1 a *= 2 + 3 return a }", 5)]
+        [TestCase("{ var a = 1 a /= 2 + 3 return a }", 0)]
+        [TestCase("{ var a = true a &= false return a }", false)]
+        [TestCase("{ var a = true a |= false return a }", true)]
+        [TestCase("{ var a = true a ^= true return a }", false)]
+        [TestCase("{ var a = 1 a |= 0 return a }", 1)]
+        [TestCase("{ var a = 1 a &= 3 return a }", 1)]
+        [TestCase("{ var a = 1 a &= 0 return a }", 0)]
+        [TestCase("{ var a = 1 a ^= 0 return a }", 1)]
+        [TestCase("{ var a = 1 var b = 2 var c = 3 a += b += c return a }", 6)]
+        [TestCase("{ var a = 1 var b = 2 var c = 3 a += b += c return b }", 5)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -325,12 +338,46 @@ namespace LanguageCore.Tests.CodeAnalysis
         }
 
         [Test]
+        public void Evaluator_CompoundExpression_Reports_Undefined()
+        {
+            const string text = @"
+                {
+                    var x = 10
+                    x [+=] false
+                }
+            ";
+
+            const string diagnostics = @"
+                Binary operator '+=' is not defined for types 'Int32' and 'Bool'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
         public void Evaluator_AssignmentExpression_Reports_CannotAssign()
         {
             const string text = @"
                 {
                     let x = 10
                     x [=] 0
+                }
+            ";
+
+            const string diagnostics = @"
+                Variable 'x' is immutable and cannot be assigned to.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_CompoundDeclarationExpression_Reports_CannotAssign()
+        {
+            const string text = @"
+                {
+                    let x = 10
+                    x [+=] 1
                 }
             ";
 
@@ -377,6 +424,18 @@ namespace LanguageCore.Tests.CodeAnalysis
 
             const string diagnostics = @"
                 Function 'foo' doesn't exist.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Test]
+        public void Evaluator_CompoundExpression_Assignment_UndefinedVariable_Reports_Undefined()
+        {
+            const string text = @"[x] += 10";
+
+            const string diagnostics = @"
+                Variable 'x' doesn't exist.
             ";
 
             AssertDiagnostics(text, diagnostics);

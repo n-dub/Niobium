@@ -27,7 +27,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
             var upperBound = ConstantDeclaration("__upperBound", node.UpperBound);
             var result = Block(lowerBound,
                 upperBound,
-                While(LessOrEqual(Variable(lowerBound),Variable(upperBound)),
+                While(Less(Variable(lowerBound), Variable(upperBound)),
                     Block(node.Body,
                         Label(node.ContinueLabel),
                         Increment(Variable(lowerBound))),
@@ -106,6 +106,15 @@ namespace LanguageCore.CodeAnalysis.Lowering
             }
 
             return base.RewriteConditionalGotoStatement(node);
+        }
+
+        protected override BoundExpression RewriteCompoundAssignmentExpression(BoundCompoundAssignmentExpression node)
+        {
+            var variableExpression = Variable(node.Variable);
+            var expression = Binary(variableExpression, node.Op, node.Expression);
+            var assignment = Assignment(node.Variable, expression);
+
+            return RewriteAssignmentExpression(assignment);
         }
 
         private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)

@@ -21,6 +21,7 @@
         LiteralExpression,
         VariableExpression,
         AssignmentExpression,
+        CompoundAssignmentExpression,
         UnaryExpression,
         BinaryExpression,
         CallExpression,

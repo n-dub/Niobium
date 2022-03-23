@@ -6,7 +6,7 @@ func factorialRecursive(n: Int32) -> Int32 {
 func factorialIterative(n: Int32) -> Int32 {
     var result = 1
     for i = 1 in n + 1 {
-        result = result * i
+        result *= i
     }
 
     return result

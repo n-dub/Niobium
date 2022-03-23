@@ -15,4 +15,12 @@ namespace LanguageCore.CodeAnalysis.Binding
             Expression = expression;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundAssignmentExpression Assignment(VariableSymbol variable, BoundExpression expression)
+        {
+            return new BoundAssignmentExpression(variable, expression);
+        }
+    }
 }

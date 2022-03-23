@@ -54,6 +54,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
                    syntaxKind == SyntaxKind.SingleLineCommentTrivia;
         }
 
+        public static bool IsAssignmentOperator(this SyntaxKind kind)
+        {
+            return SyntaxFacts.IsAssignmentOperator(kind);
+        }
+
         public static bool IsTrivia(this SyntaxKind syntaxKind)
         {
             return trivia.Contains(syntaxKind);

@@ -48,6 +48,7 @@
         <Compile Include="CodeAnalysis\EvaluationTests.cs" />
         <Compile Include="CodeAnalysis\Syntax\AssertingEnumerator.cs" />
         <Compile Include="CodeAnalysis\Syntax\LexerTests.cs" />
+        <Compile Include="CodeAnalysis\Syntax\LexerTests.RequiresSeparator.cs" />
         <Compile Include="CodeAnalysis\Syntax\ParserTests.cs" />
         <Compile Include="CodeAnalysis\Syntax\SyntaxFactTests.cs" />
         <Compile Include="CodeAnalysis\Text\SourceTextTests.cs" />

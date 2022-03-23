@@ -89,12 +89,20 @@ namespace LanguageCore.CodeAnalysis.Syntax
             {
                 case SyntaxKind.PlusToken:
                     return "+";
+                case SyntaxKind.PlusEqualsToken:
+                    return "+=";
                 case SyntaxKind.MinusToken:
                     return "-";
+                case SyntaxKind.MinusEqualsToken:
+                    return "-=";
                 case SyntaxKind.StarToken:
                     return "*";
+                case SyntaxKind.StarEqualsToken:
+                    return "*=";
                 case SyntaxKind.SlashToken:
                     return "/";
+                case SyntaxKind.SlashEqualsToken:
+                    return "/=";
                 case SyntaxKind.BangToken:
                     return "!";
                 case SyntaxKind.EqualsToken:
@@ -113,14 +121,20 @@ namespace LanguageCore.CodeAnalysis.Syntax
                     return "->";
                 case SyntaxKind.AmpersandToken:
                     return "&";
+                case SyntaxKind.AmpersandEqualsToken:
+                    return "&=";
                 case SyntaxKind.AmpersandAmpersandToken:
                     return "&&";
                 case SyntaxKind.PipeToken:
                     return "|";
+                case SyntaxKind.PipeEqualsToken:
+                    return "|=";
                 case SyntaxKind.PipePipeToken:
                     return "||";
                 case SyntaxKind.HatToken:
                     return "^";
+                case SyntaxKind.HatEqualsToken:
+                    return "^=";
                 case SyntaxKind.EqualsEqualsToken:
                     return "==";
                 case SyntaxKind.BangEqualsToken:
@@ -168,6 +182,33 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 default:
                     return null;
             }
+        }
+
+        public static SyntaxKind GetBinaryOperatorOfAssignmentOperator(SyntaxKind kind)
+        {
+            return GetBinaryOperatorOfAssignmentOperatorInternal(kind) ??
+                   throw new Exception($"Unexpected syntax: '{kind}'");
+        }
+
+        internal static bool IsAssignmentOperator(SyntaxKind kind)
+        {
+            return kind == SyntaxKind.EqualsToken ||
+                   GetBinaryOperatorOfAssignmentOperatorInternal(kind) != null;
+        }
+
+        private static SyntaxKind? GetBinaryOperatorOfAssignmentOperatorInternal(SyntaxKind kind)
+        {
+            return kind switch
+            {
+                SyntaxKind.PlusEqualsToken => SyntaxKind.PlusToken,
+                SyntaxKind.MinusEqualsToken => SyntaxKind.MinusToken,
+                SyntaxKind.StarEqualsToken => SyntaxKind.StarToken,
+                SyntaxKind.SlashEqualsToken => SyntaxKind.SlashToken,
+                SyntaxKind.AmpersandEqualsToken => SyntaxKind.AmpersandToken,
+                SyntaxKind.PipeEqualsToken => SyntaxKind.PipeToken,
+                SyntaxKind.HatEqualsToken => SyntaxKind.HatToken,
+                _ => null
+            };
         }
 
         private static IEnumerable<SyntaxKind> GetKeywordKinds()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using static LanguageCore.CodeAnalysis.Binding.BoundNodeFactory;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
@@ -51,6 +52,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                     return RewriteVariableExpression((BoundVariableExpression) node);
                 case BoundNodeKind.AssignmentExpression:
                     return RewriteAssignmentExpression((BoundAssignmentExpression) node);
+                case BoundNodeKind.CompoundAssignmentExpression:
+                    return RewriteCompoundAssignmentExpression((BoundCompoundAssignmentExpression) node);
                 case BoundNodeKind.UnaryExpression:
                     return RewriteUnaryExpression((BoundUnaryExpression) node);
                 case BoundNodeKind.BinaryExpression:
@@ -81,7 +84,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             return statements != null
-                ? new BoundBlockStatement(statements.ToArray())
+                ? Block(statements.ToArray())
                 : node;
         }
 
@@ -95,7 +98,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var initializer = RewriteExpression(node.Initializer);
 
             return initializer != node.Initializer
-                ? new BoundVariableDeclarationStatement(node.Variable, initializer)
+                ? VariableDeclaration(node.Variable, initializer)
                 : node;
         }
 
@@ -116,7 +119,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var body = RewriteBlockStatement(node.Body);
 
             return condition != node.Condition || body != node.Body
-                ? new BoundWhileStatement(condition, body, node.BreakLabel, node.ContinueLabel)
+                ? While(condition, body, node.BreakLabel, node.ContinueLabel)
                 : node;
         }
 
@@ -156,7 +159,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             var condition = RewriteExpression(node.Condition);
             return condition != node.Condition
-                ? new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfTrue)
+                ? GotoIf(node.Label, condition, node.JumpIfTrue)
                 : node;
         }
 
@@ -200,7 +203,16 @@ namespace LanguageCore.CodeAnalysis.Binding
             var expression = RewriteExpression(node.Expression);
 
             return expression != node.Expression
-                ? new BoundAssignmentExpression(node.Variable, expression)
+                ? Assignment(node.Variable, expression)
+                : node;
+        }
+
+        protected virtual BoundExpression RewriteCompoundAssignmentExpression(BoundCompoundAssignmentExpression node)
+        {
+            var expression = RewriteExpression(node.Expression);
+
+            return expression != node.Expression
+                ? new BoundCompoundAssignmentExpression(node.Variable, node.Op, expression)
                 : node;
         }
 
@@ -219,7 +231,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var right = RewriteExpression(node.Right);
 
             return left != node.Left || right != node.Right
-                ? new BoundBinaryExpression(left, node.Op, right)
+                ? Binary(left, node.Op, right)
                 : node;
         }
 

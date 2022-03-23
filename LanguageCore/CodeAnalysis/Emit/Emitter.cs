@@ -175,11 +175,12 @@ namespace LanguageCore.CodeAnalysis.Emit
             convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new[] {"System.Object"});
             convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new[] {"System.Object"});
             convertToStringReference = ResolveMethod("System.Convert", "ToString", new[] {"System.Object"});
-            
+
             var objectType = knownTypes[TypeSymbol.Any];
             if (objectType != null)
             {
-                typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
+                typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed,
+                    objectType);
                 assemblyDefinition.MainModule.Types.Add(typeDefinition);
             }
             else
@@ -393,7 +394,7 @@ namespace LanguageCore.CodeAnalysis.Emit
         private void EmitConstantExpression(ILProcessor ilProcessor, BoundExpression node)
         {
             Debug.Assert(node.ConstantValue != null);
-            
+
             if (node.Type == TypeSymbol.Bool)
             {
                 var value = (bool) node.ConstantValue!.Value;

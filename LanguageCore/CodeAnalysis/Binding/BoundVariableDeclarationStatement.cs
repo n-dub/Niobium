@@ -17,11 +17,6 @@ namespace LanguageCore.CodeAnalysis.Binding
 
     internal static partial class BoundNodeFactory
     {
-        public static BoundVariableExpression Variable(BoundVariableDeclarationStatement variable)
-        {
-            return new BoundVariableExpression(variable.Variable);
-        }
-
         public static BoundVariableDeclarationStatement VariableDeclaration(VariableSymbol symbol,
             BoundExpression initializer)
         {
@@ -29,10 +24,14 @@ namespace LanguageCore.CodeAnalysis.Binding
         }
 
         public static BoundVariableDeclarationStatement VariableDeclaration(string name, BoundExpression initializer)
-            => VariableDeclarationInternal(name, initializer, isReadOnly: false);
+        {
+            return VariableDeclarationInternal(name, initializer, false);
+        }
 
         public static BoundVariableDeclarationStatement ConstantDeclaration(string name, BoundExpression initializer)
-            => VariableDeclarationInternal(name, initializer, isReadOnly: true);
+        {
+            return VariableDeclarationInternal(name, initializer, true);
+        }
 
         private static BoundVariableDeclarationStatement VariableDeclarationInternal(string name,
             BoundExpression initializer, bool isReadOnly)
