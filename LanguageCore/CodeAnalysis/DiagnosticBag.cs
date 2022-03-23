@@ -201,7 +201,7 @@ namespace LanguageCore.CodeAnalysis
 
         public void ReportInvalidReference(string path)
         {
-            var message = $"The reference is not a valid .NET assembly: '{path}'";
+            var message = $"The reference is not a valid .NET assembly: '{path}'.";
             Report(default, message);
         }
 
