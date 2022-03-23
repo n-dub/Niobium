@@ -5,6 +5,7 @@ namespace LanguageCore.CodeAnalysis
 {
     public sealed class EvaluationResult
     {
+        // TODO: create an extension method over IEnumerable<Diagnostic> to get errors and warnings
         public IReadOnlyList<Diagnostic> Diagnostics { get; }
         public object? Value { get; }
         public string? Name { get; }

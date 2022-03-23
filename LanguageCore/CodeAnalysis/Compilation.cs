@@ -145,6 +145,7 @@ namespace LanguageCore.CodeAnalysis
 
         public IReadOnlyList<Diagnostic> Emit(string moduleName, IReadOnlyList<string> references, string outputPath)
         {
+            // TODO: References should be part of the compilation, not arguments for Emit
             var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
 
             var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToArray();

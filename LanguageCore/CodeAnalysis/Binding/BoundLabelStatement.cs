@@ -10,4 +10,12 @@
             Label = label;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundLabelStatement Label(BoundLabel label)
+        {
+            return new BoundLabelStatement(label);
+        }
+    }
 }

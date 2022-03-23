@@ -14,4 +14,13 @@
             Body = body;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundWhileStatement While(BoundExpression condition, BoundBlockStatement body,
+            BoundLabel breakLabel, BoundLabel continueLabel)
+        {
+            return new BoundWhileStatement(condition, body, breakLabel, continueLabel);
+        }
+    }
 }

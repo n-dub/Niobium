@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using LanguageCore.CodeAnalysis.Symbols;
 
 namespace LanguageCore.CodeAnalysis.Binding
@@ -28,6 +29,16 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
 
             ConstantValue = new BoundConstant(value);
+        }
+    }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundLiteralExpression Literal(object literal)
+        {
+            Debug.Assert(literal is string || literal is bool || literal is int);
+
+            return new BoundLiteralExpression(literal);
         }
     }
 }

@@ -126,7 +126,8 @@ namespace LanguageCore.Tests.CodeAnalysis.Syntax
             var fixedTokens = Enum.GetValues(typeof(SyntaxKind))
                 .Cast<SyntaxKind>()
                 .Select(k => (kind: k, text: SyntaxFacts.GetText(k)))
-                .Where(t => t.text != null);
+                .Where(t => t.text != null)
+                .Select(t => (t.kind, t.text!));
 
 
             var dynamicTokens = new[]

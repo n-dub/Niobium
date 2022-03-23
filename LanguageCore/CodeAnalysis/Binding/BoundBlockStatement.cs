@@ -12,4 +12,12 @@ namespace LanguageCore.CodeAnalysis.Binding
             Statements = statements;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundBlockStatement Block(params BoundStatement[] statements)
+        {
+            return new BoundBlockStatement(statements);
+        }
+    }
 }

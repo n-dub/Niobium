@@ -10,4 +10,17 @@
             Label = label;
         }
     }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundGotoStatement Goto(BoundLabelStatement label)
+        {
+            return new BoundGotoStatement(label.Label);
+        }
+
+        public static BoundGotoStatement Goto(BoundLabel label)
+        {
+            return new BoundGotoStatement(label);
+        }
+    }
 }

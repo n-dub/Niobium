@@ -1,4 +1,5 @@
 ﻿using LanguageCore.CodeAnalysis.Symbols;
+using LanguageCore.CodeAnalysis.Syntax;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
@@ -16,7 +17,28 @@ namespace LanguageCore.CodeAnalysis.Binding
             Left = left;
             Op = op;
             Right = right;
-            ConstantValue = ConstantFolding.ComputeConstant(left, op, right);
+            ConstantValue = ConstantFolding.Fold(left, op, right);
+        }
+    }
+
+    internal static partial class BoundNodeFactory
+    {
+        public static BoundBinaryExpression Binary(BoundExpression left, SyntaxKind kind, BoundExpression right)
+        {
+            var op = BoundBinaryOperator.Bind(kind, left.Type, right.Type)!;
+            return new BoundBinaryExpression(left, op, right);
+        }
+
+        public static BoundBinaryExpression Add(BoundExpression left, BoundExpression right)
+            => Binary(left, SyntaxKind.PlusToken, right);
+        public static BoundBinaryExpression LessOrEqual(BoundExpression left, BoundExpression right)
+            => Binary(left, SyntaxKind.LessOrEqualsToken, right);
+
+        public static BoundExpressionStatement Increment(BoundVariableExpression variable)
+        {
+            var increment = Add(variable, Literal(1));
+            var incrementAssign = new BoundAssignmentExpression(variable.Variable, increment);
+            return new BoundExpressionStatement(incrementAssign);
         }
     }
 }

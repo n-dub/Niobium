@@ -14,7 +14,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             Op = op;
             Operand = operand;
-            ConstantValue = ConstantFolding.ComputeConstant(op, operand);
+            ConstantValue = ConstantFolding.Fold(op, operand);
         }
     }
 }

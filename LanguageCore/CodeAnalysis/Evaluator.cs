@@ -7,6 +7,7 @@ using Utilities;
 
 namespace LanguageCore.CodeAnalysis
 {
+    // TODO: Get rid of evaluator in favor of Emitter
     internal sealed class Evaluator
     {
         private readonly BoundProgram program;

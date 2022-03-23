@@ -22,7 +22,7 @@ namespace LanguageCore.CodeAnalysis.Emit
         private readonly MethodReference randomCtorReference;
         private readonly MethodReference randomNextReference;
 
-        private readonly MethodReference[] stringConcatReferences;
+        private readonly MethodReference?[] stringConcatReferences;
         private readonly MethodReference stringConcatArrayReference;
 
         private readonly MethodReference objectEqualsReference;
@@ -39,11 +39,12 @@ namespace LanguageCore.CodeAnalysis.Emit
         private readonly Dictionary<BoundLabel, int> labels;
         private readonly List<(int InstructionIndex, BoundLabel Target)> fixUps;
 
-        private TypeDefinition typeDefinition;
+        private readonly TypeDefinition typeDefinition;
         private FieldDefinition? randomFieldDefinition;
 
         private Emitter(string moduleName, IReadOnlyList<string> references)
         {
+            // TODO: This constructor does too much. Resolution should be factored out.
             locals = new Dictionary<VariableSymbol, VariableDefinition>();
             fixUps = new List<(int InstructionIndex, BoundLabel Target)>();
             labels = new Dictionary<BoundLabel, int>();
@@ -72,7 +73,7 @@ namespace LanguageCore.CodeAnalysis.Emit
 
             foreach (var (typeSymbol, metadataName) in builtInTypes)
             {
-                var typeReference = ResolveType(typeSymbol.Name, metadataName);
+                var typeReference = ResolveType(typeSymbol.Name, metadataName!);
                 knownTypes.Add(typeSymbol, typeReference);
             }
 
@@ -199,7 +200,7 @@ namespace LanguageCore.CodeAnalysis.Emit
             return emitter.Emit(program, outputPath);
         }
 
-        public IReadOnlyList<Diagnostic> Emit(BoundProgram program, string outputPath)
+        private IReadOnlyList<Diagnostic> Emit(BoundProgram program, string outputPath)
         {
             if (diagnostics.Any())
             {
@@ -301,6 +302,7 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private void EmitNopStatement(ILProcessor ilProcessor, BoundNopStatement node)
         {
+            _ = node;
             ilProcessor.Emit(OpCodes.Nop);
         }
 
