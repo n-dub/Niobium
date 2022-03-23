@@ -17,7 +17,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
         private int position;
         private int start;
         private SyntaxKind kind;
-        private object value;
+        private object? value;
 
         private readonly List<SyntaxTrivia> triviaBuilder = new List<SyntaxTrivia>();
 
@@ -39,6 +39,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             operatorKindTexts = operatorKinds
                 .Zip(operatorTexts, (k, t) => (k, t))
                 .Where(x => x.t != null)
+                .Select(x => (x.k, t: x.t!))
                 .OrderByDescending(x => x.t.Length)
                 .ToArray();
         }

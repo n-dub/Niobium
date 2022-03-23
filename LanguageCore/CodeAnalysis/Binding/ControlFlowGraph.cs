@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using LanguageCore.CodeAnalysis.Symbols;
@@ -134,9 +135,9 @@ namespace LanguageCore.CodeAnalysis.Binding
         {
             public BasicBlock From { get; }
             public BasicBlock To { get; }
-            public BoundExpression Condition { get; }
+            public BoundExpression? Condition { get; }
 
-            public BasicBlockBranch(BasicBlock from, BasicBlock to, BoundExpression condition)
+            public BasicBlockBranch(BasicBlock from, BasicBlock to, BoundExpression? condition)
             {
                 From = from;
                 To = to;
@@ -298,7 +299,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 return new ControlFlowGraph(start, end, blocks, branches);
             }
 
-            private void Connect(BasicBlock from, BasicBlock to, BoundExpression condition = null)
+            private void Connect(BasicBlock from, BasicBlock to, BoundExpression? condition = null)
             {
                 if (condition is BoundLiteralExpression l)
                 {
@@ -345,7 +346,8 @@ namespace LanguageCore.CodeAnalysis.Binding
                 }
 
                 var op = BoundUnaryOperator.Bind(SyntaxKind.BangToken, TypeSymbol.Bool);
-                return new BoundUnaryExpression(op, condition);
+                Debug.Assert(op != null);
+                return new BoundUnaryExpression(op!, condition);
             }
         }
     }

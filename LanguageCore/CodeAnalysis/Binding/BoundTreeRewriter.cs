@@ -66,7 +66,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         protected virtual BoundBlockStatement RewriteBlockStatement(BoundBlockStatement node)
         {
-            List<BoundStatement> statements = null;
+            List<BoundStatement>? statements = null;
 
             for (var i = 0; i < node.Statements.Count; i++)
             {
@@ -74,7 +74,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 var newStatement = RewriteStatement(oldStatement);
                 if (newStatement != oldStatement)
                 {
-                    statements = statements ?? node.Statements.Take(i).ToList();
+                    statements ??= node.Statements.Take(i).ToList();
                 }
 
                 statements?.Add(newStatement);
@@ -225,7 +225,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         protected virtual BoundExpression RewriteCallExpression(BoundCallExpression node)
         {
-            List<BoundExpression> arguments = null;
+            List<BoundExpression>? arguments = null;
 
             for (var i = 0; i < node.Arguments.Count; i++)
             {
@@ -233,7 +233,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 var newStatement = RewriteExpression(oldStatement);
                 if (newStatement != oldStatement)
                 {
-                    arguments = arguments ?? node.Arguments.Take(i).ToList();
+                    arguments ??= node.Arguments.Take(i).ToList();
                 }
 
                 arguments?.Add(newStatement);

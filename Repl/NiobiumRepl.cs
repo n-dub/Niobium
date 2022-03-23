@@ -15,7 +15,7 @@ namespace Repl
         private static readonly Compilation emptyCompilation = Compilation.CreateScript(null);
 
         private bool loadingSubmission;
-        private Compilation previous;
+        private Compilation? previous;
         private bool showParseTree;
         private bool showBoundTree;
         private readonly Dictionary<VariableSymbol, object> variables = new Dictionary<VariableSymbol, object>();
@@ -25,7 +25,7 @@ namespace Repl
             LoadSubmissions();
         }
 
-        protected override object RenderLine(IReadOnlyList<string> lines, int lineIndex, object state)
+        protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
         {
             SyntaxTree syntaxTree;
 

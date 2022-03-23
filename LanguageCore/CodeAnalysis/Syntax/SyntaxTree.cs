@@ -59,18 +59,12 @@ namespace LanguageCore.CodeAnalysis.Syntax
         {
             var tokens = new List<SyntaxToken>();
 
-            void ParseTokens(SyntaxTree st, out CompilationUnitSyntax root, out IReadOnlyList<Diagnostic> d)
+            void ParseTokensHandler(SyntaxTree st, out CompilationUnitSyntax root, out IReadOnlyList<Diagnostic> d)
             {
-                root = null;
-
                 var l = new Lexer(st);
                 while (true)
                 {
                     var token = l.Lex();
-                    if (token.Kind == SyntaxKind.EndOfFileToken)
-                    {
-                        root = new CompilationUnitSyntax(st, Array.Empty<MemberSyntax>(), token);
-                    }
 
                     if (token.Kind != SyntaxKind.EndOfFileToken || includeEndOfFile)
                     {
@@ -79,6 +73,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
                     if (token.Kind == SyntaxKind.EndOfFileToken)
                     {
+                        root = new CompilationUnitSyntax(st, Array.Empty<MemberSyntax>(), token);
                         break;
                     }
                 }
@@ -86,7 +81,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 d = l.Diagnostics.ToArray();
             }
 
-            var syntaxTree = new SyntaxTree(text, ParseTokens);
+            var syntaxTree = new SyntaxTree(text, ParseTokensHandler);
             diagnostics = syntaxTree.Diagnostics;
             return tokens;
         }

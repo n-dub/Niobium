@@ -205,7 +205,7 @@ namespace LanguageCore.CodeAnalysis
             Report(default, message);
         }
 
-        public void ReportRequiredTypeNotFound(string niobiumName, string metadataName)
+        public void ReportRequiredTypeNotFound(string? niobiumName, string metadataName)
         {
             var message = niobiumName == null
                 ? $"The required type '{metadataName}' cannot be resolved among the given references."
@@ -213,7 +213,7 @@ namespace LanguageCore.CodeAnalysis
             Report(default, message);
         }
 
-        public void ReportRequiredTypeAmbiguous(string niobiumName, string metadataName,
+        public void ReportRequiredTypeAmbiguous(string? niobiumName, string metadataName,
             IEnumerable<TypeDefinition> foundTypes)
         {
             var assemblyNames = foundTypes.Select(t => t.Module.Assembly.Name.Name);

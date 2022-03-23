@@ -68,7 +68,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             Type = resultType;
         }
 
-        public static BoundBinaryOperator Bind(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType)
+        public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType)
         {
             return operators.FirstOrDefault(op => op.SyntaxKind == syntaxKind
                                                   && op.LeftType == leftType

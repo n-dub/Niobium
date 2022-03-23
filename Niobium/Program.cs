@@ -15,8 +15,8 @@ namespace Niobium
     {
         public static int Main(string[] args)
         {
-            string outputPath = null;
-            string moduleName = null;
+            string? outputPath = null;
+            string? moduleName = null;
             var referencePaths = new List<string>();
             var sourcePaths = new List<string>();
             var helpRequested = false;
@@ -67,7 +67,7 @@ namespace Niobium
         }
 
         private static int RunCompilation(IReadOnlyList<string> sourcePaths, IReadOnlyList<string> referencePaths,
-            string moduleName, string outputPath)
+            string? moduleName, string? outputPath)
         {
             var syntaxTrees = new List<SyntaxTree>();
 
@@ -77,17 +77,11 @@ namespace Niobium
                 return 1;
             }
 
-            if (outputPath == null)
-            {
-                outputPath = sourcePaths.Count != 1
-                    ? Path.Combine(Path.GetDirectoryName(sourcePaths[0]) ?? ".", "a.exe")
-                    : Path.ChangeExtension(sourcePaths[0], ".exe");
-            }
+            outputPath ??= sourcePaths.Count != 1
+                ? Path.Combine(Path.GetDirectoryName(sourcePaths[0]) ?? ".", "a.exe")
+                : Path.ChangeExtension(sourcePaths[0], ".exe");
 
-            if (moduleName == null)
-            {
-                moduleName = Path.GetFileNameWithoutExtension(outputPath);
-            }
+            moduleName ??= Path.GetFileNameWithoutExtension(outputPath);
 
             var hasErrors = false;
             foreach (var sourcePath in sourcePaths)

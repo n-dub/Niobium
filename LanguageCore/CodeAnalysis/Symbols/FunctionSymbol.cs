@@ -8,10 +8,10 @@ namespace LanguageCore.CodeAnalysis.Symbols
         public override SymbolKind Kind => SymbolKind.Function;
         public IReadOnlyList<ParameterSymbol> Parameters { get; }
         public TypeSymbol Type { get; }
-        public FunctionDeclarationSyntax Declaration { get; }
+        public FunctionDeclarationSyntax? Declaration { get; }
 
         public FunctionSymbol(string name, IReadOnlyList<ParameterSymbol> parameters, TypeSymbol type,
-            FunctionDeclarationSyntax declaration = null) : base(name)
+            FunctionDeclarationSyntax? declaration = null) : base(name)
         {
             Parameters = parameters;
             Type = type;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using LanguageCore.CodeAnalysis.Binding;
 using LanguageCore.CodeAnalysis.Symbols;
 using Utilities;
@@ -13,8 +14,8 @@ namespace LanguageCore.CodeAnalysis
         private readonly Dictionary<VariableSymbol, object> globals;
         private readonly Stack<Dictionary<VariableSymbol, object>> locals;
         private readonly Random random = new Random();
-        private object lastValue;
-        private TypeSymbol lastType;
+        private object? lastValue;
+        private TypeSymbol? lastType;
 
         public Evaluator(BoundProgram program, Dictionary<VariableSymbol, object> variables)
         {
@@ -36,7 +37,7 @@ namespace LanguageCore.CodeAnalysis
             }
         }
 
-        public object Evaluate(out TypeSymbol type)
+        public object? Evaluate(out TypeSymbol? type)
         {
             var function = program.MainFunction ?? program.ScriptFunction;
             if (function == null)
@@ -49,7 +50,7 @@ namespace LanguageCore.CodeAnalysis
             return EvaluateStatement(body, out type);
         }
 
-        private object EvaluateStatement(BoundBlockStatement body, out TypeSymbol type)
+        private object? EvaluateStatement(BoundBlockStatement body, out TypeSymbol? type)
         {
             var labelToIndex = new Dictionary<BoundLabel, int>();
 
@@ -85,7 +86,7 @@ namespace LanguageCore.CodeAnalysis
                         break;
                     case BoundNodeKind.ConditionalGotoStatement:
                         var cgs = (BoundConditionalGotoStatement) s;
-                        var condition = (bool) EvaluateExpression(cgs.Condition);
+                        var condition = (bool) EvaluateExpression(cgs.Condition)!;
                         if (condition == cgs.JumpIfTrue)
                         {
                             index = labelToIndex[cgs.Label];
@@ -120,9 +121,10 @@ namespace LanguageCore.CodeAnalysis
         private void EvaluateVariableDeclaration(BoundVariableDeclarationStatement node)
         {
             var value = EvaluateExpression(node.Initializer);
+            Debug.Assert(value != null);
             lastType = node.Initializer.Type;
             lastValue = value;
-            Assign(node.Variable, value);
+            Assign(node.Variable, value!);
         }
 
         private void EvaluateExpressionStatement(BoundExpressionStatement node)
@@ -131,7 +133,7 @@ namespace LanguageCore.CodeAnalysis
             lastValue = EvaluateExpression(node.Expression);
         }
 
-        private object EvaluateExpression(BoundExpression node)
+        private object? EvaluateExpression(BoundExpression node)
         {
             if (node.ConstantValue != null)
             {
@@ -159,8 +161,8 @@ namespace LanguageCore.CodeAnalysis
 
         private object EvaluateBinaryExpression(BoundBinaryExpression binary)
         {
-            var left = EvaluateExpression(binary.Left);
-            var right = EvaluateExpression(binary.Right);
+            var left = EvaluateExpression(binary.Left)!;
+            var right = EvaluateExpression(binary.Right)!;
 
             switch (binary.Op.Kind)
             {
@@ -207,7 +209,7 @@ namespace LanguageCore.CodeAnalysis
             }
         }
 
-        private object EvaluateCallExpression(BoundCallExpression node)
+        private object? EvaluateCallExpression(BoundCallExpression node)
         {
             if (node.Function == BuiltinFunctions.ReadLine)
             {
@@ -223,8 +225,8 @@ namespace LanguageCore.CodeAnalysis
 
             if (node.Function == BuiltinFunctions.Random)
             {
-                var minValue = (int) EvaluateExpression(node.Arguments[0]);
-                var maxValue = (int) EvaluateExpression(node.Arguments[1]);
+                var minValue = (int) EvaluateExpression(node.Arguments[0])!;
+                var maxValue = (int) EvaluateExpression(node.Arguments[1])!;
                 return random.Next(minValue, maxValue);
             }
 
@@ -232,7 +234,7 @@ namespace LanguageCore.CodeAnalysis
             for (var i = 0; i < node.Arguments.Count; i++)
             {
                 var parameter = node.Function.Parameters[i];
-                var value = EvaluateExpression(node.Arguments[i]);
+                var value = EvaluateExpression(node.Arguments[i])!;
                 newLocals.Add(parameter, value);
             }
 
@@ -248,7 +250,7 @@ namespace LanguageCore.CodeAnalysis
 
         private object EvaluateAssignmentExpression(BoundAssignmentExpression assignment)
         {
-            var value = EvaluateExpression(assignment.Expression);
+            var value = EvaluateExpression(assignment.Expression)!;
             Assign(assignment.Variable, value);
             return value;
         }
@@ -266,7 +268,7 @@ namespace LanguageCore.CodeAnalysis
 
         private object EvaluateUnaryExpression(BoundUnaryExpression unary)
         {
-            var operand = EvaluateExpression(unary.Operand);
+            var operand = EvaluateExpression(unary.Operand)!;
 
             switch (unary.Op.Kind)
             {
@@ -285,10 +287,10 @@ namespace LanguageCore.CodeAnalysis
 
         private static object EvaluateConstantExpression(BoundExpression node)
         {
-            return node.ConstantValue.Value;
+            return node.ConstantValue!.Value;
         }
 
-        private object EvaluateConversionExpression(BoundConversionExpression node)
+        private object? EvaluateConversionExpression(BoundConversionExpression node)
         {
             var value = EvaluateExpression(node.Expression);
             return Convert.ChangeType(value, TypeSymbol.ToSystemType(node.Type));

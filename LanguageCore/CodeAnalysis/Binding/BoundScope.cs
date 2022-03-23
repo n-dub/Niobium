@@ -6,11 +6,11 @@ namespace LanguageCore.CodeAnalysis.Binding
 {
     internal class BoundScope
     {
-        public BoundScope Parent { get; }
+        public BoundScope? Parent { get; }
 
-        private Dictionary<string, Symbol> symbols;
+        private Dictionary<string, Symbol>? symbols;
 
-        public BoundScope(BoundScope parent)
+        public BoundScope(BoundScope? parent)
         {
             Parent = parent;
         }
@@ -35,7 +35,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             return GetDeclaredSymbols().OfType<FunctionSymbol>().ToArray();
         }
 
-        public Symbol TryLookupSymbol(string name)
+        public Symbol? TryLookupSymbol(string name)
         {
             if (symbols != null && symbols.TryGetValue(name, out var symbol))
             {
@@ -47,7 +47,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private bool TryDeclareSymbol<TSymbol>(TSymbol symbol) where TSymbol : Symbol
         {
-            symbols = symbols ?? new Dictionary<string, Symbol>();
+            symbols ??= new Dictionary<string, Symbol>();
 
             if (symbols.ContainsKey(symbol.Name))
             {

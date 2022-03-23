@@ -13,10 +13,10 @@ namespace LanguageCore.CodeAnalysis
     public sealed class Compilation
     {
         public bool IsScript { get; }
-        public Compilation Previous { get; }
+        public Compilation? Previous { get; }
 
         public IReadOnlyList<SyntaxTree> SyntaxTrees { get; }
-        public FunctionSymbol MainFunction => GlobalScope.MainFunction;
+        public FunctionSymbol? MainFunction => GlobalScope.MainFunction;
 
         public IReadOnlyList<FunctionSymbol> Functions => GlobalScope.Functions;
         public IReadOnlyList<VariableSymbol> Variables => GlobalScope.Variables;
@@ -35,9 +35,9 @@ namespace LanguageCore.CodeAnalysis
             }
         }
 
-        private BoundGlobalScope globalScope;
+        private BoundGlobalScope? globalScope;
 
-        private Compilation(bool isScript, Compilation previous, params SyntaxTree[] syntaxTrees)
+        private Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
             IsScript = isScript;
             Previous = previous;
@@ -49,7 +49,7 @@ namespace LanguageCore.CodeAnalysis
             return new Compilation(false, null, syntaxTrees);
         }
 
-        public static Compilation CreateScript(Compilation previous, params SyntaxTree[] syntaxTrees)
+        public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
             return new Compilation(true, previous, syntaxTrees);
         }

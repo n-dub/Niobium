@@ -83,7 +83,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
                 .Where(k => k.GetBinaryOperatorPrecedence() > 0);
         }
 
-        public static string GetText(SyntaxKind kind)
+        public static string? GetText(SyntaxKind kind)
         {
             switch (kind)
             {

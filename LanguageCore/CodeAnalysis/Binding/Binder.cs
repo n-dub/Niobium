@@ -6,6 +6,7 @@ using LanguageCore.CodeAnalysis.Lowering;
 using LanguageCore.CodeAnalysis.Symbols;
 using LanguageCore.CodeAnalysis.Syntax;
 using LanguageCore.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LanguageCore.CodeAnalysis.Binding
 {
@@ -19,9 +20,9 @@ namespace LanguageCore.CodeAnalysis.Binding
         private int labelCounter;
         private BoundScope scope;
         private readonly bool isScript;
-        private readonly FunctionSymbol function;
+        private readonly FunctionSymbol? function;
 
-        private Binder(bool isScript, BoundScope parent, FunctionSymbol function)
+        private Binder(bool isScript, BoundScope? parent, FunctionSymbol? function)
         {
             scope = new BoundScope(parent);
             this.isScript = isScript;
@@ -38,7 +39,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
-        public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope previous,
+        public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous,
             IReadOnlyList<SyntaxTree> syntaxTrees)
         {
             var parentScope = CreateParentScope(previous);
@@ -84,8 +85,8 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             var functions = binder.scope.GetDeclaredFunctions();
 
-            FunctionSymbol mainFunction;
-            FunctionSymbol scriptFunction;
+            FunctionSymbol? mainFunction;
+            FunctionSymbol? scriptFunction;
 
             if (isScript)
             {
@@ -103,7 +104,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 {
                     if (mainFunction.Type != TypeSymbol.Void || mainFunction.Parameters.Any())
                     {
-                        binder.Diagnostics.ReportMainMustHaveCorrectSignature(mainFunction.Declaration.Identifier
+                        binder.Diagnostics.ReportMainMustHaveCorrectSignature(mainFunction.Declaration!.Identifier
                             .Location);
                     }
                 }
@@ -112,7 +113,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 {
                     if (mainFunction != null)
                     {
-                        binder.Diagnostics.ReportCannotMixMainAndGlobalStatements(mainFunction.Declaration.Identifier
+                        binder.Diagnostics.ReportCannotMixMainAndGlobalStatements(mainFunction.Declaration!.Identifier
                             .Location);
 
                         foreach (var globalStatement in firstGlobalStatementPerSyntaxTree)
@@ -136,7 +137,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 statements);
         }
 
-        public static BoundProgram BindProgram(bool isScript, BoundProgram previous, BoundGlobalScope globalScope)
+        public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
         {
             var parentScope = CreateParentScope(globalScope);
 
@@ -152,7 +153,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             foreach (var function in globalScope.Functions)
             {
                 var binder = new Binder(isScript, parentScope, function);
-                var body = binder.BindStatement(function.Declaration.Body);
+                var body = binder.BindStatement(function.Declaration!.Body);
                 var loweredBody = Lowerer.Lower(function, body);
 
                 if (function.Type != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(loweredBody))
@@ -201,7 +202,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             foreach (var parameterSyntax in syntax.Parameters)
             {
                 var parameterName = parameterSyntax.Identifier.Text;
-                var parameterType = BindTypeClause(parameterSyntax.Type);
+                var parameterType = BindTypeClause(parameterSyntax.Type)!;
                 if (!seenParameterNames.Add(parameterName))
                 {
                     Diagnostics.ReportParameterAlreadyDeclared(parameterSyntax.Location, parameterName);
@@ -216,8 +217,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var type = BindTypeClause(syntax.Type) ?? TypeSymbol.Void;
 
             var f = new FunctionSymbol(syntax.Identifier.Text, parameters, type, syntax);
-            if (f.Declaration.Identifier.Text != null
-                && !scope.TryDeclareFunction(f))
+            if (!syntax.Identifier.IsMissing && !scope.TryDeclareFunction(f))
             {
                 Diagnostics.ReportSymbolAlreadyDeclared(syntax.Identifier.Location, f.Name);
             }
@@ -316,7 +316,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
             var body = BindLoopBody(syntax.Body, out var breakLabel, out var continueLabel);
 
-            scope = scope.Parent;
+            scope = scope.Parent!;
 
             return new BoundForStatement(variable, lowerBound, upperBound, body, breakLabel, continueLabel);
         }
@@ -371,7 +371,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 }
                 else if (expression != null)
                 {
-                    Diagnostics.ReportInvalidReturnWithValueInGlobalStatements(syntax.Expression.Location);
+                    Diagnostics.ReportInvalidReturnWithValueInGlobalStatements(syntax.Expression!.Location);
                 }
             }
             else
@@ -380,7 +380,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                 {
                     if (expression != null)
                     {
-                        Diagnostics.ReportInvalidReturnExpression(syntax.Expression.Location, function.Name);
+                        Diagnostics.ReportInvalidReturnExpression(syntax.Expression!.Location, function.Name);
                     }
                 }
                 else
@@ -391,7 +391,7 @@ namespace LanguageCore.CodeAnalysis.Binding
                     }
                     else
                     {
-                        expression = BindConversion(syntax.Expression.Location, expression, function.Type);
+                        expression = BindConversion(syntax.Expression!.Location, expression, function.Type);
                     }
                 }
             }
@@ -405,7 +405,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             var statements = syntax.Statements
                 .Select(x => BindStatement(x))
                 .ToArray();
-            scope = scope.Parent;
+            scope = scope.Parent!;
 
             return new BoundBlockStatement(statements);
         }
@@ -423,7 +423,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             return new BoundVariableDeclarationStatement(variable, convertedInitializer);
         }
 
-        private TypeSymbol BindTypeClause(TypeClauseSyntax syntax)
+        private TypeSymbol? BindTypeClause(TypeClauseSyntax? syntax)
         {
             if (syntax == null)
             {
@@ -485,7 +485,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
-        private static BoundScope CreateParentScope(BoundGlobalScope previous)
+        private static BoundScope CreateParentScope(BoundGlobalScope? previous)
         {
             var stack = new Stack<BoundGlobalScope>();
             while (previous != null)
@@ -714,7 +714,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         }
 
         private VariableSymbol BindVariableDeclaration(SyntaxToken identifier, bool isImmutable, TypeSymbol type,
-            BoundConstant constant = null)
+            BoundConstant? constant = null)
         {
             var name = identifier.Text ?? "?";
             var variable = function == null
@@ -729,7 +729,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             return variable;
         }
 
-        private VariableSymbol BindVariableReference(SyntaxToken identifierToken)
+        private VariableSymbol? BindVariableReference(SyntaxToken identifierToken)
         {
             var name = identifierToken.Text;
             var location = identifierToken.Location;
@@ -748,7 +748,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             }
         }
 
-        private TypeSymbol LookupType(string name)
+        private TypeSymbol? LookupType(string name)
         {
             return TypeSymbol.TryParse(name, out var type) ? type : null;
         }

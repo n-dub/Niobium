@@ -94,7 +94,7 @@ Meta-commands available:");
                 if (parameters.Any())
                 {
                     var spaces = new string(' ', maxNameLength + 4);
-                    var stringParams = string.Join(" ", parameters.Select(x => $"<{x.Name}>"));
+                    var stringParams = string.Join(" ", parameters.Select(x => $"<{x.Name!}>"));
                     Console.WriteLine($"  {name} {stringParams}\n{spaces}{metaCommand.Description}");
                 }
                 else
@@ -407,12 +407,7 @@ Meta-commands available:");
             view.CurrentCharacter += text.Length;
         }
 
-        protected void ClearHistory()
-        {
-            submissionHistory.Clear();
-        }
-
-        protected virtual object RenderLine(IReadOnlyList<string> lines, int lineIndex, object state)
+        protected virtual object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
         {
             Console.Write(lines[lineIndex]);
             return state;
@@ -511,7 +506,7 @@ Meta-commands available:");
 
         protected abstract void EvaluateSubmission(string text);
 
-        private delegate object LineRenderHandler(IReadOnlyList<string> lines, int lineIndex, object state);
+        private delegate object? LineRenderHandler(IReadOnlyList<string> lines, int lineIndex, object? state);
 
         [AttributeUsage(AttributeTargets.Method)]
         protected sealed class MetaCommandAttribute : Attribute
@@ -600,7 +595,7 @@ Meta-commands available:");
                 Console.CursorVisible = false;
 
                 var lineCount = 0;
-                var state = (object) null;
+                object? state = null;
 
                 foreach (var line in submissionDocument)
                 {

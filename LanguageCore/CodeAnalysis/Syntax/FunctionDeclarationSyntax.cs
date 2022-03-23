@@ -9,12 +9,12 @@
         public SyntaxToken OpenParenthesisToken { get; }
         public SeparatedSyntaxList<ParameterSyntax> Parameters { get; }
         public SyntaxToken CloseParenthesisToken { get; }
-        public TypeClauseSyntax Type { get; }
+        public TypeClauseSyntax? Type { get; }
         public BlockStatementSyntax Body { get; }
 
         public FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken funcKeyword, SyntaxToken identifier,
             SyntaxToken openParenthesisToken, SeparatedSyntaxList<ParameterSyntax> parameters,
-            SyntaxToken closeParenthesisToken, TypeClauseSyntax type, BlockStatementSyntax body)
+            SyntaxToken closeParenthesisToken, TypeClauseSyntax? type, BlockStatementSyntax body)
             : base(syntaxTree)
         {
             FuncKeyword = funcKeyword;

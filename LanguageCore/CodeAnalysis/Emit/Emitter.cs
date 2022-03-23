@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using LanguageCore.CodeAnalysis.Binding;
@@ -39,7 +40,7 @@ namespace LanguageCore.CodeAnalysis.Emit
         private readonly List<(int InstructionIndex, BoundLabel Target)> fixUps;
 
         private TypeDefinition typeDefinition;
-        private FieldDefinition randomFieldDefinition;
+        private FieldDefinition? randomFieldDefinition;
 
         private Emitter(string moduleName, IReadOnlyList<string> references)
         {
@@ -75,7 +76,7 @@ namespace LanguageCore.CodeAnalysis.Emit
                 knownTypes.Add(typeSymbol, typeReference);
             }
 
-            TypeReference ResolveType(string niobiumName, string metadataName)
+            TypeReference ResolveType(string? niobiumName, string metadataName)
             {
                 var foundTypes = assemblies.SelectMany(a => a.Modules)
                     .SelectMany(m => m.Types)
@@ -96,7 +97,7 @@ namespace LanguageCore.CodeAnalysis.Emit
                     diagnostics.ReportRequiredTypeAmbiguous(niobiumName, metadataName, foundTypes);
                 }
 
-                return null;
+                return null!;
             }
 
             MethodReference ResolveMethod(string typeName, string methodName, string[] parameterTypeNames)
@@ -137,7 +138,7 @@ namespace LanguageCore.CodeAnalysis.Emit
                     }
 
                     diagnostics.ReportRequiredMethodNotFound(typeName, methodName, parameterTypeNames);
-                    return null;
+                    return null!;
                 }
 
                 if (foundTypes.Length == 0)
@@ -149,7 +150,7 @@ namespace LanguageCore.CodeAnalysis.Emit
                     diagnostics.ReportRequiredTypeAmbiguous(null, typeName, foundTypes);
                 }
 
-                return null;
+                return null!;
             }
 
             stringConcatReferences = new MethodReference[5];
@@ -173,6 +174,17 @@ namespace LanguageCore.CodeAnalysis.Emit
             convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new[] {"System.Object"});
             convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new[] {"System.Object"});
             convertToStringReference = ResolveMethod("System.Convert", "ToString", new[] {"System.Object"});
+            
+            var objectType = knownTypes[TypeSymbol.Any];
+            if (objectType != null)
+            {
+                typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
+                assemblyDefinition.MainModule.Types.Add(typeDefinition);
+            }
+            else
+            {
+                typeDefinition = null!;
+            }
         }
 
         public static IReadOnlyList<Diagnostic> Emit(BoundProgram program, string moduleName,
@@ -193,11 +205,6 @@ namespace LanguageCore.CodeAnalysis.Emit
             {
                 return diagnostics.ToArray();
             }
-
-            var objectType = knownTypes[TypeSymbol.Any];
-            typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed,
-                objectType);
-            assemblyDefinition.MainModule.Types.Add(typeDefinition);
 
             foreach (var functionWithBody in program.Functions)
             {
@@ -383,20 +390,22 @@ namespace LanguageCore.CodeAnalysis.Emit
 
         private void EmitConstantExpression(ILProcessor ilProcessor, BoundExpression node)
         {
+            Debug.Assert(node.ConstantValue != null);
+            
             if (node.Type == TypeSymbol.Bool)
             {
-                var value = (bool) node.ConstantValue.Value;
+                var value = (bool) node.ConstantValue!.Value;
                 var instruction = value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0;
                 ilProcessor.Emit(instruction);
             }
             else if (node.Type == TypeSymbol.Int32)
             {
-                var value = (int) node.ConstantValue.Value;
+                var value = (int) node.ConstantValue!.Value;
                 ilProcessor.Emit(OpCodes.Ldc_I4, value);
             }
             else if (node.Type == TypeSymbol.String)
             {
-                var value = (string) node.ConstantValue.Value;
+                var value = (string) node.ConstantValue!.Value;
                 ilProcessor.Emit(OpCodes.Ldstr, value);
             }
             else
@@ -610,7 +619,7 @@ namespace LanguageCore.CodeAnalysis.Emit
 
             static IEnumerable<BoundExpression> FoldConstants(IEnumerable<BoundExpression> nodes)
             {
-                StringBuilder sb = null;
+                StringBuilder? sb = null;
 
                 foreach (var node in nodes)
                 {

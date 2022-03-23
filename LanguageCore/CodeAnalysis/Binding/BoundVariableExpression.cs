@@ -7,7 +7,7 @@ namespace LanguageCore.CodeAnalysis.Binding
         public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
         public VariableSymbol Variable { get; }
         public override TypeSymbol Type => Variable.Type;
-        public override BoundConstant ConstantValue => Variable.Constant;
+        public override BoundConstant? ConstantValue => Variable.Constant;
 
         public BoundVariableExpression(VariableSymbol variable)
         {

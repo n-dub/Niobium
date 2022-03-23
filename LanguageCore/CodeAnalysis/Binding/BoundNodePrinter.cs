@@ -293,7 +293,7 @@ namespace LanguageCore.CodeAnalysis.Binding
 
         private static void WriteLiteralExpression(BoundLiteralExpression node, TextWriter writer)
         {
-            var value = node.Value.ToString();
+            var value = node.Value.ToString()!;
 
             if (node.Type == TypeSymbol.Bool)
             {

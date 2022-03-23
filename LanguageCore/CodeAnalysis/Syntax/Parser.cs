@@ -196,7 +196,7 @@ namespace LanguageCore.CodeAnalysis.Syntax
             return new VariableDeclarationSyntax(syntaxTree, keyword, identifier, typeClause, equals, initializer);
         }
 
-        private TypeClauseSyntax ParseOptionalTypeClause(SyntaxKind colonOrArrow)
+        private TypeClauseSyntax? ParseOptionalTypeClause(SyntaxKind colonOrArrow)
         {
             return Current.Kind == colonOrArrow
                 ? ParseTypeClause(colonOrArrow)
@@ -215,11 +215,11 @@ namespace LanguageCore.CodeAnalysis.Syntax
             var keyword = MatchToken(SyntaxKind.IfKeyword);
             var condition = ParseExpression();
             var statement = ParseBlockStatement();
-            var elseClause = ParseElseClause();
+            var elseClause = ParseOptionalElseClause();
             return new IfStatementSyntax(syntaxTree, keyword, condition, statement, elseClause);
         }
 
-        private ElseClauseSyntax ParseElseClause()
+        private ElseClauseSyntax? ParseOptionalElseClause()
         {
             if (Current.Kind != SyntaxKind.ElseKeyword)
             {

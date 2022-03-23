@@ -31,7 +31,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
 
             var condition = new BoundBinaryExpression(
                 variableExpression,
-                BoundBinaryOperator.Bind(SyntaxKind.LessToken, TypeSymbol.Int32, TypeSymbol.Int32),
+                BoundBinaryOperator.Bind(SyntaxKind.LessToken, TypeSymbol.Int32, TypeSymbol.Int32)!,
                 new BoundVariableExpression(upperBoundSymbol)
             );
             var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
@@ -40,7 +40,7 @@ namespace LanguageCore.CodeAnalysis.Lowering
                     node.Variable,
                     new BoundBinaryExpression(
                         variableExpression,
-                        BoundBinaryOperator.Bind(SyntaxKind.PlusToken, TypeSymbol.Int32, TypeSymbol.Int32),
+                        BoundBinaryOperator.Bind(SyntaxKind.PlusToken, TypeSymbol.Int32, TypeSymbol.Int32)!,
                         new BoundLiteralExpression(1)
                     )
                 )

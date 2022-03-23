@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace LanguageCore.CodeAnalysis.Syntax
@@ -23,9 +24,9 @@ namespace LanguageCore.CodeAnalysis.Syntax
 
         public SyntaxToken GetSeparator(int index)
         {
-            if (index == Count - 1)
+            if (index < 0 || index >= Count - 1)
             {
-                return null;
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             return (SyntaxToken) nodesAndSeparators[index * 2 + 1];

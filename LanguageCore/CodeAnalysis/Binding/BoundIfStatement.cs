@@ -5,10 +5,10 @@
         public override BoundNodeKind Kind => BoundNodeKind.IfStatement;
         public BoundExpression Condition { get; }
         public BoundBlockStatement ThenStatement { get; }
-        public BoundBlockStatement ElseStatement { get; }
+        public BoundBlockStatement? ElseStatement { get; }
 
         public BoundIfStatement(BoundExpression condition, BoundBlockStatement thenStatement,
-            BoundBlockStatement elseStatement)
+            BoundBlockStatement? elseStatement)
         {
             Condition = condition;
             ThenStatement = thenStatement;

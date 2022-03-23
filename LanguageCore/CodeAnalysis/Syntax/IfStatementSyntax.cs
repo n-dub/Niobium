@@ -6,11 +6,11 @@
         public SyntaxToken IfKeyword { get; }
         public ExpressionSyntax Condition { get; }
         public BlockStatementSyntax ThenStatement { get; }
-        public ElseClauseSyntax ElseClause { get; }
+        public ElseClauseSyntax? ElseClause { get; }
 
         public IfStatementSyntax(SyntaxTree syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition,
             BlockStatementSyntax thenStatement,
-            ElseClauseSyntax elseClause)
+            ElseClauseSyntax? elseClause)
             : base(syntaxTree)
         {
             IfKeyword = ifKeyword;

@@ -34,7 +34,7 @@ namespace LanguageCore.CodeAnalysis.Binding
             Type = resultType;
         }
 
-        public static BoundUnaryOperator Bind(SyntaxKind syntaxKind, TypeSymbol operandType)
+        public static BoundUnaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol operandType)
         {
             return operators.FirstOrDefault(op => op.SyntaxKind == syntaxKind
                                                   && op.OperandType == operandType);

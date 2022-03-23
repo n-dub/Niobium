@@ -14,7 +14,7 @@ namespace LanguageCore.CodeAnalysis.IO
         public static void WriteDiagnostics(this TextWriter writer, IEnumerable<Diagnostic> diagnostics)
         {
             var splitDiagnostics = diagnostics
-                .GroupBy(x => x.Location.Text is null)
+                .GroupBy(x => x.Location.FileName == string.Empty)
                 .ToArray();
             var sourceFileDiagnostics = splitDiagnostics
                 .Where(x => !x.Key)
@@ -71,7 +71,7 @@ namespace LanguageCore.CodeAnalysis.IO
 
         public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
         {
-            writer.WriteKeyword(SyntaxFacts.GetText(kind));
+            writer.WriteKeyword(SyntaxFacts.GetText(kind)!);
         }
 
         public static void WriteKeyword(this TextWriter writer, string text)
@@ -113,7 +113,7 @@ namespace LanguageCore.CodeAnalysis.IO
 
         public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
         {
-            writer.WritePunctuation(SyntaxFacts.GetText(kind));
+            writer.WritePunctuation(SyntaxFacts.GetText(kind)!);
         }
 
         public static void WritePunctuation(this TextWriter writer, string text)
